@@ -1,5 +1,5 @@
 import { ScraperRequest } from './request';
-import { ScraperStrategy, ShopifyStrategy, UniversalStrategy, WooCommerceStrategy } from './strategies';
+import { ScraperStrategy, ShopifyStrategy, UniversalStrategy, WooCommerceStrategy } from './strategies/index';
 
 // Singleton manager for scraper engine
 export class ScraperEngine {
@@ -22,10 +22,16 @@ export class ScraperEngine {
     }
 
     async execute(request: ScraperRequest): Promise<any> {
-        const strategy = this.strategies.find((strategy) => strategy.match(request.url));
-        if (!strategy) {
-            throw new Error('No matching strategy found');
+        // Iterate through strategies sequentially and scrape if a match is found
+        for (const strategy of this.strategies) {
+            const result = await strategy.match(request.url);
+            if (result.isMatch) {
+                console.log(`Using strategy: ${strategy.name}`);
+                return strategy.scrape(request);
+            }
         }
-        return strategy.scrape(request);
+
+        console.error(`No matching strategy found for ${request.url}`);
+        throw new Error('No matching strategy found');
     }
 }
