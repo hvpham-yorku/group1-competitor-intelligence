@@ -6,12 +6,13 @@ export const httpClient = {
         try {
             const response = await fetch(url, config);
             return response;
-        } catch (error) {
+        } catch (error: any) {
             console.error(`HTTP request failed: ${url}`, error);
+            const isNetworkError = error.message?.includes('fetch') || error.code === 'ENOTFOUND' || error.name === 'TypeError';
             return {
                 ok: false,
-                status: 500,
-                statusText: 'Internal Error',
+                status: isNetworkError ? 503 : 500,
+                statusText: isNetworkError ? 'Domain could not be reached' : 'Internal Error',
                 json: async () => ({}),
                 text: async () => ''
             } as Response;

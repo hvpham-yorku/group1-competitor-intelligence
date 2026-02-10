@@ -22,16 +22,31 @@ export class ScraperEngine {
     }
 
     async execute(request: ScraperRequest): Promise<any> {
+        const errors: string[] = [];
+
         // Iterate through strategies sequentially and scrape if a match is found
         for (const strategy of this.strategies) {
-            const result = await strategy.match(request.url);
-            if (result.isMatch) {
-                console.log(`Using strategy: ${strategy.name}`);
-                return strategy.scrape(request);
+            try {
+                const result = await strategy.match(request.url);
+                if (result.isMatch) {
+                    console.log(`Using strategy: ${strategy.name}`);
+                    return strategy.scrape(request);
+                }
+                if (result.error) {
+                    errors.push(`${strategy.name}: ${result.error}`);
+                }
+            } catch (err: any) {
+                errors.push(`${strategy.name}: ${err.message}`);
             }
         }
 
-        console.error(`No matching strategy found for ${request.url}`);
-        throw new Error('No matching strategy found');
+        // If no match found, analyze errors to provide a better message
+        const unreachable = errors.some(e => e.includes('Domain could not be reached'));
+        if (unreachable) {
+            throw new Error('Domain could not be reached. Please check the URL and your connection.');
+        }
+
+        console.error(`No matching strategy found for ${request.url}`, errors);
+        throw new Error('This site format is not currently supported or the products could not be found.');
     }
 }

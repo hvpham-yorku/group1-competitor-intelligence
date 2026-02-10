@@ -3,7 +3,8 @@ import { ScraperRequest } from '../request';
 
 export interface MatchResult {
     isMatch: boolean;
-    data?: any; // data saved here if match is found
+    data?: any; // first batch of data saved here if match is found
+    error?: string; // Optional error message
 }
 
 export interface ScraperStrategy {

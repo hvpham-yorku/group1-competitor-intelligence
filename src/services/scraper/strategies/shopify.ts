@@ -15,6 +15,7 @@ export const ShopifyStrategy: ScraperStrategy = {
         }
         return {
             isMatch: false,
+            error: response.status === 404 ? 'Resource not found' : response.statusText,
             data: {}
         };
     },
