@@ -19,6 +19,8 @@ export const metadata: Metadata = {
 
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
+import { SessionProvider } from "next-auth/react";
+import SessionWrapper from "./session_wrapper";
 
 export default function RootLayout({
   children,
@@ -29,7 +31,9 @@ export default function RootLayout({
     <html lang="en" className="dark">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+        >
+
+        <SessionWrapper>      
         <SidebarProvider>
           <AppSidebar />
           <SidebarInset>
@@ -41,6 +45,7 @@ export default function RootLayout({
             </div>
           </SidebarInset>
         </SidebarProvider>
+        </SessionWrapper>
       </body>
     </html>
   );
