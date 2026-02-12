@@ -62,8 +62,8 @@ const applicationItems = [
 
 const systemItems = [
     {
-        title: "Logs",
-        url: "/logs",
+        title: "History",
+        url: "/history",
         icon: FileText,
     },
     {
