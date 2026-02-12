@@ -1,10 +1,16 @@
-export default function LogsPage() {
-    return (
-        <div className="flex flex-col gap-4">
-            <h1 className="text-2xl font-bold">System Logs</h1>
-            <div className="h-[200px] rounded-xl border border-dashed flex items-center justify-center text-muted-foreground">
-                System logs coming soon...
-            </div>
-        </div>
-    )
+import { getServerSession } from "next-auth";
+import { authOptions } from "../api/auth/[...nextauth]/route";
+import LogsClient from "./logs-client";
+
+export default async function LogsPage() {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session) {
+        return null; // logged out => show nothing
+    }
+    return <LogsClient />;
+  } catch {
+    // If JWT decryption fails, treat as logged out and show nothing
+    return null;
+  }
 }

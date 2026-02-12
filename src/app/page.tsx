@@ -27,7 +27,24 @@ export default function Home() {
     try {
       const scraperEngine = ScraperEngine.getInstance();
       const data = await scraperEngine.execute(new ScraperRequest(inputUrl));
-      setResult(data.products || data);
+
+      const products = data.products || data;
+      setResult(products);
+
+      // Save scrape run only if logged in
+      if (MySession) {
+        fetch("/api/scrapes", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            url: inputUrl,
+            products,
+          }),
+        }).catch(() => {
+          // ignore save errors
+        });
+      }
+
     } catch (err: any) {
       setError(err.message || 'Failed to fetch data');
     } finally {
