@@ -20,7 +20,40 @@ export const ShopifyStrategy: ScraperStrategy = {
         };
     },
     scrape: async (req: ScraperRequest) => {
-        const response = await httpClient.get(req.url + "/products.json");
-        return response.json();
+        let allProducts: any[] = [];
+        let page = 1;
+        let hasMore = true;
+        const limit = 250;
+
+        while (hasMore) {
+            const url = `${req.url}/products.json?page=${page}&limit=${limit}`;
+            const response = await httpClient.get(url);
+
+            if (!response.ok) {
+                console.error(`Error fetching Shopify page ${page}: ${response.statusText}`);
+                break;
+            }
+
+            const data = await response.json();
+            const products = data.products || [];
+
+            if (products.length > 0) {
+                allProducts = allProducts.concat(products);
+                page++;
+
+                // Be respectful of rate limits
+                await new Promise(resolve => setTimeout(resolve, 100));
+            } else {
+                hasMore = false;
+            }
+
+            // Safety break for extremely large stores or potential infinite loops
+            if (page > 50) { // Cap at 12,500 products for now
+                console.warn('Reached maximum page limit (50) for Shopify scraping');
+                break;
+            }
+        }
+
+        return { products: allProducts };
     }
 };
