@@ -1,13 +1,13 @@
-// This file implementation is a migration from ./ProductGrid.tsx from ag-grid to MantineTable (using tanstack table)
-// An LLM (claude opus 4.6) was used to perform the migration, given context of the legacy grid, as well as mantinetable docs
+// This file implementation is a migration from ./ProductGridLegacy.tsx. from ag-grid to MantineTable (built on tanstack table)
+// An LLM (Claude Opus 4.6) was used to perform the migration, given context of the legacy grid, as well as mantinetable docs
 // prompt: given the context, perform a migration with the exact functionality of the previous implementation
 // further edits were made regarding styling and row expansion behaviour
 // - Yousif
 
 "use client"
 
-import { useMemo, type FC } from "react"
-import { MantineReactTable, type MRT_ColumnDef, useMantineReactTable } from "mantine-react-table"
+import { useMemo, useState, type FC } from "react"
+import { MantineReactTable, type MRT_ColumnDef, type MRT_ColumnFiltersState, useMantineReactTable } from "mantine-react-table"
 import { MantineProvider } from "@mantine/core"
 import { ChevronRight, ChevronDown } from "lucide-react"
 
@@ -40,6 +40,8 @@ export const ProductGrid: FC<ProductGridProps> = ({ products, sourceUrl }) => {
             return p;
         });
     }, [products, sourceUrl]);
+
+    const [columnFilters, setColumnFilters] = useState<MRT_ColumnFiltersState>([]);
 
     const columns = useMemo<MRT_ColumnDef<any>[]>(
         () => [
@@ -102,7 +104,6 @@ export const ProductGrid: FC<ProductGridProps> = ({ products, sourceUrl }) => {
                     if (minPrice === maxPrice) return `$${minPrice.toFixed(2)}`;
                     return `$${minPrice.toFixed(2)} - $${maxPrice.toFixed(2)}`;
                 },
-                filterVariant: 'range',
             },
             {
                 accessorKey: 'product_type',
@@ -153,7 +154,7 @@ export const ProductGrid: FC<ProductGridProps> = ({ products, sourceUrl }) => {
 
     const table = useMantineReactTable({
         columns,
-        data: enrichedProducts,
+        data: enrichedProducts || [],
         enableExpanding: true,
         enableExpandAll: false,
         getRowCanExpand: (row) => (row.original.variants?.length || 0) > 1,
@@ -235,11 +236,20 @@ export const ProductGrid: FC<ProductGridProps> = ({ products, sourceUrl }) => {
                 </div>
             );
         },
-        enableColumnFilters: true,
+        enableColumnActions: true,
+        enableHiding: true,
+        enableFullScreenToggle: true,
+        enableDensityToggle: false,
         enableFilters: true,
+        enableColumnFilters: true,
+        enableGlobalFilter: false,
         enableSorting: true,
         enablePagination: true,
         enableStickyHeader: true,
+        onColumnFiltersChange: setColumnFilters,
+        state: {
+            columnFilters,
+        },
         mantineTableContainerProps: {
             sx: {
                 maxHeight: '500px',
@@ -309,17 +319,8 @@ export const ProductGrid: FC<ProductGridProps> = ({ products, sourceUrl }) => {
     });
 
     return (
-        <MantineProvider
-            withGlobalStyles
-            withNormalizeCSS
-            theme={{
-                colorScheme: 'dark',
-                primaryColor: 'cyan',
-            }}
-        >
-            <div className="h-[600px] w-full mb-12">
-                <MantineReactTable table={table} />
-            </div>
-        </MantineProvider>
+        <div className="h-[600px] w-full mb-12">
+            <MantineReactTable table={table} />
+        </div>
     );
 };
