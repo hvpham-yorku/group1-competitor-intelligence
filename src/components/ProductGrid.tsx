@@ -360,11 +360,11 @@ export const ProductGrid: FC<ProductGridProps> = ({ products, sourceUrl }) => {
         },
         mantineTableContainerProps: {
             sx: {
-                maxHeight: '500px',
+                // Removed maxHeight to allow natural expansion
             },
         },
         initialState: {
-            pagination: { pageSize: 20, pageIndex: 0 },
+            pagination: { pageSize: 5, pageIndex: 0 },
             density: 'xs',
         },
         mantineTableProps: {

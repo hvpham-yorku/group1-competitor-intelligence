@@ -1,4 +1,4 @@
-import { ScraperStrategy } from './interface';
+import { ScraperStrategy, ProgressCallback } from './interface';
 import { ScraperRequest } from '../request';
 
 export const UniversalStrategy: ScraperStrategy = {
@@ -10,7 +10,7 @@ export const UniversalStrategy: ScraperStrategy = {
             data: {}
         };
     },
-    scrape: async (req: ScraperRequest) => {
+    scrape: async (req: ScraperRequest, onProgress?: ProgressCallback) => {
         console.log('Universal strategy', req);
         return {};
     }

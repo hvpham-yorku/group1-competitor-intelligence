@@ -1,5 +1,5 @@
 import { ScraperRequest } from './request';
-import { ScraperStrategy, ShopifyStrategy, UniversalStrategy, WooCommerceStrategy } from './strategies/index';
+import { ScraperStrategy, ShopifyStrategy, UniversalStrategy, WooCommerceStrategy, ProgressCallback } from './strategies/index';
 
 // Singleton manager for scraper engine
 export class ScraperEngine {
@@ -21,7 +21,7 @@ export class ScraperEngine {
         return ScraperEngine.instance;
     }
 
-    async execute(request: ScraperRequest): Promise<any> {
+    async execute(request: ScraperRequest, onProgress?: ProgressCallback): Promise<any> {
         const errors: string[] = [];
 
         // Iterate through strategies sequentially and scrape if a match is found
@@ -30,7 +30,7 @@ export class ScraperEngine {
                 const result = await strategy.match(request.url);
                 if (result.isMatch) {
                     console.log(`Using strategy: ${strategy.name}`);
-                    return strategy.scrape(request);
+                    return strategy.scrape(request, onProgress);
                 }
                 if (result.error) {
                     errors.push(`${strategy.name}: ${result.error}`);
