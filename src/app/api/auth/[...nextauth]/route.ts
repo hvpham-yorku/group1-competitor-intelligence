@@ -53,9 +53,12 @@ export const authOptions: NextAuthOptions = {
         }
 
         // If everything is valid, return basic user info
+        //console.log({foundUser});
+        //console.log(foundUser.username);
         return {
+          name: foundUser.username,
           id: String(foundUser.id),
-          email: foundUser.email,
+          email: foundUser.email, 
         };
       },
     }),
