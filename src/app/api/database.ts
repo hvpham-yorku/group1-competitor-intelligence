@@ -1,7 +1,7 @@
 import sqlite3 from "sqlite3";
 
 export const SqliteDB = new sqlite3.Database(
-  "sqlite_database.db",
+  "database/sqlite_database.db",
   sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE,
   (err) => {
     if (err) {
