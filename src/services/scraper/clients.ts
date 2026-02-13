@@ -3,6 +3,7 @@
  */
 export const httpClient = {
     get: async (url: string, config?: any) => {
+        console.log(`HTTP GET: ${url}`);
         try {
             const response = await fetch(url, config);
             return response;

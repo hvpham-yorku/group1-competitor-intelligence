@@ -68,6 +68,7 @@ export default function LogsClient() {
   const pageSize = 5
 
   const [query, setQuery] = useState("")
+  const [debouncedQuery, setDebouncedQuery] = useState("")
   const [page, setPage] = useState(1)
 
   const [loading, setLoading] = useState(false)
@@ -128,10 +129,18 @@ export default function LogsClient() {
     }
   }
 
+  // Debounce query changes
   useEffect(() => {
-    fetchSites(query, page)
+    const timer = setTimeout(() => {
+      setDebouncedQuery(query)
+    }, 500)
+    return () => clearTimeout(timer)
+  }, [query])
+
+  useEffect(() => {
+    fetchSites(debouncedQuery, page)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query, page])
+  }, [debouncedQuery, page])
 
   const ensureRunLoaded = async (runId: number) => {
     if (productsByRunId[runId]) {
