@@ -1,74 +1,16 @@
-// Grid structure taken from ag-grid example from docs:
-// https://github.com/ag-grid/ag-grid-demos/blob/main/inventory/react/src/InventoryExample.tsx
+// This file implementation is a migration from ./ProductGrid.tsx from ag-grid to MantineTable (using tanstack table)
+// An LLM (claude opus 4.6) was used to perform the migration, given context of the legacy grid, as well as mantinetable docs
+// prompt: given the context, perform a migration with the exact functionality of the previous implementation
+// further edits were made regarding styling and row expansion behaviour
+// - Yousif
 
 "use client"
 
+import { useMemo, type FC } from "react"
+import { MantineReactTable, type MRT_ColumnDef, useMantineReactTable } from "mantine-react-table"
+import { MantineProvider } from "@mantine/core"
+import { ChevronRight, ChevronDown } from "lucide-react"
 
-import { useMemo, type FC, useCallback } from "react"
-import { AgGridReact } from "ag-grid-react"
-import { type ColDef, type SizeColumnsToFitGridStrategy, ModuleRegistry, AllCommunityModule, themeQuartz, colorSchemeDark } from "ag-grid-community"
-import { MasterDetailModule, ExcelExportModule, SetFilterModule, MultiFilterModule } from "ag-grid-enterprise"
-
-
-ModuleRegistry.registerModules([
-    AllCommunityModule,
-    MasterDetailModule,
-    ExcelExportModule,
-    SetFilterModule,
-    MultiFilterModule,
-]);
-
-// to use myTheme in an application, pass it to the theme grid option
-const myTheme = themeQuartz
-    .withPart(colorSchemeDark)
-    .withParams({
-        accentColor: "#15BDE8",
-        backgroundColor: "#0C0C0D",
-        borderColor: "#ffffff00",
-        borderRadius: 20,
-        browserColorScheme: "dark",
-        cellHorizontalPaddingScale: 1,
-        chromeBackgroundColor: {
-            ref: "backgroundColor"
-        },
-        columnBorder: false,
-        fontFamily: "Arial, sans-serif",
-        fontSize: 16,
-        foregroundColor: "#BBBEC9",
-        headerBackgroundColor: "#171717",
-        headerFontSize: 14,
-        headerFontWeight: 500,
-        headerTextColor: "#FFFFFF",
-        headerVerticalPaddingScale: 0.9,
-        iconSize: 20,
-        rowBorder: false,
-        rowVerticalPaddingScale: 1.2,
-        sidePanelBorder: false,
-        spacing: 8,
-        wrapperBorder: false,
-        wrapperBorderRadius: 0
-    });
-
-const ProductCellRenderer: FC<any> = (params) => {
-    const imageUrl = params.data?.images?.[0]?.src
-    return (
-        <div className="flex items-center gap-3 py-2">
-            {imageUrl ? (
-                <img
-                    src={imageUrl}
-                    alt={params.data?.title || "Product"}
-                    className="h-10 w-10 object-cover rounded shadow-sm border border-white/10"
-                />
-            ) : (
-                <div className="h-10 w-10 bg-muted rounded flex items-center justify-center text-[10px] text-muted-foreground border border-white/5">N/A</div>
-            )}
-            <div className="flex flex-col">
-                <span className="font-medium text-sm leading-tight">{params.data?.title}</span>
-                <span className="text-xs text-muted-foreground italic">{params.data?.product_type}</span>
-            </div>
-        </div>
-    )
-}
 
 interface ProductGridProps {
     products: any[];
@@ -99,44 +41,59 @@ export const ProductGrid: FC<ProductGridProps> = ({ products, sourceUrl }) => {
         });
     }, [products, sourceUrl]);
 
-    const isRowMaster = useCallback((dataItem: any) => {
-        return dataItem ? dataItem.variants?.length > 1 : false;
-    }, []);
-
-    const columnDefs = useMemo<ColDef[]>(
+    const columns = useMemo<MRT_ColumnDef<any>[]>(
         () => [
             {
-                field: "title",
-                headerName: "Product Name",
-                flex: 3,
-                filter: "agTextColumnFilter",
-                floatingFilter: true,
-                cellRenderer: "agGroupCellRenderer",
-                cellRendererParams: {
-                    innerRenderer: ProductCellRenderer,
+                accessorKey: 'title',
+                header: 'Product Name',
+                size: 320,
+                Cell: ({ row }) => {
+                    const imageUrl = row.original?.images?.[0]?.src;
+                    return (
+                        <div className="flex items-center gap-3 py-2">
+                            {imageUrl ? (
+                                <img
+                                    src={imageUrl}
+                                    alt={row.original?.title || "Product"}
+                                    className="h-10 w-10 object-cover rounded shadow-sm border border-white/10"
+                                />
+                            ) : (
+                                <div className="h-10 w-10 bg-muted rounded flex items-center justify-center text-[10px] text-muted-foreground border border-white/5">
+                                    N/A
+                                </div>
+                            )}
+                            <div className="flex flex-col">
+                                <span className="font-medium text-sm leading-tight">{row.original?.title}</span>
+                                <span className="text-xs text-muted-foreground italic">{row.original?.product_type}</span>
+                            </div>
+                        </div>
+                    );
                 },
-                minWidth: 320,
             },
             {
-                field: "vendor",
-                headerName: "Vendor",
-                flex: 1,
-                filter: "agTextColumnFilter",
-                floatingFilter: true,
-                cellClass: "text-muted-foreground"
+                accessorKey: 'vendor',
+                header: 'Vendor',
+                size: 150,
+                Cell: ({ cell }) => (
+                    <span className="text-muted-foreground">{cell.getValue() as string}</span>
+                ),
             },
             {
-                field: "variants",
-                headerName: "Price",
-                valueGetter: (params: any) => {
-                    const variants = params.data?.variants || [];
+                id: 'price',
+                header: 'Price',
+                size: 160,
+                accessorFn: (row) => {
+                    const variants = row.variants || [];
                     if (variants.length === 0) return 0;
                     const prices = variants.map((v: any) => parseFloat(v.price)).filter((p: any) => !isNaN(p));
                     return prices.length > 0 ? Math.min(...prices) : 0;
                 },
-                valueFormatter: (params: any) => {
-                    const variants = params.data?.variants || [];
-                    if (variants.length <= 1) return `$${params.value?.toFixed(2) || "0.00"}`;
+                Cell: ({ row }) => {
+                    const variants = row.original?.variants || [];
+                    if (variants.length <= 1) {
+                        const price = variants[0]?.price || 0;
+                        return `$${parseFloat(price).toFixed(2)}`;
+                    }
 
                     const prices = variants.map((v: any) => parseFloat(v.price)).filter((p: any) => !isNaN(p));
                     const minPrice = Math.min(...prices);
@@ -145,144 +102,224 @@ export const ProductGrid: FC<ProductGridProps> = ({ products, sourceUrl }) => {
                     if (minPrice === maxPrice) return `$${minPrice.toFixed(2)}`;
                     return `$${minPrice.toFixed(2)} - $${maxPrice.toFixed(2)}`;
                 },
-                width: 160,
-                filter: "agNumberColumnFilter",
-                floatingFilter: true,
+                filterVariant: 'range',
             },
             {
-                field: "product_type",
-                headerName: "Type",
-                flex: 1,
-                filter: "agTextColumnFilter",
-                floatingFilter: true,
+                accessorKey: 'product_type',
+                header: 'Type',
+                size: 150,
             },
             {
-                headerName: "Availability",
-                width: 140,
-                valueGetter: (params: any) => {
-                    const variants = params.data?.variants || [];
+                id: 'availability',
+                header: 'Availability',
+                size: 140,
+                accessorFn: (row) => {
+                    const variants = row.variants || [];
                     if (variants.length === 0) return "N/A";
 
                     const statuses = new Set(variants.map((v: any) => v.available ? "In Stock" : "Out of Stock"));
 
-                    // Only show "Mixed" if availability actually differs among variants
                     if (statuses.size > 1) return "Mixed";
 
-                    // If all variants have the same status, show that status
                     const status = statuses.values().next().value;
 
-                    // For single variant products, show actual stock level if available
                     if (variants.length === 1 && variants[0].inventory_quantity !== undefined) {
                         return variants[0].inventory_quantity > 0 ? variants[0].inventory_quantity : "Out of Stock";
                     }
 
                     return status;
                 },
-                cellRenderer: (params: any) => {
-                    const value = params.value;
-                    let colorClass = "text-green-500";
+                Cell: ({ cell }) => {
+                    const value = cell.getValue() as string | number;
+                    let colorClass = "text-emerald-400/50";
 
                     if (value === "Mixed") {
-                        colorClass = "text-orange-400";
+                        colorClass = "text-amber-400/60";
                     } else if (value === "Out of Stock" || value === 0) {
-                        colorClass = "text-red-500";
+                        colorClass = "text-rose-400/50";
                     }
 
                     return (
-                        <div className="flex items-center h-full">
-                            <span className={`text-sm font-semibold ${colorClass}`}>
-                                {value}
-                            </span>
-                        </div>
+                        <span className={`text-sm font-medium ${colorClass}`}>
+                            {value}
+                        </span>
                     );
                 },
-                filter: false,
+                enableColumnFilter: false,
             },
         ],
         []
-    )
+    );
 
-    const detailCellRendererParams = useMemo(() => {
-        return {
-            detailGridOptions: {
-                columnDefs: [
-                    { field: 'title', headerName: 'Variant', flex: 2 },
-                    {
-                        field: 'price',
-                        headerName: 'Price',
-                        width: 120,
-                        valueFormatter: (params: any) => `$${parseFloat(params.value).toFixed(2)}`
-                    },
-                    { field: 'sku', headerName: 'SKU', flex: 1 },
-                    {
-                        field: 'inventory_quantity',
-                        headerName: 'Inventory',
-                        width: 120,
-                        valueGetter: (params: any) => {
-                            // Shopify sometimes uses inventory_quantity, sometimes available
-                            return params.data.inventory_quantity ?? (params.data.available ? "In Stock" : "Out of Stock");
-                        },
-                        cellClass: (params: any) => {
-                            if (typeof params.value === 'number') {
-                                return params.value > 0 ? "text-green-400" : "text-red-400";
-                            }
-                            return params.value === "In Stock" ? "text-green-400" : "text-red-400";
-                        }
-                    }
-                ],
-                defaultColDef: {
-                    flex: 1,
-                    sortable: true,
-                    resizable: true,
+    const table = useMantineReactTable({
+        columns,
+        data: enrichedProducts,
+        enableExpanding: true,
+        enableExpandAll: false,
+        getRowCanExpand: (row) => (row.original.variants?.length || 0) > 1,
+        displayColumnDefOptions: {
+            'mrt-row-expand': {
+                size: 60,
+                Cell: ({ row }) => {
+                    const variantCount = row.original.variants?.length || 0;
+                    if (variantCount <= 1) return null;
+
+                    return (
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                row.toggleExpanded();
+                            }}
+                            style={{
+                                cursor: 'pointer',
+                                background: 'none',
+                                border: 'none',
+                                padding: '4px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                width: '100%',
+                                color: '#FFFFFF',
+                            }}
+                        >
+                            {row.getIsExpanded() ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
+                        </button>
+                    );
                 },
-                headerHeight: 40,
+                mantineTableHeadCellProps: {
+                    sx: {
+                        width: '60px',
+                        minWidth: '60px',
+                        maxWidth: '60px',
+                    }
+                },
+                mantineTableBodyCellProps: {
+                    sx: {
+                        width: '60px',
+                        minWidth: '60px',
+                        maxWidth: '60px',
+                    }
+                },
             },
-            getDetailRowData: (params: any) => {
-                params.successCallback(params.data.variants);
+        },
+        renderDetailPanel: ({ row }) => {
+            const variants = row.original.variants || [];
+            if (variants.length <= 1) return null;
+
+            return (
+                <div className="bg-white/[0.02] px-6 py-3 border-t border-white/5">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                        {variants.map((variant: any, idx: number) => (
+                            <div
+                                key={idx}
+                                className="p-3 rounded-md border border-white/10 bg-white/[0.02]"
+                            >
+                                <div className="text-sm font-medium mb-2 truncate">{variant.title}</div>
+                                <div className="space-y-1 text-xs text-muted-foreground">
+                                    <div>Price: <span className="text-foreground">${parseFloat(variant.price).toFixed(2)}</span></div>
+                                    {variant.sku && <div>SKU: <span className="text-foreground font-mono">{variant.sku}</span></div>}
+                                    <div>
+                                        Stock: {' '}
+                                        <span className={
+                                            typeof variant.inventory_quantity === 'number'
+                                                ? variant.inventory_quantity > 0 ? "text-emerald-400/50" : "text-rose-400/50"
+                                                : variant.available ? "text-emerald-400/50" : "text-rose-400/50"
+                                        }>
+                                            {variant.inventory_quantity ?? (variant.available ? "In Stock" : "Out of Stock")}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        },
+        enableColumnFilters: true,
+        enableFilters: true,
+        enableSorting: true,
+        enablePagination: true,
+        enableStickyHeader: true,
+        mantineTableContainerProps: {
+            sx: {
+                maxHeight: '500px',
             },
-        };
-    }, []);
-
-    const defaultColDef = useMemo<ColDef>(
-        () => ({
-            resizable: true,
-            sortable: true,
-            filter: true,
+        },
+        initialState: {
+            pagination: { pageSize: 20, pageIndex: 0 },
+            density: 'xs',
+        },
+        mantineTableProps: {
+            highlightOnHover: true,
+            striped: false,
+            verticalSpacing: 'xs',
+            horizontalSpacing: 'xs',
+            fontSize: 'sm',
+            sx: {
+                borderCollapse: 'collapse',
+                borderSpacing: 0,
+            },
+        },
+        mantineTableBodyRowProps: ({ row }) => ({
+            onClick: () => {
+                if (row.original?.product_url) {
+                    window.open(row.original.product_url, '_blank');
+                }
+            },
+            sx: {
+                cursor: 'pointer',
+            },
         }),
-        []
-    )
-
-    const autoSizeStrategy = useMemo<SizeColumnsToFitGridStrategy>(
-        () => ({
-            type: "fitGridWidth",
-        }),
-        []
-    )
+        mantinePaperProps: {
+            sx: {
+                backgroundColor: '#0C0C0D',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                borderRadius: '0.5rem',
+                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+            },
+        },
+        mantineTableHeadCellProps: {
+            sx: {
+                backgroundColor: '#171717',
+                color: '#FFFFFF',
+                fontSize: '14px',
+                fontWeight: 500,
+                borderBottom: 'none',
+            },
+        },
+        mantineTableBodyCellProps: {
+            sx: {
+                color: '#BBBEC9',
+                fontSize: '16px',
+                borderBottom: 'none',
+            },
+        },
+        mantineTopToolbarProps: {
+            sx: {
+                backgroundColor: '#0C0C0D',
+                borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+            },
+        },
+        mantineBottomToolbarProps: {
+            sx: {
+                backgroundColor: '#0C0C0D',
+                borderTop: '1px solid rgba(255, 255, 255, 0.05)',
+            },
+        },
+    });
 
     return (
-        <div className="h-[600px] w-full rounded-lg overflow-hidden border border-white/10 shadow-2xl [&_.ag-row]:cursor-pointer">
-            <AgGridReact
-                theme={myTheme}
-                columnDefs={columnDefs}
-                rowData={enrichedProducts}
-                defaultColDef={defaultColDef}
-                autoSizeStrategy={autoSizeStrategy}
-                pagination
-                paginationPageSize={20}
-                paginationPageSizeSelector={[10, 20, 50, 100]}
-                rowHeight={70}
-                animateRows
-                domLayout="normal"
-                masterDetail={true}
-                isRowMaster={isRowMaster}
-                detailCellRendererParams={detailCellRendererParams}
-                detailRowHeight={250}
-                onRowClicked={(params) => {
-                    if (params.data?.product_url) {
-                        window.open(params.data.product_url, '_blank');
-                    }
-                }}
-            />
-        </div>
-    )
-}
+        <MantineProvider
+            withGlobalStyles
+            withNormalizeCSS
+            theme={{
+                colorScheme: 'dark',
+                primaryColor: 'cyan',
+            }}
+        >
+            <div className="h-[600px] w-full mb-12">
+                <MantineReactTable table={table} />
+            </div>
+        </MantineProvider>
+    );
+};
