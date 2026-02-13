@@ -4,18 +4,30 @@
 // further edits were made regarding styling and row expansion behaviour
 // - Yousif
 
+// The export to csv was based on https://www.mantine-react-table.com/docs/examples/export-csv implementation
+// - Abdelrahman 
 "use client"
 
 import { useMemo, useState, type FC } from "react"
-import { MantineReactTable, type MRT_ColumnDef, type MRT_ColumnFiltersState, useMantineReactTable } from "mantine-react-table"
+import { MantineReactTable, type MRT_ColumnDef, type MRT_ColumnFiltersState, MRT_Row, useMantineReactTable } from "mantine-react-table"
 import { MantineProvider } from "@mantine/core"
 import { ChevronRight, ChevronDown } from "lucide-react"
-
+import { download, generateCsv, mkConfig } from "export-to-csv"
+import { Box, Button } from '@mantine/core';
+import { IconDownload } from '@tabler/icons-react';
+import { availableMemory } from "process"
 
 interface ProductGridProps {
     products: any[];
     sourceUrl?: string;
 }
+
+const csvConfig = mkConfig({
+    fieldSeparator: ',',
+    decimalSeparator: '.',
+    useKeysAsHeaders: true,
+    showColumnHeaders: false
+});
 
 export const ProductGrid: FC<ProductGridProps> = ({ products, sourceUrl }) => {
     // Enrich products on the spot in the UI
@@ -152,11 +164,107 @@ export const ProductGrid: FC<ProductGridProps> = ({ products, sourceUrl }) => {
         []
     );
 
+    function ExtractInformationFromRowsToExport(Rows: MRT_Row<any>[]){
+        
+        let Result: any[] = [{title: "Title", variant: "Variant Name", price: "Price", availablity: "Availablity"}];
+        for(let i = 0; i < Rows.length; i++){
+            const Title = Rows[i].original.title;
+            const Variants : any[] = Rows[i].original.variants;
+            for(let VariantIndex = 0; VariantIndex < Variants.length; VariantIndex++){
+                const SecondTitle = Rows[i].original.variants[VariantIndex].title;
+                const Price = Rows[i].original.variants[VariantIndex].price;
+                Result.push({title: Title, variant: SecondTitle, price: Price, availablity: Rows[i].original.variants[VariantIndex].available == true? "In Stock" : "Out of Stock"});        
+            }
+        }
+        return Result;
+    }
+    function ExtractInformationFromProductsToExport(Rows: MRT_Row<any>[]){
+        
+        let Result: any[] = [{title: "Title", variant: "Variant Name", price: "Price", availablity: "Availablity"}];
+        for(let i = 0; i < Rows.length; i++){
+            const Title = Rows[i].title;
+            const Variants : any[] = Rows[i].variants;
+            for(let VariantIndex = 0; VariantIndex < Variants.length; VariantIndex++){
+                const SecondTitle = Rows[i].variants[VariantIndex].title;
+                const Price = Rows[i].variants[VariantIndex].price;
+                Result.push({title: Title, variant: SecondTitle, price: Price, availablity: Rows[i].variants[VariantIndex].available == true? "In Stock" : "Out of Stock"});        
+            }
+        }
+        return Result;
+    }
+
+    const handleExportRows = (rows: MRT_Row<any>[]) => {
+      
+        const rowData = ExtractInformationFromRowsToExport(rows);//rows.map((row) => {return {title: row.original.title}});
+        //console.log({rowData})
+        const csv = generateCsv(csvConfig)(rowData);
+        download(csvConfig)(csv);
+    };
+
+    const handleExportData = () => {
+        console.log({products})
+        const rowData = ExtractInformationFromProductsToExport(products);
+        const csv = generateCsv(csvConfig)(rowData);
+        download(csvConfig)(csv);
+    };
+
     const table = useMantineReactTable({
         columns,
         data: enrichedProducts || [],
         enableExpanding: true,
         enableExpandAll: false,
+        enableRowSelection: true,
+        renderTopToolbarCustomActions: ({ table }) => (
+            <Box
+                sx={{
+                display: 'flex',
+                gap: '16px',
+                padding: '8px',
+                flexWrap: 'wrap',
+                }}
+            >
+                <Button
+                color="lightblue"
+                //export all data that is currently in the table (ignore pagination, sorting, filtering, etc.)
+                onClick={handleExportData}
+                leftIcon={<IconDownload />}
+                variant="filled"
+                >
+                Export All Data
+                </Button>
+                <Button
+                disabled={table.getPrePaginationRowModel().rows.length === 0}
+                //export all rows, including from the next page, (still respects filtering and sorting)
+                onClick={() =>
+                    handleExportRows(table.getPrePaginationRowModel().rows)
+                }
+                leftIcon={<IconDownload />}
+                variant="filled"
+                >
+                Export All Rows
+                </Button>
+                <Button
+                disabled={table.getRowModel().rows.length === 0}
+                //export all rows as seen on the screen (respects pagination, sorting, filtering, etc.)
+                onClick={() => handleExportRows(table.getRowModel().rows)}
+                leftIcon={<IconDownload />}
+                variant="filled"
+                >
+                Export Page Rows
+                </Button>
+                <Button
+                disabled={
+                    !table.getIsSomeRowsSelected() && !table.getIsAllRowsSelected()
+                }
+                //only export selected rows
+                onClick={() => handleExportRows(table.getSelectedRowModel().rows)}
+                leftIcon={<IconDownload />}
+                variant="filled"
+                >
+                Export Selected Rows
+                </Button>
+            </Box>
+            ),
         getRowCanExpand: (row) => (row.original.variants?.length || 0) > 1,
         displayColumnDefOptions: {
             'mrt-row-expand': {

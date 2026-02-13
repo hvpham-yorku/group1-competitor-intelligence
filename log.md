@@ -5,7 +5,7 @@
 **Project**: Competitor Intelligence
 **Members**:
 - Yousif Al-dakoki
-
+- Abdelrahman Eissa
 ## Meeting Minutes
 
 
