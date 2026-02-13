@@ -1,4 +1,4 @@
-import { ScraperStrategy } from './interface';
+import { ScraperStrategy, ProgressCallback } from './interface';
 import { ScraperRequest } from '../request';
 import { httpClient } from '../clients';
 
@@ -6,7 +6,7 @@ export const ShopifyStrategy: ScraperStrategy = {
     name: 'Shopify',
     description: 'Extracts data from Shopify stores using JSON endpoints',
     match: async (url) => {
-        const response = await httpClient.get(url + "/products.json");
+        const response = await httpClient.get(url + "/products.json?limit=250");
         if (response.ok) {
             return {
                 isMatch: true,
@@ -19,13 +19,18 @@ export const ShopifyStrategy: ScraperStrategy = {
             data: {}
         };
     },
-    scrape: async (req: ScraperRequest) => {
+    scrape: async (req: ScraperRequest, onProgress?: ProgressCallback) => {
         let allProducts: any[] = [];
         let page = 1;
         let hasMore = true;
         const limit = 250;
 
         while (hasMore) {
+            onProgress?.({
+                page,
+                count: allProducts.length,
+                message: `Fetching products from page ${page}...`
+            });
             const url = `${req.url}/products.json?page=${page}&limit=${limit}`;
             const response = await httpClient.get(url);
 
@@ -47,8 +52,8 @@ export const ShopifyStrategy: ScraperStrategy = {
                 hasMore = false;
             }
 
-            // Safety break for extremely large stores or potential infinite loops
-            if (page > 50) { // Cap at 12,500 products for now
+            // Safety break 
+            if (page > 50) {
                 console.warn('Reached maximum page limit (50) for Shopify scraping');
                 break;
             }

@@ -1,4 +1,4 @@
-import { ScraperStrategy } from './interface';
+import { ScraperStrategy, ProgressCallback } from './interface';
 import { ScraperRequest } from '../request';
 import { httpClient } from '../clients';
 
@@ -19,7 +19,8 @@ export const WooCommerceStrategy: ScraperStrategy = {
             data: {}
         };
     },
-    scrape: async (req: ScraperRequest) => {
+    scrape: async (req: ScraperRequest, onProgress?: ProgressCallback) => {
+        onProgress?.({ message: 'Fetching WooCommerce products...' });
         const response = await httpClient.get(req.url + "/wp-json/wc/store/v1/products");
         return response.json();
     }

@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input"
 import { useState, useEffect } from "react"
 import { ScraperEngine } from "@/services/scraper/engine";
 import { ScraperRequest } from "@/services/scraper/request";
+import { ScrapeProgress } from "@/services/scraper/strategies/interface";
 import { Sparkles, Clock } from "lucide-react";
 import { ProductGrid } from "@/components/ProductGrid";
 import { useSession } from "next-auth/react";
@@ -15,6 +16,7 @@ export default function Home() {
   const [result, setResult] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [progress, setProgress] = useState<ScrapeProgress | null>(null);
   const [recentUrls, setRecentUrls] = useState<string[]>([]);
 
   const { data: MySession, status } = useSession();
@@ -42,7 +44,9 @@ export default function Home() {
 
     try {
       const scraperEngine = ScraperEngine.getInstance();
-      const data = await scraperEngine.execute(new ScraperRequest(inputUrl));
+      const data = await scraperEngine.execute(new ScraperRequest(inputUrl), (p) => {
+        setProgress(p);
+      });
 
       const products = data.products || data;
       setResult(products);
@@ -65,6 +69,7 @@ export default function Home() {
       setError(err.message || 'Failed to fetch data');
     } finally {
       setLoading(false);
+      setProgress(null);
     }
   };
 
@@ -114,7 +119,14 @@ export default function Home() {
           </div>
         )}
 
-        {loading && <div className="text-sm text-muted-foreground">Analyzing store...</div>}
+        {loading && (
+          <div className="text-sm text-muted-foreground animate-pulse">
+            {progress?.message || 'Analyzing store...'}
+            {progress?.count !== undefined && progress.count > 0 && (
+              <span className="ml-2 font-medium">({progress.count} products found so far)</span>
+            )}
+          </div>
+        )}
         {error && <div className="text-sm text-red-500">{error}</div>}
 
         {result && (
