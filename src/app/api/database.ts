@@ -13,11 +13,13 @@ export const SqliteDB = new sqlite3.Database(
 );
 
 SqliteDB.serialize(() => {
+  //SqliteDB.run(`DROP TABLE users`);
   SqliteDB.run(
     `CREATE TABLE IF NOT EXISTS users(
       id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
       email TEXT NOT NULL UNIQUE,
-      password TEXT NOT NULL
+      password TEXT NOT NULL,
+      username TEXT NOT NULL UNIQUE
     )`
   );
 

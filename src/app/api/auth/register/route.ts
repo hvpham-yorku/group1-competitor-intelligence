@@ -4,12 +4,12 @@ import {SqliteDB} from "../../database"
 
 export async function POST(reguest: Request){
     try{
-        const {email, password} = await reguest.json();
-        console.log({email, password});
+        const {email, password, username} = await reguest.json();
+        console.log({email, password, username});
 
         const HashedPassword = await hash(password, 10);
         const Response = await SqliteDB.serialize(()=>{
-            SqliteDB.run(`INSERT INTO users(email,password) VALUES(?, ?)`, [email, HashedPassword]);
+            SqliteDB.run(`INSERT INTO users(email,password, username) VALUES(?, ?, ?)`, [email, HashedPassword, username]);
         });
     }catch(e){
         console.log({ e });
