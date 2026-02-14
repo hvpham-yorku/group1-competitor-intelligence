@@ -24,7 +24,7 @@
 - Set up initial user story map for iteration 0
 
 ### **Meeting 2: Sprint Planning & Kickoff**
-* **Date:** Monday, Feb 3rd
+* **Date:** Tuesday, Feb 3rd
 * **Time:** 6:00 PM - 7:00 PM
 * **Agenda:**
     * Review project requirements and Vision Statement.
@@ -40,6 +40,21 @@
     * Begin researching Shopify scraping logic.
     * Set up the database schema for Price History.
     * Handle system architecture documentation and Wiki setup.
+ 
+### **Meeting 3: Mid-Sprint Check-in**
+* **Date:** Tuesday, Feb 10th
+* **Time:** 7:30 PM - 8:45 PM
+* **Agenda:**
+    * Review progress on Scrapers and Auth.
+    * Discuss "Scope Creep" regarding the scraping engine.
+    * **New Task:** Discussed adding a "CSV Export" feature requested by potential users.
+* **Updates:**
+    * Auth is functional.
+    * Scraping is harder than expected due to anti-bot protections.
+    * Architecture diagram needed immediately for the report.
+* **Changes to Plan:**
+    * Added **SCRUM-28 (Export to CSV)** to the sprint as a "Quick Win" feature.
+    * Added **SCRUM-27 (Username Database)** to fix a bug where user profiles weren't saving correctly.
 
 ---
 
