@@ -75,6 +75,7 @@
 | **SCRUM-23** | Add ability to add/retrieve account info | 2h | 3h | Done |
 | **SCRUM-24** | Add login/register frontend (Client Side) | 3h | 2.5h | Done |
 | **SCRUM-27** | Add username to DB & update accounts page | 1h | 1h | Done |
+| **SCRUM-34** | Login Page and Register Page UI | 2.5h | 3h | Done |
 
 **User Story 2: Documentation & Architecture**
 *(Internal Tasks)*
