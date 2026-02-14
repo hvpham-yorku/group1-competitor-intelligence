@@ -39,6 +39,12 @@ export default function Form() {
                         className="px-4 py-2 rounded-full border border-grey-600 bg-grey-900 text-white focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-0"
                     />
                     <input
+                        name="username"
+                        type="username"
+                        placeholder="Username"
+                        className="px-4 py-2 rounded-full border border-grey-600 bg-grey-900 text-white focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-0"
+                    />
+                    <input
                         name="password"
                         type="password"
                         placeholder="Password"

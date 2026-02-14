@@ -31,9 +31,9 @@ export async function GET(request: Request) {
          WHERE user_id = ? AND id = ?`,
         [currentUserId, scrapeId],
         (error, result) => {
-          if (error){
+          if (error) {
             return reject(error);
-          } 
+          }
           resolve(result);
         }
       );
@@ -44,6 +44,21 @@ export async function GET(request: Request) {
       return NextResponse.json({ message: "Not found" }, { status: 404 });
     }
 
+    // NEW: Fetch the previous run for the same URL to allow historical comparison
+    const previousRun: any = await new Promise((resolve, reject) => {
+      SqliteDB.get(
+        `SELECT products_json 
+         FROM scrapes 
+         WHERE user_id = ? AND url = ? AND id < ? 
+         ORDER BY id DESC LIMIT 1`,
+        [currentUserId, scrapeRecord.url, scrapeId],
+        (error, result) => {
+          if (error) return reject(error);
+          resolve(result);
+        }
+      );
+    });
+
     // Send the scrape data back
     return NextResponse.json({
       id: scrapeRecord.id,
@@ -53,6 +68,8 @@ export async function GET(request: Request) {
         scrapeRecord.products_json || "[]",
         []
       ),
+      // Include previous products for comparison if available
+      previousProducts: previousRun ? safeJsonParse<any[]>(previousRun.products_json || "[]", []) : null
     });
   } catch (error) {
     console.error("Error getting scrape:", error);

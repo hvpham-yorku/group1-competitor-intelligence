@@ -5,6 +5,7 @@ import { ProductGrid } from "@/components/ProductGrid"
 import { Trash2, X, ChevronDown, ChevronUp } from "lucide-react"
 import { SearchBar } from "@/components/SearchBar"
 import { Button } from "@/components/ui/button"
+import { useDebounce } from "@/hooks/use-debounce"
 
 type Run = { id: number; created_at: string }
 
@@ -68,7 +69,7 @@ export default function LogsClient() {
   const pageSize = 5
 
   const [query, setQuery] = useState("")
-  const [debouncedQuery, setDebouncedQuery] = useState("")
+  const debouncedQuery = useDebounce(query, 500)
   const [page, setPage] = useState(1)
 
   const [loading, setLoading] = useState(false)
@@ -128,14 +129,6 @@ export default function LogsClient() {
       setLoading(false)
     }
   }
-
-  // Debounce query changes
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedQuery(query)
-    }, 500)
-    return () => clearTimeout(timer)
-  }, [query])
 
   useEffect(() => {
     fetchSites(debouncedQuery, page)
