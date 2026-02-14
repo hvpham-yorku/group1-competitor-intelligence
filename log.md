@@ -23,6 +23,24 @@
 **Action Items**
 - Set up initial user story map for iteration 0
 
+### **Meeting 2: Sprint Planning & Kickoff**
+* **Date:** Monday, Feb 3rd
+* **Time:** 6:00 PM - 7:00 PM
+* **Agenda:**
+    * Review project requirements and Vision Statement.
+    * Select technology stack (Next.js vs. React + Python).
+    * Define Epics and create initial backlog items.
+    * Assign initial tasks for the "Walking Skeleton" (MVP).
+* **Decisions Made:**
+    * **Tech Stack:** Agreed to use **Next.js (App Router)** for both frontend and backend to keep the codebase unified.
+    * **Database:** Selected **SQLite** for local development simplicity, to be migrated to Postgres if needed later.
+    
+* **Action Items:**
+    * Set up User Auth (NextAuth).
+    * Begin researching Shopify scraping logic.
+    * Set up the database schema for Price History.
+    * Handle system architecture documentation and Wiki setup.
+
 ---
 
 ## 2. Big Stories & User Stories (Sprint 1)
