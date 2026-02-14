@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 };
 
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/app-sidebar";
+import { AppSidebar } from "@/components/AppSidebar";
 import { SessionProvider } from "next-auth/react";
 import SessionWrapper from "./session_wrapper";
 import { AuthButton } from "@/components/AuthButton";
