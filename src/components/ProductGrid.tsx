@@ -10,17 +10,25 @@
 
 import { useMemo, useState, type FC } from "react"
 import { MantineReactTable, type MRT_ColumnDef, type MRT_ColumnFiltersState, MRT_Row, useMantineReactTable } from "mantine-react-table"
+<<<<<<< HEAD
+import { MantineProvider, useMantineTheme, Box } from "@mantine/core"
+import { ChevronRight, ChevronDown } from "lucide-react"
+import { download, generateCsv, mkConfig } from "export-to-csv"
+import { IconDownload } from '@tabler/icons-react';
+=======
 import { MantineProvider, useMantineTheme } from "@mantine/core"
 import { ChevronRight, ChevronDown } from "lucide-react"
 import { download, generateCsv, mkConfig } from "export-to-csv"
 import { Box } from '@mantine/core';
 import { IconDownload } from '@tabler/icons-react';
 import { availableMemory } from "process"
+>>>>>>> abc110fcc79a65c07e83b2850263e00e2377259a
 import { Button } from "./ui/button"
 
 interface ProductGridProps {
     products: any[];
     sourceUrl?: string;
+    showCompetitor?: boolean;
 }
 
 const csvConfig = mkConfig({
@@ -165,37 +173,37 @@ export const ProductGrid: FC<ProductGridProps> = ({ products, sourceUrl }) => {
         []
     );
 
-    function ExtractInformationFromRowsToExport(Rows: MRT_Row<any>[]){
-        
-        let Result: any[] = [{title: "Title", variant: "Variant Name", price: "Price", availablity: "Availablity"}];
-        for(let i = 0; i < Rows.length; i++){
+    function ExtractInformationFromRowsToExport(Rows: MRT_Row<any>[]) {
+
+        let Result: any[] = [{ title: "Title", variant: "Variant Name", price: "Price", availablity: "Availablity" }];
+        for (let i = 0; i < Rows.length; i++) {
             const Title = Rows[i].original.title;
-            const Variants : any[] = Rows[i].original.variants;
-            for(let VariantIndex = 0; VariantIndex < Variants.length; VariantIndex++){
+            const Variants: any[] = Rows[i].original.variants;
+            for (let VariantIndex = 0; VariantIndex < Variants.length; VariantIndex++) {
                 const SecondTitle = Rows[i].original.variants[VariantIndex].title;
                 const Price = Rows[i].original.variants[VariantIndex].price;
-                Result.push({title: Title, variant: SecondTitle, price: Price, availablity: Rows[i].original.variants[VariantIndex].available == true? "In Stock" : "Out of Stock"});        
+                Result.push({ title: Title, variant: SecondTitle, price: Price, availablity: Rows[i].original.variants[VariantIndex].available == true ? "In Stock" : "Out of Stock" });
             }
         }
         return Result;
     }
-    function ExtractInformationFromProductsToExport(Rows: MRT_Row<any>[]){
-        
-        let Result: any[] = [{title: "Title", variant: "Variant Name", price: "Price", availablity: "Availablity"}];
-        for(let i = 0; i < Rows.length; i++){
+    function ExtractInformationFromProductsToExport(Rows: any[]) {
+
+        let Result: any[] = [{ title: "Title", variant: "Variant Name", price: "Price", availablity: "Availablity" }];
+        for (let i = 0; i < Rows.length; i++) {
             const Title = Rows[i].title;
-            const Variants : any[] = Rows[i].variants;
-            for(let VariantIndex = 0; VariantIndex < Variants.length; VariantIndex++){
+            const Variants: any[] = Rows[i].variants;
+            for (let VariantIndex = 0; VariantIndex < Variants.length; VariantIndex++) {
                 const SecondTitle = Rows[i].variants[VariantIndex].title;
                 const Price = Rows[i].variants[VariantIndex].price;
-                Result.push({title: Title, variant: SecondTitle, price: Price, availablity: Rows[i].variants[VariantIndex].available == true? "In Stock" : "Out of Stock"});        
+                Result.push({ title: Title, variant: SecondTitle, price: Price, availablity: Rows[i].variants[VariantIndex].available == true ? "In Stock" : "Out of Stock" });
             }
         }
         return Result;
     }
 
     const handleExportRows = (rows: MRT_Row<any>[]) => {
-      
+
         const rowData = ExtractInformationFromRowsToExport(rows);//rows.map((row) => {return {title: row.original.title}});
         //console.log({rowData})
         const csv = generateCsv(csvConfig)(rowData);
@@ -203,7 +211,7 @@ export const ProductGrid: FC<ProductGridProps> = ({ products, sourceUrl }) => {
     };
 
     const handleExportData = () => {
-        console.log({products})
+        console.log({ products })
         const rowData = ExtractInformationFromProductsToExport(products);
         const csv = generateCsv(csvConfig)(rowData);
         download(csvConfig)(csv);
@@ -223,13 +231,48 @@ export const ProductGrid: FC<ProductGridProps> = ({ products, sourceUrl }) => {
         renderTopToolbarCustomActions: ({ table }) => (
             <Box
                 sx={{
-                display: 'flex',
-                gap: '16px',
-                padding: '8px',
-                flexWrap: 'wrap',
+                    display: 'flex',
+                    gap: '16px',
+                    padding: '8px',
+                    flexWrap: 'wrap',
                 }}
             >
                 <Button
+<<<<<<< HEAD
+                    //export all data that is currently in the table (ignore pagination, sorting, filtering, etc.)
+                    onClick={handleExportData}
+                >
+                    <IconDownload />
+                    Export All Data
+                </Button>
+                <Button
+                    disabled={table.getPrePaginationRowModel().rows.length === 0}
+                    //export all rows, including from the next page, (still respects filtering and sorting)
+                    onClick={() =>
+                        handleExportRows(table.getPrePaginationRowModel().rows)
+                    }
+                >
+                    <IconDownload />
+                    Export All Rows
+                </Button>
+                <Button
+                    disabled={table.getRowModel().rows.length === 0}
+                    //export all rows as seen on the screen (respects pagination, sorting, filtering, etc.)
+                    onClick={() => handleExportRows(table.getRowModel().rows)}
+                >
+                    <IconDownload />
+                    Export Page Rows
+                </Button>
+                <Button
+                    disabled={
+                        !table.getIsSomeRowsSelected() && !table.getIsAllRowsSelected()
+                    }
+                    //only export selected rows
+                    onClick={() => handleExportRows(table.getSelectedRowModel().rows)}
+                >
+                    <IconDownload />
+                    Export Selected Rows
+=======
                 //color="lightblue"
                 //export all data that is currently in the table (ignore pagination, sorting, filtering, etc.)
                 onClick={handleExportData}
@@ -256,9 +299,10 @@ export const ProductGrid: FC<ProductGridProps> = ({ products, sourceUrl }) => {
                 >
                 <IconDownload />
                 Export Selected Rows
+>>>>>>> abc110fcc79a65c07e83b2850263e00e2377259a
                 </Button>
-            </Box>
-            ),
+            </Box >
+        ),
         getRowCanExpand: (row) => (row.original.variants?.length || 0) > 1,
         displayColumnDefOptions: {
             'mrt-row-expand': {
@@ -360,6 +404,9 @@ export const ProductGrid: FC<ProductGridProps> = ({ products, sourceUrl }) => {
         initialState: {
             pagination: { pageSize: 5, pageIndex: 0 },
             density: 'xs',
+            columnVisibility: {
+                product_type: false,
+            },
         },
         mantineTableProps: {
             highlightOnHover: true,
@@ -423,8 +470,13 @@ export const ProductGrid: FC<ProductGridProps> = ({ products, sourceUrl }) => {
     return (
         <div className="h-[600px] w-full mb-12">
             <MantineProvider theme={{ ...globalTheme, primaryColor: 'blue' }}>
+<<<<<<< HEAD
+                <MantineReactTable table={table} />
+            </MantineProvider>
+=======
             <MantineReactTable table={table} />
      </MantineProvider>
+>>>>>>> abc110fcc79a65c07e83b2850263e00e2377259a
         </div>
     );
 };
