@@ -1,10 +1,14 @@
+import { ProductsClient } from "./products-client"
+
 export default function ProductsPage() {
     return (
-        <div className="flex flex-col gap-4">
-            <h1 className="text-2xl font-bold">Products</h1>
-            <div className="h-[200px] rounded-xl border border-dashed flex items-center justify-center text-muted-foreground">
-                Products management content coming soon...
+        <div className="flex flex-col gap-6 p-4">
+            <div>
+                <h1 className="text-3xl font-bold tracking-tight">Products Catalog</h1>
+                <p className="text-muted-foreground">Unified intelligence across all monitored competitor stores. (Analytics coming soon)</p>
             </div>
+
+            <ProductsClient />
         </div>
     )
 }
