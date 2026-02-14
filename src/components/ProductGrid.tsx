@@ -10,19 +10,10 @@
 
 import { useMemo, useState, type FC } from "react"
 import { MantineReactTable, type MRT_ColumnDef, type MRT_ColumnFiltersState, MRT_Row, useMantineReactTable } from "mantine-react-table"
-<<<<<<< HEAD
 import { MantineProvider, useMantineTheme, Box } from "@mantine/core"
 import { ChevronRight, ChevronDown } from "lucide-react"
 import { download, generateCsv, mkConfig } from "export-to-csv"
 import { IconDownload } from '@tabler/icons-react';
-=======
-import { MantineProvider, useMantineTheme } from "@mantine/core"
-import { ChevronRight, ChevronDown } from "lucide-react"
-import { download, generateCsv, mkConfig } from "export-to-csv"
-import { Box } from '@mantine/core';
-import { IconDownload } from '@tabler/icons-react';
-import { availableMemory } from "process"
->>>>>>> abc110fcc79a65c07e83b2850263e00e2377259a
 import { Button } from "./ui/button"
 
 interface ProductGridProps {
@@ -238,7 +229,6 @@ export const ProductGrid: FC<ProductGridProps> = ({ products, sourceUrl }) => {
                 }}
             >
                 <Button
-<<<<<<< HEAD
                     //export all data that is currently in the table (ignore pagination, sorting, filtering, etc.)
                     onClick={handleExportData}
                 >
@@ -272,34 +262,6 @@ export const ProductGrid: FC<ProductGridProps> = ({ products, sourceUrl }) => {
                 >
                     <IconDownload />
                     Export Selected Rows
-=======
-                //color="lightblue"
-                //export all data that is currently in the table (ignore pagination, sorting, filtering, etc.)
-                onClick={handleExportData}
-                >
-                    <IconDownload />
-                    Export All Data
-                </Button>
-                <Button
-                disabled={table.getRowModel().rows.length === 0}
-                //export all rows as seen on the screen (respects pagination, sorting, filtering, etc.)
-                onClick={() => handleExportRows(table.getRowModel().rows)}
-                //variant="filled"
-                >
-                <IconDownload />
-                Export Page Rows
-                </Button>
-                <Button
-                disabled={
-                    !table.getIsSomeRowsSelected() && !table.getIsAllRowsSelected()
-                }
-                //only export selected rows
-                onClick={() => handleExportRows(table.getSelectedRowModel().rows)}
-                //variant="filled"
-                >
-                <IconDownload />
-                Export Selected Rows
->>>>>>> abc110fcc79a65c07e83b2850263e00e2377259a
                 </Button>
             </Box >
         ),
@@ -470,13 +432,8 @@ export const ProductGrid: FC<ProductGridProps> = ({ products, sourceUrl }) => {
     return (
         <div className="h-[600px] w-full mb-12">
             <MantineProvider theme={{ ...globalTheme, primaryColor: 'blue' }}>
-<<<<<<< HEAD
                 <MantineReactTable table={table} />
             </MantineProvider>
-=======
-            <MantineReactTable table={table} />
-     </MantineProvider>
->>>>>>> abc110fcc79a65c07e83b2850263e00e2377259a
         </div>
     );
 };
