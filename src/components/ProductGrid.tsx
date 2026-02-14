@@ -1,4 +1,4 @@
-// This file implementation is a migration from ./ProductGridLegacy.tsx. from ag-grid to MantineTable (built on tanstack table)
+// This file implementation is a migration from old ProductGrid.tsx which is based on https://github.com/ag-grid/ag-grid-demos/blob/main/inventory/react/src/InventoryExample.tsx, migrating from ag-grid to MantineTable (built on tanstack table)
 // An LLM (Claude Opus 4.6) was used to perform the migration, given context of the legacy grid, as well as mantinetable docs
 // prompt: given the context, perform a migration with the exact functionality of the previous implementation
 // further edits were made regarding styling and row expansion behaviour
