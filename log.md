@@ -116,4 +116,63 @@
 
 ---
 
+## 3. Task Assignments & Story Points (Sprint 1)
+
+### User Authentication & Account Management  
+*(Big Story: SCRUM-22)*
+
+| Task ID  | Task Name                                | Story Points | Status |
+|---------|-------------------------------------------|-------------:|--------|
+| SCRUM-23 | Add / Retrieve Account Info               | 3            | Done   |
+| SCRUM-24 | Login / Register Frontend                 | 3            | Done   |
+| SCRUM-27 | Add Username to Database                  | 1            | Done   |
+| SCRUM-34 | Login Page and Register Page UI           | 1            | Done   |
+
+---
+
+### Competitor Data Ingestion & Scraping Engine  
+*(Big Story: SCRUM-4)*
+
+| Task ID  | Task Name                                            | Story Points | Status |
+|---------|-------------------------------------------------------|-------------:|--------|
+| SCRUM-8  | Scrape Competitor Product Price (Shopify / JSON)      | 5            | Done   |
+| SCRUM-9  | Normalize & Store Scraped Product Data                | 3            | Done   |
+| SCRUM-14 | Manual Competitor Configuration                       | 3            | Done   |
+| SCRUM-20 | Implement Universal LLM + HTML-Based Scraping         | 5            | Deprioritized |
+| SCRUM-10 | Schedule Periodic Scraping (Cron / Worker)            | 5            | Deprioritized |
+
+---
+
+### Competitive Intelligence & Analytics Platform  
+*(Big Story: SCRUM-5)*
+
+| Task ID  | Task Name                                           | Story Points | Status |
+|---------|------------------------------------------------------|-------------:|--------|
+| SCRUM-11 | Store and Query Price History                        | 3            | Done   |
+| SCRUM-12 | Price History and Data View (Basic UI)               | 3            | Done   |
+| SCRUM-28 | Export Product Data to CSV                           | 1            | Done   |
+| SCRUM-36 | Graphing and Historical Price Trends of Products     | 4            | Backlog |
+
+---
+
+### Pricing Decision Intelligence & Simulation Engine  
+*(Big Story: SCRUM-6)*
+
+| Task ID  | Task Name                                           | Story Points | Status |
+|---------|------------------------------------------------------|-------------:|--------|
+| SCRUM-15 | Pricing Engine Scaffolding                           | 4            | Deprioritized |
+| SCRUM-35 | Dynamic Pricing Integration with Ecommerce Services  | 7            | Backlog |
+| SCRUM-38 | Advanced Pricing Modelling: Demand Elasticity        | 6            | Backlog |
+
+
+---
+
+### Alerts, Integrations & Merchant Workflow  
+*(Big Story: SCRUM-7)*
+
+| Task ID  | Task Name                                           | Story Points | Status |
+|---------|------------------------------------------------------|-------------:|--------|
+| SCRUM-13 | Detect Price Changes Between Scrapes                 | 5            | Deprioritized |
+| SCRUM-37 | Live Alerts of Product Pricing and Metadata Changes  | 4.5          | Backlog |
+
 
