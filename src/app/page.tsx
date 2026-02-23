@@ -1,33 +1,48 @@
 "use client"
-import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
 import { useState, useEffect } from "react"
-import { ScraperEngine } from "@/services/scraper/engine";
-import { ScraperRequest } from "@/services/scraper/request";
-import { ScrapeProgress } from "@/services/scraper/strategies/interface";
 import { Sparkles, Clock } from "lucide-react";
 import { ProductGrid } from "@/components/ProductGrid";
 import { useSession } from "next-auth/react";
 import { SearchBar } from "@/components/SearchBar";
+import type { ScrapeProgress } from "@/services/scraper/strategies/interface";
+import type { NormalizedProduct } from "@/services/scraper/normalized-types";
+
+type ScrapesSitesResponse = {
+  sites?: Array<{ url?: string }>;
+};
+
+type ScrapeRunResponse = {
+  message?: string;
+  products?: unknown[];
+  reason?: string;
+  attempts?: Array<{
+    strategy?: string;
+    status?: number;
+    endpoint?: string;
+    error?: string;
+  }>;
+};
 
 export default function Home() {
   const [inputUrl, setInputUrl] = useState('');
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<NormalizedProduct[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [progress, setProgress] = useState<ScrapeProgress | null>(null);
   const [recentUrls, setRecentUrls] = useState<string[]>([]);
+  const [progress, setProgress] = useState<ScrapeProgress | null>(null);
 
-  const { data: MySession, status } = useSession();
+  const { data: MySession } = useSession();
 
   // Fetch recent URLs
   useEffect(() => {
     if (MySession) {
       fetch('/api/scrapes/sites?page=1&pageSize=5')
         .then(res => res.json())
-        .then(data => {
-          const urls = (data.sites || []).map((site: any) => site.url);
+        .then((data: ScrapesSitesResponse) => {
+          const urls = (data.sites || [])
+            .map((site) => site.url)
+            .filter((url): url is string => typeof url === "string" && url.length > 0);
           setRecentUrls(urls);
         })
         .catch(() => {
@@ -43,30 +58,43 @@ export default function Home() {
     setResult(null);
 
     try {
-      const scraperEngine = ScraperEngine.getInstance();
-      const data = await scraperEngine.execute(new ScraperRequest(inputUrl), (p) => {
-        setProgress(p);
-      });
+      const streamUrl = `/api/scrapes/run/stream?url=${encodeURIComponent(inputUrl)}`;
 
-      const products = data.products || data;
-      setResult(products);
+      await new Promise<void>((resolve, reject) => {
+        const source = new EventSource(streamUrl);
 
-      // Save scrape run only if logged in
-      if (MySession) {
-        fetch("/api/scrapes", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            url: inputUrl,
-            products,
-          }),
-        }).catch(() => {
-          // ignore save errors
+        source.addEventListener("progress", (event) => {
+          const data = JSON.parse((event as MessageEvent).data) as ScrapeProgress;
+          setProgress(data);
         });
-      }
 
-    } catch (err: any) {
-      setError(err.message || 'Failed to fetch data');
+        source.addEventListener("done", (event) => {
+          const data = JSON.parse((event as MessageEvent).data) as ScrapeRunResponse;
+          const products = Array.isArray(data.products) ? (data.products as NormalizedProduct[]) : [];
+          setResult(products);
+          source.close();
+          resolve();
+        });
+
+        source.addEventListener("error", (event) => {
+          try {
+            const data = JSON.parse((event as MessageEvent).data) as ScrapeRunResponse;
+            if (Array.isArray(data.attempts) && data.attempts.length > 0) {
+              console.warn("Scrape failed with diagnostics", {
+                reason: data.reason,
+                attempts: data.attempts,
+              });
+            }
+            reject(new Error(data.message || "Failed to fetch data"));
+          } catch {
+            reject(new Error("Failed to fetch data"));
+          } finally {
+            source.close();
+          }
+        });
+      });
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch data');
     } finally {
       setLoading(false);
       setProgress(null);
@@ -121,8 +149,8 @@ export default function Home() {
 
         {loading && (
           <div className="text-sm text-muted-foreground animate-pulse">
-            {progress?.message || 'Analyzing store...'}
-            {progress?.count !== undefined && progress.count > 0 && (
+            {progress?.message || "Analyzing store..."}
+            {typeof progress?.count === "number" && progress.count > 0 && (
               <span className="ml-2 font-medium">({progress.count} products found so far)</span>
             )}
           </div>

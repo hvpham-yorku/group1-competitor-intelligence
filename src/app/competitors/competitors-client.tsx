@@ -7,17 +7,60 @@ import { Button } from "@/components/ui/button"
 import { Loader2, ExternalLink, Package } from "lucide-react"
 import { ProductGrid } from "@/components/ProductGrid"
 
+type SiteProduct = {
+    variants?: Array<{ price?: string }>
+    platform?: string
+    raw?: Record<string, unknown>
+    product_url?: string
+}
+
+type SiteSummary = {
+    url: string
+    latestRun?: {
+        created_at?: string
+        products?: SiteProduct[]
+    }
+}
+
+function getPlatformBadgeLabel(products: unknown[]): string {
+    const first = products[0]
+    const firstRecord = first && typeof first === "object" ? (first as Record<string, unknown>) : {}
+
+    const directPlatform = firstRecord.platform
+    if (typeof directPlatform === "string" && directPlatform.trim().length > 0) {
+        return directPlatform.toUpperCase()
+    }
+
+    const raw = firstRecord.raw && typeof firstRecord.raw === "object"
+        ? (firstRecord.raw as Record<string, unknown>)
+        : {}
+
+    if (raw.prices) {
+        return "WOOCOMMERCE"
+    }
+
+    const productUrl = typeof firstRecord.product_url === "string" ? firstRecord.product_url : ""
+    if (productUrl.includes("/products/")) {
+        return "SHOPIFY"
+    }
+    if (productUrl.includes("/product/") || productUrl.includes("/shop/")) {
+        return "WOOCOMMERCE"
+    }
+
+    return "UNKNOWN"
+}
+
 export function CompetitorsClient() {
     const [loading, setLoading] = React.useState(true)
-    const [sites, setSites] = React.useState<any[]>([])
-    const [selectedSite, setSelectedSite] = React.useState<any | null>(null)
+    const [sites, setSites] = React.useState<SiteSummary[]>([])
+    const [selectedSite, setSelectedSite] = React.useState<SiteSummary | null>(null)
 
     const fetchData = async () => {
         setLoading(true)
         try {
             const res = await fetch("/api/scrapes/sites?pageSize=20")
-            const data = await res.json()
-            setSites(data.sites || [])
+            const data = (await res.json()) as { sites?: SiteSummary[] }
+            setSites(Array.isArray(data.sites) ? data.sites : [])
         } catch (error) {
             console.error("Failed to fetch sites", error)
         } finally {
@@ -38,6 +81,7 @@ export function CompetitorsClient() {
         )
     }
 
+    //show product grid if a competitor is selected
     if (selectedSite) {
         const products = selectedSite.latestRun?.products || []
         const siteName = selectedSite.url.replace(/^https?:\/\//, '').split('/')[0]
@@ -80,16 +124,24 @@ export function CompetitorsClient() {
         )
     }
 
+    //show competitor list once fetched
     return (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {sites.map((site) => {
                 const productCount = site.latestRun?.products?.length || 0
-                const avgPrice = site.latestRun?.products?.length
-                    ? site.latestRun.products.reduce((acc: number, p: any) => {
-                        const price = p.variants?.[0]?.price || 0
-                        return acc + parseFloat(price)
-                    }, 0) / site.latestRun.products.length
-                    : 0
+                const products = site.latestRun?.products || []
+                const platformLabel = getPlatformBadgeLabel(products)
+
+                
+                let avgPrice = 0
+
+                if (productCount > 0) {
+                    const totalValue = products.reduce((acc: number, p: SiteProduct) => {
+                        const price = parseFloat(p.variants?.[0]?.price || "0")
+                        return acc + price
+                    }, 0)
+                    avgPrice = totalValue / productCount
+                }
 
                 const siteName = site.url.replace(/^https?:\/\//, '').split('/')[0]
                 const properUrl = site.url.startsWith('http') ? site.url : `https://${site.url}`
@@ -102,7 +154,7 @@ export function CompetitorsClient() {
                                     {siteName.charAt(0).toUpperCase()}
                                 </div>
                                 <Badge variant="secondary" className="font-mono text-xs">
-                                    SHOPIFY
+                                    {platformLabel}
                                 </Badge>
                             </div>
 
@@ -138,6 +190,7 @@ export function CompetitorsClient() {
                 )
             })}
 
+            {/* emptystate */}
             {sites.length === 0 && (
                 <div className="col-span-full py-20 border-2 border-dashed rounded-xl flex flex-col items-center justify-center text-muted-foreground gap-2">
                     <Package className="h-10 w-10 opacity-20" />

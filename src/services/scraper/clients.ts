@@ -2,14 +2,22 @@
  * HTTP Client wrapper
  */
 export const httpClient = {
-    get: async (url: string, config?: any) => {
+    get: async (url: string, config?: RequestInit) => {
         console.log(`HTTP GET: ${url}`);
         try {
             const response = await fetch(url, config);
             return response;
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error(`HTTP request failed: ${url}`, error);
-            const isNetworkError = error.message?.includes('fetch') || error.code === 'ENOTFOUND' || error.name === 'TypeError';
+            const errorObj =
+                error && typeof error === 'object'
+                    ? (error as { message?: string; code?: string; name?: string })
+                    : {};
+            const isNetworkError =
+                (errorObj.message || '').includes('fetch') ||
+                errorObj.code === 'ENOTFOUND' ||
+                errorObj.name === 'TypeError';
+
             return {
                 ok: false,
                 status: isNetworkError ? 503 : 500,
@@ -22,13 +30,21 @@ export const httpClient = {
 };
 
 /**
+ * Compatibility wrapper. Strategies call this, but we currently just use
+ * the standard HTTP client path.
+ */
+export async function getWithBrowserFallback(url: string, config?: RequestInit): Promise<Response> {
+    return httpClient.get(url, config);
+}
+
+/**
  * Browser Client wrapper
  */
 export const browserClient = {
     launch: async () => {
         // TODO: Implement browser launch logic
     },
-    getPage: async (url: string) => {
+    getPage: async () => {
         // TODO: Implement page navigation logic
     }
 };
@@ -37,7 +53,7 @@ export const browserClient = {
  * LLM Client wrapper
  */
 export const llmClient = {
-    complete: async (prompt: string) => {
+    complete: async () => {
         // TODO: Implement LLM based scraping
     }
 };

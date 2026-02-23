@@ -1,17 +1,21 @@
-import { ScraperStrategy, ProgressCallback } from './interface';
+import { ScraperStrategy } from './interface';
 import { ScraperRequest } from '../request';
 
 export const UniversalStrategy: ScraperStrategy = {
     name: 'Universal',
     description: 'Uses LLM + Browser to extract data from any site',
-    match: async (url) => {
+    match: async () => {
         return {
             isMatch: false,
             data: {}
         };
     },
-    scrape: async (req: ScraperRequest, onProgress?: ProgressCallback) => {
+    scrape: async (req: ScraperRequest) => {
         console.log('Universal strategy', req);
-        return {};
+        return {
+            products: [],
+            platform: 'universal',
+            source_url: req.url
+        };
     }
 };

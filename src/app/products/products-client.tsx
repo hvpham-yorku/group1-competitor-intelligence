@@ -13,7 +13,7 @@ export function ProductsClient() {
     const fetchData = async () => {
         setLoading(true)
         try {
-            // We'll use the existing sites endpoint which includes latest run products
+            // Fetch all products using the sites endpoint
             const res = await fetch("/api/scrapes/sites?pageSize=50")
             const data = await res.json()
 
