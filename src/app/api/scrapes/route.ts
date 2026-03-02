@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]/route";
-import { SqliteDB } from "../database";
-import { normalizeUrl } from "./util";
+import { getUserIdFromSession } from "../auth/auth-utils";
+import { saveScrapeRun } from "@/services/scrape-runs/save-scrape";
 
 export async function POST(request: Request) {
   // Get the current session
   const session = await getServerSession(authOptions);
-  const userId = Number((session?.user as any)?.id);
+  const userId = getUserIdFromSession(session);
 
   // Reject if not authenticated
   if (!userId) {
@@ -23,20 +23,20 @@ export async function POST(request: Request) {
     const rawUrl = body?.url ?? "";
     const products = Array.isArray(body?.products) ? body.products : [];
 
-    const url = normalizeUrl(rawUrl);
+    await saveScrapeRun({
+      userId,
+      rawUrl,
+      products,
+    });
 
-    if (!url) {
+    return NextResponse.json({ message: "Saved successfully" });
+  } catch (error) {
+    if (error instanceof Error && error.message === "Missing url") {
       return NextResponse.json(
         { message: "Missing url" },
         { status: 400 }
       );
     }
-
-    // Insert into database
-    await insertScrape(userId, url, products);
-
-    return NextResponse.json({ message: "Saved successfully" });
-  } catch (error) {
     console.error("POST /scrapes error:", error);
 
     return NextResponse.json(
@@ -44,26 +44,4 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   }
-}
-
-
- // Inserts a scraped record into the database
-function insertScrape(
-  userId: number,
-  url: string,
-  products: unknown[]
-): Promise<void> {
-  return new Promise((resolve, reject) => {
-    SqliteDB.run(
-      `INSERT INTO scrapes (user_id, url, products_json)
-       VALUES (?, ?, ?)`,
-      [userId, url, JSON.stringify(products)],
-      (err) => {
-        if (err){
-            return reject(err);
-        }
-        resolve();
-      }
-    );
-  });
 }

@@ -1,21 +1,19 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../auth/[...nextauth]/route";
-import { SqliteDB } from "../../database";
-import { safeJsonParse } from "../util";
+import { getUserIdFromSession } from "../../auth/auth-utils";
+import { deleteScrapeRun } from "@/services/scrape-runs/delete-scrape";
+import { getScrapeRun } from "@/services/scrape-runs/get-scrape";
 
 export async function GET(request: Request) {
-  // Get current user session
   const currentSession = await getServerSession(authOptions);
-  const currentUserId = Number((currentSession?.user as any)?.id);
+  const currentUserId = getUserIdFromSession(currentSession);
 
-  // Make sure user is logged in
   if (!currentUserId) {
     return NextResponse.json({ message: "unauthorized" }, { status: 401 });
   }
 
   try {
-    // Get the scrape id from the URL
     const urlInfo = new URL(request.url);
     const scrapeId = Number(urlInfo.searchParams.get("id") || 0);
 
@@ -23,54 +21,16 @@ export async function GET(request: Request) {
       return NextResponse.json({ message: "Missing id" }, { status: 400 });
     }
 
-    // Look up the scrape in the database
-    const scrapeRecord: any = await new Promise((resolve, reject) => {
-      SqliteDB.get(
-        `SELECT id, url, created_at, products_json
-         FROM scrapes
-         WHERE user_id = ? AND id = ?`,
-        [currentUserId, scrapeId],
-        (error, result) => {
-          if (error) {
-            return reject(error);
-          }
-          resolve(result);
-        }
-      );
+    const scrapeRecord = await getScrapeRun({
+      userId: currentUserId,
+      scrapeId,
     });
 
-    // If we didn’t find anything, return 404
     if (!scrapeRecord) {
       return NextResponse.json({ message: "Not found" }, { status: 404 });
     }
 
-    // NEW: Fetch the previous run for the same URL to allow historical comparison
-    const previousRun: any = await new Promise((resolve, reject) => {
-      SqliteDB.get(
-        `SELECT products_json 
-         FROM scrapes 
-         WHERE user_id = ? AND url = ? AND id < ? 
-         ORDER BY id DESC LIMIT 1`,
-        [currentUserId, scrapeRecord.url, scrapeId],
-        (error, result) => {
-          if (error) return reject(error);
-          resolve(result);
-        }
-      );
-    });
-
-    // Send the scrape data back
-    return NextResponse.json({
-      id: scrapeRecord.id,
-      url: scrapeRecord.url,
-      created_at: scrapeRecord.created_at,
-      products: safeJsonParse<any[]>(
-        scrapeRecord.products_json || "[]",
-        []
-      ),
-      // Include previous products for comparison if available
-      previousProducts: previousRun ? safeJsonParse<any[]>(previousRun.products_json || "[]", []) : null
-    });
+    return NextResponse.json(scrapeRecord);
   } catch (error) {
     console.error("Error getting scrape:", error);
     return NextResponse.json({ message: "error" }, { status: 500 });
@@ -78,16 +38,14 @@ export async function GET(request: Request) {
 }
 
 export async function DELETE(request: Request) {
-  // Get current user session
   const currentSession = await getServerSession(authOptions);
-  const currentUserId = Number((currentSession?.user as any)?.id);
+  const currentUserId = getUserIdFromSession(currentSession);
 
   if (!currentUserId) {
     return NextResponse.json({ message: "unauthorized" }, { status: 401 });
   }
 
   try {
-    // Get scrape id from URL
     const urlInfo = new URL(request.url);
     const scrapeId = Number(urlInfo.searchParams.get("id") || 0);
 
@@ -95,16 +53,9 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ message: "Missing id" }, { status: 400 });
     }
 
-    // Delete the scrape
-    await new Promise<void>((resolve, reject) => {
-      SqliteDB.run(
-        `DELETE FROM scrapes WHERE user_id = ? AND id = ?`,
-        [currentUserId, scrapeId],
-        (error) => {
-          if (error) return reject(error);
-          resolve();
-        }
-      );
+    await deleteScrapeRun({
+      userId: currentUserId,
+      scrapeId,
     });
 
     return NextResponse.json({ message: "deleted" });

@@ -3,10 +3,9 @@ export function normalizeUrl(input: string) {
   if (!trimmed) {
     return "";
   }
-  return trimmed.replace(/^https?:\/\//, "").replace(/\/+$/, "").toLowerCase();
+  return trimmed.replace(/^https?:\/\//i, "").replace(/\/+$/, "").toLowerCase();
 }
 
-//Generic used for compile time error checking.
 export function safeJsonParse<E>(s: string, backup: E): E {
   try {
     return JSON.parse(s) as E;

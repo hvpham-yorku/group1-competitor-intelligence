@@ -1,15 +1,15 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../auth/[...nextauth]/route";
-import { SqliteDB } from "../../database";
-import { normalizeUrl } from "../util";
+import { getUserIdFromSession } from "../../auth/auth-utils";
+import { deleteSiteHistory } from "@/services/scrape-runs/delete-site-history";
 
 export async function DELETE(request: Request) {
   // Get the current session
   const currentSession = await getServerSession(authOptions);
 
   // Convert the user id to a number
-  const currentUserId = Number((currentSession?.user as any)?.id);
+  const currentUserId = getUserIdFromSession(currentSession);
 
   // If user is not logged in, return unauthorized
   if (!currentUserId) {
@@ -24,30 +24,24 @@ export async function DELETE(request: Request) {
   const searchParams = urlObject.searchParams;
 
   const rawUrl = searchParams.get("url") || "";
-  const cleanedUrl = normalizeUrl(rawUrl);
-
-  // Make sure a url was provided
-  if (!cleanedUrl) {
+  try {
+    await deleteSiteHistory({
+      userId: currentUserId,
+      rawUrl,
+    });
+  } catch (error) {
+    if (error instanceof Error && error.message === "Missing url") {
+      return NextResponse.json(
+        { message: "Missing url" },
+        { status: 400 }
+      );
+    }
+    console.error("Error deleting site history:", error);
     return NextResponse.json(
-      { message: "Missing url" },
-      { status: 400 }
+      { message: "error" },
+      { status: 500 }
     );
   }
-
-  // Delete the scrape from the database
-  await new Promise<void>((resolve, reject) => {
-    SqliteDB.run(
-      `DELETE FROM scrapes WHERE user_id = ? AND url = ?`,
-      [currentUserId, cleanedUrl],
-      (error) => {
-        if (error) {
-          reject(error);
-        } else {
-          resolve();
-        }
-      }
-    );
-  });
 
   // Send success response
   return NextResponse.json({ message: "deleted" });
