@@ -2,15 +2,18 @@
 flowchart TD
     %% The Three Main Layers
     subgraph Presentation["Presentation Layer"]
-        UI["Next.js Pages & Components\n(Competitor Catalog, Auth)"]
+        UI["Next.js Pages & Components
+(Competitor Catalog, Auth)"]
     end
 
     subgraph BusinessLogic["Business Logic Layer"]
-        API["API Routes & Services\n(ScrapeEngine, Export)"]
+        API["API Routes & Services
+(ScrapeEngine, Export)"]
     end
 
     subgraph Persistence["Persistence Layer"]
-        DAO["Data Access Objects\n(UserDAO, ProductDAO)"]
+        DAO["Data Access Objects
+(UserDAO, ProductDAO)"]
     end
 
     %% The Database
@@ -18,7 +21,8 @@ flowchart TD
 
     %% The Domain Objects
     subgraph Domain["Domain Objects"]
-        Models["TypeScript Interfaces\n(User, Product, PriceHistory)"]
+        Models["TypeScript Interfaces
+(User, Product, PriceHistory)"]
     end
 
     %% Flows between the layers
