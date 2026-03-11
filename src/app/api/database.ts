@@ -38,4 +38,19 @@ SqliteDB.serialize(() => {
     `CREATE INDEX IF NOT EXISTS idx_scrapes_user_created ON scrapes(user_id, created_at)`);
   SqliteDB.run(
     `CREATE INDEX IF NOT EXISTS idx_scrapes_user_url ON scrapes(user_id, url)`);
+  
+  //SqliteDB.run(`DROP TABLE tracked_items`);
+  //SqliteDB.run(`DROP TABLE tracked_items_history`);
+  SqliteDB.run(
+    `CREATE TABLE IF NOT EXISTS tracked_items(
+      title TEXT PRIMARY KEY NOT NULL,
+      shop TEXT NOT NULL,
+      url TEXT NOT NULL)`);
+  SqliteDB.run(
+    `CREATE TABLE IF NOT EXISTS tracked_items_history(
+      id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+      title TEXT,
+      price REAL NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      FOREIGN KEY(title) REFERENCES tracked_items(title))`);
 });

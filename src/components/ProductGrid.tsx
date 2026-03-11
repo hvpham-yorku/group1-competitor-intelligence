@@ -10,11 +10,12 @@
 
 import { useMemo, useState, type FC } from "react"
 import { MantineReactTable, type MRT_ColumnDef, type MRT_ColumnFiltersState, MRT_Row, useMantineReactTable } from "mantine-react-table"
-import { MantineProvider, useMantineTheme, Box } from "@mantine/core"
+import { MantineProvider, useMantineTheme, Box, Menu } from "@mantine/core"
 import { ChevronRight, ChevronDown } from "lucide-react"
 import { download, generateCsv, mkConfig } from "export-to-csv"
 import { IconDownload } from '@tabler/icons-react';
 import { Button } from "./ui/button"
+import { METHODS } from "http"
 
 interface ProductGridProps {
     products: any[];
@@ -214,6 +215,28 @@ export const ProductGrid: FC<ProductGridProps> = ({ products, sourceUrl }) => {
         enableExpanding: true,
         enableExpandAll: false,
         enableRowSelection: true,
+        enableRowActions: true,
+        positionActionsColumn: 'last', 
+        renderRowActionMenuItems: ({ row }) => (
+            <>
+            <Menu.Item onClick={() => {
+                
+                
+                fetch("/api/tracked_products", {method: "POST", body: JSON.stringify(
+                    row.original
+                )});
+            }}>
+                Add to tracking
+            </Menu.Item>
+            <Menu.Item onClick={() => {
+                
+                //TODO use a query parameter instead as having DELETE body is discouraged
+                fetch("/api/tracked_products", {method: "DELETE", body: JSON.stringify(
+                    row.original
+                )});
+            }}>Remove from tracking</Menu.Item>
+            </>
+        ),
         /*
         mantineSelectCheckboxProps: ({ row }) => ({
             color: 'gray', // Color based on row data
