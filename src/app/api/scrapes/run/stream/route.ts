@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../../auth/[...nextauth]/route";
 import { SqliteDB } from "../../../database";
-import { normalizeUrl } from "../../util";
+import { normalizeUrl } from "../../../../../../src/services/scrape-runs/utils";
 import { ScraperEngine, ScraperExecutionError } from "@/services/scraper/engine";
 import { ScraperRequest } from "@/services/scraper/request";
 import type { ScrapeProgress } from "@/services/scraper/strategies/interface";
