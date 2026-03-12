@@ -1,7 +1,7 @@
 /**
  * @jest-environment node
  */
-import { SqliteDB } from "@/app/api/database"
+import { SqliteDB } from "@/persistence/database"
 import { getServerSession } from "next-auth"
 import { POST as saveScrape } from "@/app/api/scrapes/route"
 import { GET as listSites } from "@/app/api/scrapes/sites/route"
@@ -21,9 +21,9 @@ jest.mock("next-auth", () => {
 })
 
 // temp test database for tests
-jest.mock("@/app/api/database", () => {
-  const sqlite3 = require("sqlite3")
-  const db = new sqlite3.Database(":memory:")
+jest.mock("@/persistence/database", () => {
+  const sqlite3Lib = jest.requireActual("sqlite3") as typeof import("sqlite3")
+  const db = new sqlite3Lib.Database(":memory:")
 
   db.serialize(() => {
     db.run(`
@@ -57,7 +57,7 @@ describe("scrapes api", () => {
     mockSession.mockReset()
 
     await new Promise<void>((resolve, reject) => {
-      SqliteDB.run("DELETE FROM scrapes", (err: any) => (err ? reject(err) : resolve()))
+      SqliteDB.run("DELETE FROM scrapes", (err: Error | null) => (err ? reject(err) : resolve()))
     })
   })
 

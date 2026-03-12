@@ -1,55 +1,14 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../../auth/[...nextauth]/route";
-import { SqliteDB } from "../../../database";
-import { normalizeUrl } from "../../../../../../src/services/scrape-runs/utils";
+import { getUserIdFromSession } from "../../../auth/auth-utils";
+import { saveScrapeRun } from "@/services/scrape-runs/save-scrape";
 import { ScraperEngine, ScraperExecutionError } from "@/services/scraper/engine";
 import { ScraperRequest } from "@/services/scraper/request";
 import type { ScrapeProgress } from "@/services/scraper/strategies/interface";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-function getUserIdFromSession(session: unknown): number {
-  const sessionRecord =
-    session && typeof session === "object"
-      ? (session as Record<string, unknown>)
-      : {};
-  const user =
-    sessionRecord.user && typeof sessionRecord.user === "object"
-      ? (sessionRecord.user as Record<string, unknown>)
-      : {};
-  const rawId = user.id;
-
-  if (typeof rawId === "number") {
-    return rawId;
-  }
-  if (typeof rawId === "string") {
-    const parsed = Number(rawId);
-    return Number.isFinite(parsed) ? parsed : 0;
-  }
-  return 0;
-}
-
-function insertScrape(
-  userId: number,
-  url: string,
-  products: unknown[]
-): Promise<void> {
-  return new Promise((resolve, reject) => {
-    SqliteDB.run(
-      `INSERT INTO scrapes (user_id, url, products_json)
-       VALUES (?, ?, ?)`,
-      [userId, url, JSON.stringify(products)],
-      (err) => {
-        if (err) {
-          return reject(err);
-        }
-        resolve();
-      }
-    );
-  });
-}
 
 function sseData(event: string, payload: unknown): string {
   return `event: ${event}\ndata: ${JSON.stringify(payload)}\n\n`;
@@ -88,7 +47,11 @@ export async function GET(request: Request) {
           const products = Array.isArray(result?.products) ? result.products : [];
           let saved = false;
           if (userId) {
-            await insertScrape(userId, normalizeUrl(rawUrl), products);
+            await saveScrapeRun({
+              userId,
+              rawUrl,
+              products,
+            });
             saved = true;
           }
 

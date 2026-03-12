@@ -1,4 +1,4 @@
-import { SqliteDB } from "@/app/api/database";
+import { SqliteDB } from "@/persistence/database";
 
 export type ScrapeRow = {
   id: number;

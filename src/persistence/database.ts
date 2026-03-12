@@ -13,7 +13,6 @@ export const SqliteDB = new sqlite3.Database(
 );
 
 SqliteDB.serialize(() => {
-  //SqliteDB.run(`DROP TABLE users`);
   SqliteDB.run(
     `CREATE TABLE IF NOT EXISTS users(
       id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -35,9 +34,11 @@ SqliteDB.serialize(() => {
   );
 
   SqliteDB.run(
-    `CREATE INDEX IF NOT EXISTS idx_scrapes_user_created ON scrapes(user_id, created_at)`);
+    `CREATE INDEX IF NOT EXISTS idx_scrapes_user_created ON scrapes(user_id, created_at)`
+  );
   SqliteDB.run(
-    `CREATE INDEX IF NOT EXISTS idx_scrapes_user_url ON scrapes(user_id, url)`);
+    `CREATE INDEX IF NOT EXISTS idx_scrapes_user_url ON scrapes(user_id, url)`
+  );
 
   SqliteDB.run(
     `CREATE TABLE IF NOT EXISTS tracked_products(
@@ -48,7 +49,8 @@ SqliteDB.serialize(() => {
       url TEXT NOT NULL,
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
       UNIQUE(user_id, url),
-      FOREIGN KEY(user_id) REFERENCES users(id))`
+      FOREIGN KEY(user_id) REFERENCES users(id)
+    )`
   );
   SqliteDB.run(
     `CREATE INDEX IF NOT EXISTS idx_tracked_products_user_url ON tracked_products(user_id, url)`
@@ -59,6 +61,7 @@ SqliteDB.serialize(() => {
       tracked_product_id INTEGER NOT NULL,
       price REAL NOT NULL,
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
-      FOREIGN KEY(tracked_product_id) REFERENCES tracked_products(id))`
+      FOREIGN KEY(tracked_product_id) REFERENCES tracked_products(id)
+    )`
   );
 });

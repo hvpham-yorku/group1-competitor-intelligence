@@ -1,4 +1,4 @@
-import { SqliteDB } from "@/app/api/database";
+import { SqliteDB } from "@/persistence/database";
 
 function run(sql: string, params: unknown[] = []): Promise<void> {
   return new Promise((resolve, reject) => {
