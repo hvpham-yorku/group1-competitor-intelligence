@@ -220,20 +220,26 @@ export const ProductGrid: FC<ProductGridProps> = ({ products, sourceUrl }) => {
         renderRowActionMenuItems: ({ row }) => (
             <>
             <Menu.Item onClick={() => {
-                
-                
-                fetch("/api/tracked_products", {method: "POST", body: JSON.stringify(
-                    row.original
-                )});
+                fetch("/api/tracked_products", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(row.original)
+                });
             }}>
                 Add to tracking
             </Menu.Item>
             <Menu.Item onClick={() => {
                 
                 //TODO use a query parameter instead as having DELETE body is discouraged
-                fetch("/api/tracked_products", {method: "DELETE", body: JSON.stringify(
-                    row.original
-                )});
+                fetch("/api/tracked_products", {
+                    method: "DELETE",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(row.original)
+                });
             }}>Remove from tracking</Menu.Item>
             </>
         ),

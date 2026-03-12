@@ -38,19 +38,27 @@ SqliteDB.serialize(() => {
     `CREATE INDEX IF NOT EXISTS idx_scrapes_user_created ON scrapes(user_id, created_at)`);
   SqliteDB.run(
     `CREATE INDEX IF NOT EXISTS idx_scrapes_user_url ON scrapes(user_id, url)`);
-  
-  //SqliteDB.run(`DROP TABLE tracked_items`);
-  //SqliteDB.run(`DROP TABLE tracked_items_history`);
+
   SqliteDB.run(
-    `CREATE TABLE IF NOT EXISTS tracked_items(
-      title TEXT PRIMARY KEY NOT NULL,
-      shop TEXT NOT NULL,
-      url TEXT NOT NULL)`);
-  SqliteDB.run(
-    `CREATE TABLE IF NOT EXISTS tracked_items_history(
+    `CREATE TABLE IF NOT EXISTS tracked_products(
       id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-      title TEXT,
+      user_id INTEGER NOT NULL,
+      title TEXT NOT NULL,
+      shop TEXT NOT NULL,
+      url TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      UNIQUE(user_id, url),
+      FOREIGN KEY(user_id) REFERENCES users(id))`
+  );
+  SqliteDB.run(
+    `CREATE INDEX IF NOT EXISTS idx_tracked_products_user_url ON tracked_products(user_id, url)`
+  );
+  SqliteDB.run(
+    `CREATE TABLE IF NOT EXISTS tracked_product_history(
+      id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+      tracked_product_id INTEGER NOT NULL,
       price REAL NOT NULL,
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
-      FOREIGN KEY(title) REFERENCES tracked_items(title))`);
+      FOREIGN KEY(tracked_product_id) REFERENCES tracked_products(id))`
+  );
 });

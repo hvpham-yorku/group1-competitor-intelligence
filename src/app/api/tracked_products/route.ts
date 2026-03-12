@@ -1,35 +1,76 @@
 import { NextResponse } from "next/server";
-import { SqliteDB } from "../database";
-
-
-function run(sql: string, params: unknown[] = []): Promise<void> {
-  return new Promise((resolve, reject) => {
-    SqliteDB.run(sql, params, (error) => {
-      if (error) {
-        reject(error);
-      } else {
-        resolve();
-      }
-    });
-  });
-}
+import { getServerSession } from "next-auth";
+import { authOptions } from "../auth/[...nextauth]/route";
+import { getUserIdFromSession } from "../auth/auth-utils";
+import { trackProduct } from "@/services/tracking/track-product";
+import { untrackProduct } from "@/services/tracking/untrack-product";
 
 export async function POST(request: Request) {
-    const RequestBody = (await request.json());
-    console.log(RequestBody);
-    let title : string = RequestBody.title;
-    let shop : string = RequestBody.platform;
-    let url : string = RequestBody.product_url;
-    run(`INSERT INTO tracked_items (title, shop, url)
-     VALUES (?, ?, ?)`, [title, shop, url]);
+  const session = await getServerSession(authOptions);
+  const userId = getUserIdFromSession(session);
+
+  if (!userId) {
+    return NextResponse.json({ message: "unauthorized" }, { status: 401 });
+  }
+
+  try {
+    const requestBody = await request.json();
+
+    await trackProduct({
+      userId,
+      title: requestBody?.title,
+      platform: requestBody?.platform,
+      product_url: requestBody?.product_url,
+    });
+
     return NextResponse.json({ message: "Added Alert" });
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message === "Missing tracked product fields"
+    ) {
+      return NextResponse.json(
+        { message: "Missing tracked product fields" },
+        { status: 400 }
+      );
+    }
+
+    console.error("POST /api/tracked_products error:", error);
+    return NextResponse.json({ message: "error" }, { status: 500 });
+  }
 }
 
 export async function DELETE(request: Request) {
-    const RequestBody = (await request.json());
-    console.log(RequestBody);
-    //console.log("deleetd response");
-    let title : string = RequestBody.title;
-    run(`DELETE FROM tracked_items WHERE title = ?`, [title]);
+  const session = await getServerSession(authOptions);
+  const userId = getUserIdFromSession(session);
+
+  if (!userId) {
+    return NextResponse.json({ message: "unauthorized" }, { status: 401 });
+  }
+
+  try {
+    const requestBody = await request.json();
+
+    await untrackProduct({
+      userId,
+      title: requestBody?.title,
+      platform: requestBody?.platform,
+      product_url: requestBody?.product_url,
+    });
+
     return NextResponse.json({ message: "Deleted Alert" });
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message === "Missing tracked product fields"
+    ) {
+      return NextResponse.json(
+        { message: "Missing tracked product fields" },
+        { status: 400 }
+      );
+    }
+
+    console.error("DELETE /api/tracked_products error:", error);
+    return NextResponse.json({ message: "error" }, { status: 500 });
+  }
 }
