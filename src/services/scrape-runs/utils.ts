@@ -11,6 +11,24 @@ export function normalizeUrl(input: string) {
   return trimmed.replace(/^https?:\/\//i, "").replace(/\/+$/, "").toLowerCase();
 }
 
+export function normalizeStoreDomain(input: string) {
+  const trimmed = (input || "").trim();
+  if (!trimmed) {
+    return "";
+  }
+
+  try {
+    const parsed = new URL(
+      trimmed.startsWith("http://") || trimmed.startsWith("https://")
+        ? trimmed
+        : `https://${trimmed}`
+    );
+    return parsed.hostname.toLowerCase();
+  } catch {
+    return normalizeUrl(trimmed).split("/")[0] || "";
+  }
+}
+
 export function safeJsonParse<E>(s: string, backup: E): E {
   try {
     return JSON.parse(s) as E;

@@ -1,11 +1,11 @@
 import { deleteScrapesByUrl } from "@/persistence/scrapes-repository";
-import { normalizeUrl } from "./utils";
+import { normalizeStoreDomain } from "./utils";
 
 export async function deleteSiteHistory(input: {
   userId: number;
   rawUrl: string;
 }): Promise<void> {
-  const url = normalizeUrl(input.rawUrl);
+  const url = normalizeStoreDomain(input.rawUrl);
   if (!url) {
     throw new Error("Missing url");
   }

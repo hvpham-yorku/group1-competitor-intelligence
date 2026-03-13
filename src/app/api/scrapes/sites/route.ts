@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "../../auth/[...nextauth]/route";
 import { getExistingUserIdFromSession } from "../../auth/auth-utils";
 import { listScrapeSites } from "@/services/scrape-runs/list-sites";
-import { normalizeUrl } from "@/services/scrape-runs/utils";
+import { normalizeStoreDomain } from "@/services/scrape-runs/utils";
 
 export async function GET(request: Request) {
   // Get the current logged in session
@@ -25,7 +25,7 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
 
     const rawQuery = searchParams.get("query") || "";
-    const query = normalizeUrl(rawQuery);
+    const query = normalizeStoreDomain(rawQuery);
 
     // Get pagination values (with defaults)
     const pageParam = searchParams.get("page") || "1";

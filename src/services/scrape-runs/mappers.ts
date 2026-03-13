@@ -8,6 +8,8 @@ export type ScrapeObservationRow = {
   source_product_id: number;
   source_variant_id: number;
   created_at: string;
+  source_created_at: string | null;
+  source_updated_at: string | null;
   store_domain: string;
   store_platform: string | null;
   product_url: string;
@@ -46,6 +48,8 @@ export type SourceProductRecord = {
   description: string | null;
   tagsJson: string;
   imagesJson: string;
+  sourceCreatedAt: string | null;
+  sourceUpdatedAt: string | null;
 };
 
 export type SourceVariantRecord = {
@@ -66,6 +70,7 @@ export type ObservationRecord = {
   inventoryPolicy: string | null;
   titleSnapshot: string;
   variantTitleSnapshot: string;
+  observedAt: string | null;
 };
 
 function safeParse<T>(value: string | null | undefined, fallback: T): T {
@@ -106,6 +111,8 @@ export function buildSourceProductRecord(
     description: product.description || null,
     tagsJson: JSON.stringify(product.tags || []),
     imagesJson: JSON.stringify(product.images || []),
+    sourceCreatedAt: product.created_at || null,
+    sourceUpdatedAt: product.source_updated_at || null,
   };
 }
 
@@ -142,6 +149,7 @@ export function buildObservationRecord(
     inventoryPolicy: variant.inventory_policy || null,
     titleSnapshot: product.title,
     variantTitleSnapshot: variant.title || product.title,
+    observedAt: variant.observed_at || product.last_updated_at || null,
   };
 }
 
@@ -166,9 +174,19 @@ export function buildProductsFromRows(
         images: safeParse<Array<{ src?: string; alt?: string }>>(row.images_json, []),
         platform: row.store_platform || undefined,
         source_url: row.store_domain || undefined,
+        created_at: row.source_created_at || undefined,
+        source_updated_at: row.source_updated_at || undefined,
+        last_updated_at: row.observed_at,
         variants: [],
       };
       products.set(row.source_product_id, product);
+    }
+
+    if (
+      !product.last_updated_at ||
+      new Date(row.observed_at).getTime() > new Date(product.last_updated_at).getTime()
+    ) {
+      product.last_updated_at = row.observed_at;
     }
 
     const variant: NormalizedVariant = {
@@ -191,6 +209,7 @@ export function buildProductsFromRows(
         undefined
       ),
       product_url: row.variant_product_url || row.product_url,
+      observed_at: row.observed_at,
     };
 
     product.variants.push(variant);

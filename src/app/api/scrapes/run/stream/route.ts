@@ -4,11 +4,14 @@ import { authOptions } from "../../../auth/[...nextauth]/route";
 import { getExistingUserIdFromSession } from "../../../auth/auth-utils";
 import { saveScrapeRun } from "@/services/scrape-runs/save-scrape";
 import { ScraperEngine, ScraperExecutionError } from "@/services/scraper/engine";
-import { ScraperRequest } from "@/services/scraper/request";
+import { inferResourceType, ScraperRequest } from "@/services/scraper/request";
 import type { ScrapeProgress } from "@/services/scraper/strategies/interface";
+import { initializeScheduledScraping } from "@/services/scheduled_scraping/scheduled_scraping";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+initializeScheduledScraping();
 
 function sseData(event: string, payload: unknown): string {
   return `event: ${event}\ndata: ${JSON.stringify(payload)}\n\n`;
@@ -19,10 +22,14 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const rawUrl = (searchParams.get("url") || "").trim();
   const ShouldSaveScrape = (searchParams.get("should_save_scrape") || "").trim();
-  const ResourceType = (searchParams.get("resource_type") || "store").trim();
+  const requestedResourceType = (searchParams.get("resource_type") || "").trim();
   if (!rawUrl) {
     return NextResponse.json({ message: "Missing url" }, { status: 400 });
   }
+
+  const ResourceType = (requestedResourceType || inferResourceType(rawUrl)) as (
+    "store" | "product" | "collection"
+  );
 
   const session = await getServerSession(authOptions);
   const userId = await getExistingUserIdFromSession(session);
@@ -63,6 +70,7 @@ export async function GET(request: Request) {
               userId,
               rawUrl,
               products,
+              resourceType: ResourceType,
             });
             saveDurationMs = Date.now() - saveStartedAt;
             saved = true;

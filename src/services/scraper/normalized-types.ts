@@ -14,6 +14,7 @@ export interface NormalizedVariant {
     alt?: string;
   };
   product_url?: string;
+  observed_at?: string;
   raw?: unknown;
 }
 
@@ -38,6 +39,9 @@ export interface NormalizedProduct {
   }>;
   platform?: "shopify" | "woocommerce" | "universal" | string;
   source_url?: string;
+  created_at?: string;
+  source_updated_at?: string;
+  last_updated_at?: string;
   variants: NormalizedVariant[];
   raw?: unknown;
 }

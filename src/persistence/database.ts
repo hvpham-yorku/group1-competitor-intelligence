@@ -100,6 +100,31 @@ function ensureTrackingRunsSchema() {
   );
 }
 
+function ensureSourceProductsTimestampSchema() {
+  SqliteDB.all<{ name: string }>(
+    `PRAGMA table_info(source_products)`,
+    (error, rows) => {
+      if (error) {
+        console.error("SQLite source_products schema check error:", error.message);
+        return;
+      }
+
+      const columnNames = (rows || []).map((row) => row.name);
+      if (columnNames.length === 0) {
+        return;
+      }
+
+      if (!columnNames.includes("source_created_at")) {
+        SqliteDB.run(`ALTER TABLE source_products ADD COLUMN source_created_at TEXT`);
+      }
+
+      if (!columnNames.includes("source_updated_at")) {
+        SqliteDB.run(`ALTER TABLE source_products ADD COLUMN source_updated_at TEXT`);
+      }
+    }
+  );
+}
+
 SqliteDB.serialize(() => {
   SqliteDB.run(`PRAGMA foreign_keys = ON`);
 
@@ -150,6 +175,8 @@ SqliteDB.serialize(() => {
       description TEXT,
       tags_json TEXT,
       images_json TEXT,
+      source_created_at TEXT,
+      source_updated_at TEXT,
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
       FOREIGN KEY(store_id) REFERENCES stores(id) ON DELETE CASCADE,
       UNIQUE(store_id, product_url)
@@ -307,4 +334,5 @@ SqliteDB.serialize(() => {
 
   ensureUserScrapeRunsSchema();
   ensureTrackingRunsSchema();
+  ensureSourceProductsTimestampSchema();
 });

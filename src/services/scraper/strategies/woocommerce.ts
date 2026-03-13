@@ -32,6 +32,14 @@ function normalizeWooProduct(product: Record<string, unknown>, sourceUrl: string
         })),
         platform: 'woocommerce',
         source_url: sourceUrl,
+        created_at:
+            asString(product.date_created_gmt) ||
+            asString(product.date_created) ||
+            undefined,
+        source_updated_at:
+            asString(product.date_modified_gmt) ||
+            asString(product.date_modified) ||
+            undefined,
         variants: [
             {
                 id: (product.id as string | number | undefined),

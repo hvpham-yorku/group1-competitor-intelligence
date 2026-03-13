@@ -7,6 +7,7 @@ import { useSession } from "next-auth/react";
 import { SearchBar } from "@/components/SearchBar";
 import type { ScrapeProgress } from "@/services/scraper/strategies/interface";
 import type { NormalizedProduct } from "@/services/scraper/normalized-types";
+import { inferResourceType } from "@/services/scraper/request";
 
 type ScrapesSitesResponse = {
   sites?: Array<{ url?: string }>;
@@ -58,7 +59,8 @@ export default function Home() {
     setResult(null);
 
     try {
-      const streamUrl = `/api/scrapes/run/stream?url=${encodeURIComponent(inputUrl)}`;
+      const resourceType = inferResourceType(inputUrl);
+      const streamUrl = `/api/scrapes/run/stream?url=${encodeURIComponent(inputUrl)}&resource_type=${encodeURIComponent(resourceType)}`;
 
       await new Promise<void>((resolve, reject) => {
         const source = new EventSource(streamUrl);

@@ -68,8 +68,8 @@ jest.mock("@/persistence/database", () => {
         description TEXT,
         tags_json TEXT,
         images_json TEXT,
-        platform TEXT,
-        source_url TEXT,
+        source_created_at TEXT,
+        source_updated_at TEXT,
         created_at TEXT NOT NULL DEFAULT (datetime('now')),
         UNIQUE(store_id, product_url)
       )

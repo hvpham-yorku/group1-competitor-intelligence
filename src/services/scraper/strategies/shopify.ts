@@ -66,6 +66,8 @@ function normalizeShopifyProduct(product: Record<string, unknown>, baseUrl: stri
         })),
         platform: 'shopify',
         source_url: baseUrl,
+        created_at: asString(product.created_at) || undefined,
+        source_updated_at: asString(product.updated_at) || undefined,
         variants: variants.length > 0
             ? variants
             : [{

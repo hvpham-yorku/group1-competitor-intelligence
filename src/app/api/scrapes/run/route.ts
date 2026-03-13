@@ -7,6 +7,9 @@ import { getScrapeRun } from "@/services/scrape-runs/get-scrape";
 import { saveScrapeRun } from "@/services/scrape-runs/save-scrape";
 import { ScraperEngine } from "@/services/scraper/engine";
 import { ScraperRequest } from "@/services/scraper/request";
+import { initializeScheduledScraping } from "@/services/scheduled_scraping/scheduled_scraping";
+
+initializeScheduledScraping();
 
 function getErrorMessage(error: unknown, fallback: string): string {
   return error instanceof Error ? error.message : fallback;
@@ -31,10 +34,13 @@ export async function POST(request: Request) {
 
     let saved = false;
     if (currentUserId) {
+      const scrapeRequest = new ScraperRequest(trimmedUrl);
+      const resourceType = scrapeRequest.resourceType;
       await saveScrapeRun({
         userId: currentUserId,
         rawUrl: trimmedUrl,
         products,
+        resourceType,
       });
       saved = true;
     }

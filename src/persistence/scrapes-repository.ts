@@ -7,6 +7,7 @@ import {
   type SourceVariantRecord,
 } from "@/services/scrape-runs/mappers";
 import type { NormalizedProduct } from "@/services/scraper/normalized-types";
+import { normalizeStoreDomain } from "@/services/scrape-runs/utils";
 
 export type ScrapeRow = {
   id: number;
@@ -44,6 +45,8 @@ const OBSERVATION_SELECT = `SELECT
   sp.id AS source_product_id,
   sv.id AS source_variant_id,
   sr.started_at AS created_at,
+  sp.source_created_at,
+  sp.source_updated_at,
   s.domain AS store_domain,
   s.platform AS store_platform,
   sp.product_url,
@@ -75,6 +78,8 @@ const OBSERVATION_SELECT = `SELECT
  INNER JOIN source_products sp ON sp.id = sv.source_product_id
  INNER JOIN stores s ON s.id = sp.store_id
  INNER JOIN scrape_runs sr ON sr.id = po.scrape_run_id`;
+
+const tableColumnsCache = new Map<string, string[]>();
 
 function run(sql: string, params: unknown[] = []): Promise<void> {
   return new Promise((resolve, reject) => {
@@ -110,6 +115,18 @@ function all<T>(sql: string, params: unknown[] = []): Promise<T[]> {
       }
     });
   });
+}
+
+async function getTableColumns(tableName: string): Promise<string[]> {
+  const cached = tableColumnsCache.get(tableName);
+  if (cached) {
+    return cached;
+  }
+
+  const rows = await all<{ name: string }>(`PRAGMA table_info(${tableName})`);
+  const columns = rows.map((row) => row.name);
+  tableColumnsCache.set(tableName, columns);
+  return columns;
 }
 
 export async function runInTransaction<T>(
@@ -164,34 +181,55 @@ export async function findOrCreateStore(domain: string, platform: string): Promi
   return created.id;
 }
 
-function runAndReturnResult(sql: string, params: unknown[] = []): Promise<any> {
+function runAndReturnResult(sql: string, params: unknown[] = []): Promise<number> {
   return new Promise((resolve, reject) => {
     SqliteDB.run(sql, params, function(error: Error) {
       if (error) {
         reject(error);
       } else {
-        //console.log();
         resolve(this.lastID);
       }
     });
   });
 }
-export async function createScrapeRun(): Promise<number> {
-  let ScrapeId  = await runAndReturnResult(
+
+async function userScrapeRunsHasStoreId(): Promise<boolean> {
+  const columns = await getTableColumns("user_scrape_runs");
+  return columns.includes("store_id");
+}
+export async function createScrapeRun(storeId?: number): Promise<number> {
+  const scrapeRunColumns = await getTableColumns("scrape_runs");
+
+  if (scrapeRunColumns.includes("store_id") && typeof storeId === "number") {
+    return runAndReturnResult(
+      `INSERT INTO scrape_runs (store_id, started_at, finished_at, status)
+       VALUES (?, datetime('now'), datetime('now'), 'completed')`,
+      [storeId]
+    );
+  }
+
+  return runAndReturnResult(
     `INSERT INTO scrape_runs (started_at, finished_at, status)
-     VALUES (datetime('now'), datetime('now'), 'completed')
-     `
+     VALUES (datetime('now'), datetime('now'), 'completed')`
   );
-  //: number = await runAndReturnResult(`SELECT last_insert_rowid()`);
-  //console.log(ScrapeId);
-  return ScrapeId;
 }
 
 export async function linkUserToScrapeRun(userId: number, scrapeRunId: number, storeId: number): Promise<void> {
+  const userScrapeRunColumns = await getTableColumns("user_scrape_runs");
+
+  if (userScrapeRunColumns.includes("store_id")) {
+    await run(
+      `INSERT OR IGNORE INTO user_scrape_runs (user_id, scrape_run_id, store_id)
+       VALUES (?, ?, ?)`,
+      [userId, scrapeRunId, storeId]
+    );
+    return;
+  }
+
   await run(
-    `INSERT OR IGNORE INTO user_scrape_runs (user_id, scrape_run_id, store_id)
-     VALUES (?, ?, ?)`,
-    [userId, scrapeRunId, storeId]
+    `INSERT OR IGNORE INTO user_scrape_runs (user_id, scrape_run_id)
+     VALUES (?, ?)`,
+    [userId, scrapeRunId]
   );
 }
 
@@ -202,8 +240,8 @@ export async function upsertSourceProduct(
   await run(
     `INSERT INTO source_products (
       store_id, product_url, platform_product_id, title, vendor, product_type, handle,
-      description, tags_json, images_json
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      description, tags_json, images_json, source_created_at, source_updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(store_id, product_url) DO UPDATE SET
       platform_product_id = excluded.platform_product_id,
       title = excluded.title,
@@ -212,7 +250,9 @@ export async function upsertSourceProduct(
       handle = excluded.handle,
       description = excluded.description,
       tags_json = excluded.tags_json,
-      images_json = excluded.images_json`,
+      images_json = excluded.images_json,
+      source_created_at = COALESCE(excluded.source_created_at, source_products.source_created_at),
+      source_updated_at = COALESCE(excluded.source_updated_at, source_products.source_updated_at)`,
     [
       storeId,
       product.productUrl,
@@ -224,6 +264,8 @@ export async function upsertSourceProduct(
       product.description,
       product.tagsJson,
       product.imagesJson,
+      product.sourceCreatedAt,
+      product.sourceUpdatedAt,
     ]
   );
 
@@ -286,7 +328,7 @@ export async function insertObservation(input: {
     `INSERT INTO product_observations (
       scrape_run_id, source_variant_id, price, compare_at_price, currency, available,
       inventory_quantity, inventory_policy, title_snapshot, variant_title_snapshot, observed_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))`,
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, COALESCE(?, datetime('now')))`,
     [
       input.scrapeRunId,
       input.sourceVariantId,
@@ -298,6 +340,7 @@ export async function insertObservation(input: {
       input.observation.inventoryPolicy,
       input.observation.titleSnapshot,
       input.observation.variantTitleSnapshot,
+      input.observation.observedAt,
     ]
   );
 }
@@ -326,14 +369,28 @@ export async function findScrapeRunById(
   userId: number,
   scrapeId: number
 ): Promise<ScrapeRow | null> {
-  const run = await get<{ id: number; url: string; created_at: string }>(
-    `SELECT sr.id, s.domain AS url, sr.started_at AS created_at
-     FROM user_scrape_runs usr
-     INNER JOIN scrape_runs sr ON sr.id = usr.scrape_run_id
-     INNER JOIN stores s ON s.id = usr.store_id
-     WHERE usr.user_id = ? AND sr.id = ?`,
-    [userId, scrapeId]
-  );
+  const hasStoreId = await userScrapeRunsHasStoreId();
+  const run = hasStoreId
+    ? await get<{ id: number; url: string; created_at: string }>(
+        `SELECT sr.id, s.domain AS url, sr.started_at AS created_at
+         FROM user_scrape_runs usr
+         INNER JOIN scrape_runs sr ON sr.id = usr.scrape_run_id
+         INNER JOIN stores s ON s.id = usr.store_id
+         WHERE usr.user_id = ? AND sr.id = ?`,
+        [userId, scrapeId]
+      )
+    : await get<{ id: number; url: string; created_at: string }>(
+        `SELECT sr.id, s.domain AS url, sr.started_at AS created_at
+         FROM user_scrape_runs usr
+         INNER JOIN scrape_runs sr ON sr.id = usr.scrape_run_id
+         INNER JOIN product_observations po ON po.scrape_run_id = sr.id
+         INNER JOIN source_variants sv ON sv.id = po.source_variant_id
+         INNER JOIN source_products sp ON sp.id = sv.source_product_id
+         INNER JOIN stores s ON s.id = sp.store_id
+         WHERE usr.user_id = ? AND sr.id = ?
+         LIMIT 1`,
+        [userId, scrapeId]
+      );
 
   if (!run) {
     return null;
@@ -354,16 +411,31 @@ export async function findPreviousScrapeRun(
   url: string,
   beforeId: number
 ): Promise<ScrapeRow | null> {
-  const previous = await get<{ id: number; url: string; created_at: string }>(
-    `SELECT sr.id, s.domain AS url, sr.started_at AS created_at
-     FROM user_scrape_runs usr
-     INNER JOIN scrape_runs sr ON sr.id = usr.scrape_run_id
-     INNER JOIN stores s ON s.id = usr.store_id
-     WHERE usr.user_id = ? AND s.domain = ? AND sr.id < ?
-     ORDER BY sr.id DESC
-     LIMIT 1`,
-    [userId, url, beforeId]
-  );
+  const hasStoreId = await userScrapeRunsHasStoreId();
+  const previous = hasStoreId
+    ? await get<{ id: number; url: string; created_at: string }>(
+        `SELECT sr.id, s.domain AS url, sr.started_at AS created_at
+         FROM user_scrape_runs usr
+         INNER JOIN scrape_runs sr ON sr.id = usr.scrape_run_id
+         INNER JOIN stores s ON s.id = usr.store_id
+         WHERE usr.user_id = ? AND s.domain = ? AND sr.id < ?
+         ORDER BY sr.id DESC
+         LIMIT 1`,
+        [userId, url, beforeId]
+      )
+    : await get<{ id: number; url: string; created_at: string }>(
+        `SELECT sr.id, s.domain AS url, sr.started_at AS created_at
+         FROM user_scrape_runs usr
+         INNER JOIN scrape_runs sr ON sr.id = usr.scrape_run_id
+         INNER JOIN product_observations po ON po.scrape_run_id = sr.id
+         INNER JOIN source_variants sv ON sv.id = po.source_variant_id
+         INNER JOIN source_products sp ON sp.id = sv.source_product_id
+         INNER JOIN stores s ON s.id = sp.store_id
+         WHERE usr.user_id = ? AND s.domain = ? AND sr.id < ?
+         ORDER BY sr.id DESC
+         LIMIT 1`,
+        [userId, url, beforeId]
+      );
 
   if (!previous) {
     return null;
@@ -395,29 +467,64 @@ export async function deleteScrapesByUrl(
   userId: number,
   url: string
 ): Promise<void> {
-  const runs = await all<{ scrape_run_id: number }>(
-    `SELECT usr.scrape_run_id
-     FROM user_scrape_runs usr
-     INNER JOIN scrape_runs sr ON sr.id = usr.scrape_run_id
-     INNER JOIN stores s ON s.id = usr.store_id
-     WHERE usr.user_id = ? AND s.domain = ?`,
-    [userId, url]
-  );
+  const hasStoreId = await userScrapeRunsHasStoreId();
+  const runs = hasStoreId
+    ? await all<{ scrape_run_id: number }>(
+        `SELECT usr.scrape_run_id
+         FROM user_scrape_runs usr
+         INNER JOIN stores s ON s.id = usr.store_id
+         WHERE usr.user_id = ? AND s.domain = ?`,
+        [userId, url]
+      )
+    : await all<{ scrape_run_id: number }>(
+        `SELECT DISTINCT usr.scrape_run_id
+         FROM user_scrape_runs usr
+         INNER JOIN scrape_runs sr ON sr.id = usr.scrape_run_id
+         INNER JOIN product_observations po ON po.scrape_run_id = sr.id
+         INNER JOIN source_variants sv ON sv.id = po.source_variant_id
+         INNER JOIN source_products sp ON sp.id = sv.source_product_id
+         INNER JOIN stores s ON s.id = sp.store_id
+         WHERE usr.user_id = ? AND s.domain = ?`,
+        [userId, url]
+      );
 
-  await run(
-    `DELETE FROM user_scrape_runs
-     WHERE user_id = ? AND scrape_run_id IN (
-       SELECT sr.id
-       FROM scrape_runs sr
-       INNER JOIN stores s ON s.id = usr.store_id
-       WHERE s.domain = ?
-     )`,
-    [userId, url]
-  );
-
+  for (const runRow of runs) {
+    await run(
+      `DELETE FROM user_scrape_runs WHERE user_id = ? AND scrape_run_id = ?`,
+      [userId, runRow.scrape_run_id]
+    );
+  }
   for (const runRow of runs) {
     await cleanupOrphanScrapeRun(runRow.scrape_run_id);
   }
+}
+
+export async function findLatestStoreScrape(domain: string): Promise<ScrapeRow | null> {
+  const latest = await get<{ id: number; url: string; created_at: string }>(
+    `SELECT sr.id, s.domain AS url, sr.started_at AS created_at
+     FROM scrape_runs sr
+     INNER JOIN product_observations po ON po.scrape_run_id = sr.id
+     INNER JOIN source_variants sv ON sv.id = po.source_variant_id
+     INNER JOIN source_products sp ON sp.id = sv.source_product_id
+     INNER JOIN stores s ON s.id = sp.store_id
+     WHERE s.domain = ?
+     ORDER BY sr.id DESC
+     LIMIT 1`,
+    [domain]
+  );
+
+  if (!latest) {
+    return null;
+  }
+
+  const rows = await getObservationRowsByRunId(latest.id);
+
+  return {
+    id: latest.id,
+    url: latest.url,
+    created_at: latest.created_at,
+    products: buildProductsFromRows(rows),
+  };
 }
 
 export async function listScrapeSites(
@@ -430,48 +537,107 @@ export async function listScrapeSites(
   const pageSize = Math.min(50, Math.max(1, safePageSize));
   const offset = (page - 1) * pageSize;
   const query = input.query || "";
+  const hasStoreId = await userScrapeRunsHasStoreId();
 
   const searchFilter = query ? `AND s.domain LIKE ?` : "";
   const searchValues = query ? [`%${query}%`] : [];
 
-  const totalRow = await get<{ count: number }>(
-    `SELECT COUNT(*) AS count
-     FROM (
-       SELECT DISTINCT s.domain
-       FROM user_scrape_runs usr
-       INNER JOIN stores s ON s.id = usr.store_id
-       WHERE usr.user_id = ?
-       ${searchFilter}
-     )`,
-    [userId, ...searchValues]
-  );
-  const total = totalRow?.count ?? 0;
-
-  const urlRows = await all<{ url: string; last: string; latest_run_id: number }>(
-    `SELECT s.domain AS url, MAX(sr.started_at) AS last, MAX(sr.id) AS latest_run_id
-     FROM user_scrape_runs usr
-     INNER JOIN scrape_runs sr ON sr.id = usr.scrape_run_id
-     INNER JOIN stores s ON s.id = usr.store_id
-     WHERE usr.user_id = ?
-     ${searchFilter}
-     GROUP BY s.domain
-     ORDER BY latest_run_id DESC
-     LIMIT ? OFFSET ?`,
-    [userId, ...searchValues, pageSize, offset]
-  );
-
-  const sites = await Promise.all(
-    urlRows.map(async (row) => {
-      const runs = await all<ScrapeRunSummary>(
-        `SELECT sr.id, sr.started_at AS created_at
+  const rawSiteRows = hasStoreId
+    ? await all<{ url: string; last: string; latest_run_id: number }>(
+        `SELECT s.domain AS url, MAX(sr.started_at) AS last, MAX(sr.id) AS latest_run_id
          FROM user_scrape_runs usr
          INNER JOIN scrape_runs sr ON sr.id = usr.scrape_run_id
          INNER JOIN stores s ON s.id = usr.store_id
-         WHERE usr.user_id = ? AND s.domain = ?
-         ORDER BY sr.id DESC`,
-        [userId, row.url]
+         WHERE usr.user_id = ?
+         ${searchFilter}
+         GROUP BY s.domain
+         ORDER BY latest_run_id DESC`,
+        [userId, ...searchValues]
+      )
+    : await all<{ url: string; last: string; latest_run_id: number }>(
+        `SELECT s.domain AS url, MAX(sr.started_at) AS last, MAX(sr.id) AS latest_run_id
+         FROM user_scrape_runs usr
+         INNER JOIN scrape_runs sr ON sr.id = usr.scrape_run_id
+         INNER JOIN product_observations po ON po.scrape_run_id = sr.id
+         INNER JOIN source_variants sv ON sv.id = po.source_variant_id
+         INNER JOIN source_products sp ON sp.id = sv.source_product_id
+         INNER JOIN stores s ON s.id = sp.store_id
+         WHERE usr.user_id = ?
+         ${searchFilter}
+         GROUP BY s.domain
+         ORDER BY latest_run_id DESC`,
+        [userId, ...searchValues]
       );
 
+  const groupedSiteRows = new Map<string, { latest_run_id: number }>();
+  for (const row of rawSiteRows) {
+    const normalizedDomain = normalizeStoreDomain(row.url);
+    if (!normalizedDomain) {
+      continue;
+    }
+
+    const existing = groupedSiteRows.get(normalizedDomain);
+    if (!existing || row.latest_run_id > existing.latest_run_id) {
+      groupedSiteRows.set(normalizedDomain, { latest_run_id: row.latest_run_id });
+    }
+  }
+
+  const normalizedDomains = Array.from(groupedSiteRows.entries())
+    .sort((left, right) => right[1].latest_run_id - left[1].latest_run_id)
+    .map(([domain]) => domain);
+
+  const total = normalizedDomains.length;
+  const pagedDomains = normalizedDomains.slice(offset, offset + pageSize);
+
+  const rawDomainsByNormalized = new Map<string, string[]>();
+  for (const row of rawSiteRows) {
+    const normalizedDomain = normalizeStoreDomain(row.url);
+    if (!normalizedDomain) {
+      continue;
+    }
+
+    const existing = rawDomainsByNormalized.get(normalizedDomain) || [];
+    if (!existing.includes(row.url)) {
+      existing.push(row.url);
+    }
+    rawDomainsByNormalized.set(normalizedDomain, existing);
+  }
+
+  const sites = await Promise.all(
+    pagedDomains.map(async (domain) => {
+      const rawDomains = rawDomainsByNormalized.get(domain) || [];
+      const runsById = new Map<number, ScrapeRunSummary>();
+
+      for (const rawDomain of rawDomains) {
+        const runs = hasStoreId
+          ? await all<ScrapeRunSummary>(
+              `SELECT sr.id, sr.started_at AS created_at
+               FROM user_scrape_runs usr
+               INNER JOIN scrape_runs sr ON sr.id = usr.scrape_run_id
+               INNER JOIN stores s ON s.id = usr.store_id
+               WHERE usr.user_id = ? AND s.domain = ?
+               ORDER BY sr.id DESC`,
+              [userId, rawDomain]
+            )
+          : await all<ScrapeRunSummary>(
+              `SELECT DISTINCT sr.id, sr.started_at AS created_at
+               FROM user_scrape_runs usr
+               INNER JOIN scrape_runs sr ON sr.id = usr.scrape_run_id
+               INNER JOIN product_observations po ON po.scrape_run_id = sr.id
+               INNER JOIN source_variants sv ON sv.id = po.source_variant_id
+               INNER JOIN source_products sp ON sp.id = sv.source_product_id
+               INNER JOIN stores s ON s.id = sp.store_id
+               WHERE usr.user_id = ? AND s.domain = ?
+               ORDER BY sr.id DESC`,
+              [userId, rawDomain]
+            );
+
+        for (const run of runs) {
+          runsById.set(run.id, run);
+        }
+      }
+
+      const runs = Array.from(runsById.values()).sort((left, right) => right.id - left.id);
       const latestRun = runs[0]
         ? {
             id: runs[0].id,
@@ -483,7 +649,7 @@ export async function listScrapeSites(
         : null;
 
       return {
-        url: row.url,
+        url: domain,
         runs,
         latestRun,
       };
