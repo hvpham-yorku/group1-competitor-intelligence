@@ -61,8 +61,8 @@ function normalizeWooProduct(product: Record<string, unknown>, sourceUrl: string
 export const WooCommerceStrategy: ScraperStrategy = {
     name: 'WooCommerce',
     description: 'Extracts data from WooCommerce via WP-JSON API',
-    match: async (url) => {
-        const endpoint = url + "/wp-json/wc/store/v1/products";
+    match: async (req: ScraperRequest) => {
+        const endpoint = `${req.url}/wp-json/wc/store/v1/products`;
         const response = await getWithBrowserFallback(endpoint);
         if (response.ok) {
             return {
