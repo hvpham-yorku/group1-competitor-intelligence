@@ -32,9 +32,9 @@ export async function saveScrapeRun(input: {
 
   await runInTransaction(async () => {
     const storeId = await findOrCreateStore(url, inferPlatform(products));
-    const scrapeRunId = await createScrapeRun(storeId);
+    const scrapeRunId = await createScrapeRun();
 
-    await linkUserToScrapeRun(input.userId, scrapeRunId);
+    await linkUserToScrapeRun(input.userId, scrapeRunId, storeId);
 
     for (const product of products) {
       if (!product || typeof product.product_url !== "string" || !product.title) {

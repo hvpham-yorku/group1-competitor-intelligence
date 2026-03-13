@@ -6,7 +6,10 @@ export type TrackedProductRow = {
   source_product_id: number;
   created_at: string;
 };
-
+export type tracked_products = {
+  product_url : string,
+  store_id: number
+}
 function run(sql: string, params: unknown[] = []): Promise<void> {
   return new Promise((resolve, reject) => {
     SqliteDB.run(sql, params, (error) => {
@@ -78,14 +81,10 @@ function all<T>(sql: string, params: unknown[] = []): Promise<T[]> {
   });
 }
 
-export async function getTrackedProducts(input: {
-  userId: number;
-}): Promise<TrackedProductRow[]> {
-  return all<TrackedProductRow>(
-    `SELECT id, user_id, source_product_id, created_at
-     FROM tracked_products
-     WHERE user_id = ?
-     ORDER BY id DESC`,
-    [input.userId]
+export async function getTrackedProducts(): Promise<tracked_products[]> {
+  return all<tracked_products>(
+    ` SELECT source_products.product_url, source_products.store_id
+      FROM tracked_products
+      INNER JOIN source_products ON tracked_products.source_product_id = source_products.id`
   );
 }

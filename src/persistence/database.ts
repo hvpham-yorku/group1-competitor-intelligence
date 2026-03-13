@@ -37,10 +37,12 @@ function ensureUserScrapeRunsSchema() {
           `CREATE TABLE IF NOT EXISTS user_scrape_runs(
             user_id INTEGER NOT NULL,
             scrape_run_id INTEGER NOT NULL,
+            store_id INTEGER NOT NULL
             created_at TEXT NOT NULL DEFAULT (datetime('now')),
             PRIMARY KEY(user_id, scrape_run_id),
             FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
-            FOREIGN KEY(scrape_run_id) REFERENCES scrape_runs(id) ON DELETE CASCADE
+            FOREIGN KEY(scrape_run_id) REFERENCES scrape_runs(id) ON DELETE CASCADE,
+            FOREIGN KEY(store_id) REFERENCES stores(id) ON DELETE CASCADE
           )`
         );
         SqliteDB.run(
@@ -123,18 +125,18 @@ SqliteDB.serialize(() => {
   SqliteDB.run(
     `CREATE TABLE IF NOT EXISTS scrape_runs(
       id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-      store_id INTEGER NOT NULL,
       started_at TEXT NOT NULL DEFAULT (datetime('now')),
       finished_at TEXT,
       status TEXT NOT NULL DEFAULT 'completed',
-      error_message TEXT,
-      FOREIGN KEY(store_id) REFERENCES stores(id) ON DELETE CASCADE
+      error_message TEXT
     )`
   );
+  /*
   SqliteDB.run(
     `CREATE INDEX IF NOT EXISTS idx_scrape_runs_store_started_at
      ON scrape_runs(store_id, started_at)`
   );
+  */
   SqliteDB.run(
     `CREATE TABLE IF NOT EXISTS source_products(
       id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -180,10 +182,12 @@ SqliteDB.serialize(() => {
     `CREATE TABLE IF NOT EXISTS user_scrape_runs(
       user_id INTEGER NOT NULL,
       scrape_run_id INTEGER NOT NULL,
+      store_id INTEGER NOT NULL,
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
       PRIMARY KEY(user_id, scrape_run_id),
       FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
-      FOREIGN KEY(scrape_run_id) REFERENCES scrape_runs(id) ON DELETE CASCADE
+      FOREIGN KEY(scrape_run_id) REFERENCES scrape_runs(id) ON DELETE CASCADE,
+      FOREIGN KEY(store_id) REFERENCES stores(id) ON DELETE CASCADE
     )`
   );
   SqliteDB.run(

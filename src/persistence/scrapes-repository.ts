@@ -164,30 +164,34 @@ export async function findOrCreateStore(domain: string, platform: string): Promi
   return created.id;
 }
 
-export async function createScrapeRun(storeId: number): Promise<number> {
-  await run(
-    `INSERT INTO scrape_runs (store_id, started_at, finished_at, status)
-     VALUES (?, datetime('now'), datetime('now'), 'completed')`,
-    [storeId]
+function runAndReturnResult(sql: string, params: unknown[] = []): Promise<any> {
+  return new Promise((resolve, reject) => {
+    SqliteDB.run(sql, params, function(error: Error) {
+      if (error) {
+        reject(error);
+      } else {
+        //console.log();
+        resolve(this.lastID);
+      }
+    });
+  });
+}
+export async function createScrapeRun(): Promise<number> {
+  let ScrapeId  = await runAndReturnResult(
+    `INSERT INTO scrape_runs (started_at, finished_at, status)
+     VALUES (datetime('now'), datetime('now'), 'completed')
+     `
   );
-
-  const row = await get<{ id: number }>(
-    `SELECT id FROM scrape_runs WHERE store_id = ? ORDER BY id DESC LIMIT 1`,
-    [storeId]
-  );
-
-  if (!row) {
-    throw new Error("Failed to create scrape run");
-  }
-
-  return row.id;
+  //: number = await runAndReturnResult(`SELECT last_insert_rowid()`);
+  //console.log(ScrapeId);
+  return ScrapeId;
 }
 
-export async function linkUserToScrapeRun(userId: number, scrapeRunId: number): Promise<void> {
+export async function linkUserToScrapeRun(userId: number, scrapeRunId: number, storeId: number): Promise<void> {
   await run(
-    `INSERT OR IGNORE INTO user_scrape_runs (user_id, scrape_run_id)
-     VALUES (?, ?)`,
-    [userId, scrapeRunId]
+    `INSERT OR IGNORE INTO user_scrape_runs (user_id, scrape_run_id, store_id)
+     VALUES (?, ?, ?)`,
+    [userId, scrapeRunId, storeId]
   );
 }
 
@@ -435,8 +439,7 @@ export async function listScrapeSites(
      FROM (
        SELECT DISTINCT s.domain
        FROM user_scrape_runs usr
-       INNER JOIN scrape_runs sr ON sr.id = usr.scrape_run_id
-       INNER JOIN stores s ON s.id = sr.store_id
+       INNER JOIN stores s ON s.id = usr.store_id
        WHERE usr.user_id = ?
        ${searchFilter}
      )`,
@@ -448,7 +451,7 @@ export async function listScrapeSites(
     `SELECT s.domain AS url, MAX(sr.started_at) AS last, MAX(sr.id) AS latest_run_id
      FROM user_scrape_runs usr
      INNER JOIN scrape_runs sr ON sr.id = usr.scrape_run_id
-     INNER JOIN stores s ON s.id = sr.store_id
+     INNER JOIN stores s ON s.id = usr.store_id
      WHERE usr.user_id = ?
      ${searchFilter}
      GROUP BY s.domain
@@ -463,7 +466,7 @@ export async function listScrapeSites(
         `SELECT sr.id, sr.started_at AS created_at
          FROM user_scrape_runs usr
          INNER JOIN scrape_runs sr ON sr.id = usr.scrape_run_id
-         INNER JOIN stores s ON s.id = sr.store_id
+         INNER JOIN stores s ON s.id = usr.store_id
          WHERE usr.user_id = ? AND s.domain = ?
          ORDER BY sr.id DESC`,
         [userId, row.url]
