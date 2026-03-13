@@ -2,6 +2,46 @@ function cleanString(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
 }
 
+export type TrackedProductSummary = {
+  tracked_id: number;
+  source_product_id: number;
+  title: string;
+  product_url: string;
+  vendor: string | null;
+  product_type: string | null;
+  store_domain: string;
+  store_platform: string | null;
+  image_url: string | null;
+  tracked_at: string;
+  schedule_label: string;
+  latest_price: number | null;
+  previous_price: number | null;
+  price_delta: number | null;
+  latest_seen_at: string | null;
+  latest_scrape_run_id: number | null;
+};
+
+export type TrackedProductHistoryPoint = {
+  scrape_run_id: number;
+  observed_at: string;
+  price: number | null;
+  compare_at_price: number | null;
+  available_variants: number;
+  total_variants: number;
+};
+
+export type TrackedProductDetail = {
+  summary: TrackedProductSummary;
+  history: TrackedProductHistoryPoint[];
+  recent_events: Array<
+    TrackedProductHistoryPoint & {
+      price_delta: number | null;
+    }
+  >;
+};
+
+export const TRACKING_SCHEDULE_LABEL = "Daily at 01:00 UTC";
+
 export function normalizeTrackedProductInput(input: {
   product_url?: unknown;
 }): {
@@ -16,4 +56,18 @@ export function normalizeTrackedProductInput(input: {
   return {
     url,
   };
+}
+
+export function parseImageUrl(imagesJson: string | null): string | null {
+  if (!imagesJson) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(imagesJson) as Array<{ src?: string }>;
+    const first = Array.isArray(parsed) ? parsed[0] : null;
+    return typeof first?.src === "string" ? first.src : null;
+  } catch {
+    return null;
+  }
 }

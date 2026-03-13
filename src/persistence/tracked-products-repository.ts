@@ -1,13 +1,13 @@
 import { SqliteDB } from "@/persistence/database";
+import {
+  parseImageUrl,
+  TRACKING_SCHEDULE_LABEL,
+  type TrackedProductDetail,
+  type TrackedProductHistoryPoint,
+  type TrackedProductSummary,
+} from "@/services/tracking/utils";
 
-export type TrackedProductRow = {
-  id: number;
-  user_id: number;
-  source_product_id: number;
-  created_at: string;
-};
-
-type TrackedProductObservationRow = {
+type ObservationRow = {
   tracked_id: number;
   tracked_at: string;
   source_product_id: number;
@@ -19,53 +19,11 @@ type TrackedProductObservationRow = {
   product_type: string | null;
   images_json: string | null;
   scrape_run_id: number | null;
-  scrape_started_at: string | null;
   source_variant_id: number | null;
-  variant_title: string | null;
   price: number | null;
   compare_at_price: number | null;
   available: number | null;
   observed_at: string | null;
-};
-
-export type TrackedProductSummary = {
-  tracked_id: number;
-  source_product_id: number;
-  title: string;
-  product_url: string;
-  vendor: string | null;
-  product_type: string | null;
-  store_domain: string;
-  store_platform: string | null;
-  image_url: string | null;
-  tracked_at: string;
-  schedule_label: string;
-  latest_price: number | null;
-  previous_price: number | null;
-  price_delta: number | null;
-  latest_seen_at: string | null;
-  latest_scrape_run_id: number | null;
-};
-
-const TRACKING_SCHEDULE_LABEL = "Daily at 01:00 UTC";
-
-export type TrackedProductHistoryPoint = {
-  scrape_run_id: number;
-  observed_at: string;
-  price: number | null;
-  compare_at_price: number | null;
-  available_variants: number;
-  total_variants: number;
-};
-
-export type TrackedProductDetail = {
-  summary: TrackedProductSummary;
-  history: TrackedProductHistoryPoint[];
-  recent_events: Array<
-    TrackedProductHistoryPoint & {
-      price_delta: number | null;
-    }
-  >;
 };
 
 export type ScheduledTrackedProductTarget = {
@@ -110,22 +68,7 @@ function all<T>(sql: string, params: unknown[] = []): Promise<T[]> {
   });
 }
 
-function safeParseImages(
-  value: string | null
-): Array<{ src?: string; alt?: string }> {
-  if (!value) {
-    return [];
-  }
-
-  try {
-    const parsed = JSON.parse(value) as Array<{ src?: string; alt?: string }>;
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
-
-function summarizeSnapshot(rows: TrackedProductObservationRow[]) {
+function summarizeSnapshot(rows: ObservationRow[]) {
   const numericPrices = rows
     .map((row) => row.price)
     .filter((value): value is number => typeof value === "number");
@@ -146,9 +89,9 @@ function summarizeSnapshot(rows: TrackedProductObservationRow[]) {
 }
 
 function toHistory(
-  rows: TrackedProductObservationRow[]
+  rows: ObservationRow[]
 ): TrackedProductHistoryPoint[] {
-  const snapshots = new Map<number, TrackedProductObservationRow[]>();
+  const snapshots = new Map<number, ObservationRow[]>();
 
   for (const row of rows) {
     if (!row.scrape_run_id || !row.observed_at) {
@@ -183,7 +126,7 @@ function toHistory(
 }
 
 function buildSummary(
-  rows: TrackedProductObservationRow[]
+  rows: ObservationRow[]
 ): TrackedProductSummary | null {
   const first = rows[0];
   if (!first) {
@@ -193,7 +136,6 @@ function buildSummary(
   const history = toHistory(rows);
   const latest = history[0] || null;
   const previous = history[1] || null;
-  const firstImage = safeParseImages(first.images_json)[0];
 
   return {
     tracked_id: first.tracked_id,
@@ -204,7 +146,7 @@ function buildSummary(
     product_type: first.product_type,
     store_domain: first.store_domain,
     store_platform: first.store_platform,
-    image_url: firstImage?.src || null,
+    image_url: parseImageUrl(first.images_json),
     tracked_at: first.tracked_at,
     schedule_label: TRACKING_SCHEDULE_LABEL,
     latest_price: latest?.price ?? null,
@@ -221,7 +163,7 @@ function buildSummary(
 async function getTrackedObservationRows(input: {
   userId: number;
   sourceProductId?: number;
-}): Promise<TrackedProductObservationRow[]> {
+}): Promise<ObservationRow[]> {
   const params: unknown[] = [input.userId];
   let whereClause = `WHERE tp.user_id = ?`;
 
@@ -230,7 +172,7 @@ async function getTrackedObservationRows(input: {
     params.push(input.sourceProductId);
   }
 
-  return all<TrackedProductObservationRow>(
+  return all<ObservationRow>(
     `SELECT
        tp.id AS tracked_id,
        tp.created_at AS tracked_at,
@@ -243,9 +185,7 @@ async function getTrackedObservationRows(input: {
        sp.product_type,
        sp.images_json,
        sr.id AS scrape_run_id,
-       sr.started_at AS scrape_started_at,
        sv.id AS source_variant_id,
-       sv.variant_title,
        po.price,
        po.compare_at_price,
        po.available,
@@ -297,18 +237,6 @@ export async function deleteTrackedProduct(input: {
   );
 }
 
-export async function getTrackedProducts(input: {
-  userId: number;
-}): Promise<TrackedProductRow[]> {
-  return all<TrackedProductRow>(
-    `SELECT id, user_id, source_product_id, created_at
-     FROM tracked_products
-     WHERE user_id = ?
-     ORDER BY id DESC`,
-    [input.userId]
-  );
-}
-
 export async function getTrackedProductsForScheduling(): Promise<ScheduledTrackedProductTarget[]> {
   const rows = await all<{
     source_product_id: number;
@@ -339,7 +267,7 @@ export async function getTrackedProductSummaries(input: {
   userId: number;
 }): Promise<TrackedProductSummary[]> {
   const rows = await getTrackedObservationRows({ userId: input.userId });
-  const grouped = new Map<number, TrackedProductObservationRow[]>();
+  const grouped = new Map<number, ObservationRow[]>();
 
   for (const row of rows) {
     const existing = grouped.get(row.source_product_id) || [];

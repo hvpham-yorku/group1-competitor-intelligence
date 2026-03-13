@@ -1,9 +1,11 @@
 import {
   getTrackedProductDetail,
   getTrackedProductSummaries,
-  type TrackedProductDetail,
-  type TrackedProductSummary,
 } from "@/persistence/tracked-products-repository";
+import type {
+  TrackedProductDetail,
+  TrackedProductSummary,
+} from "@/services/tracking/utils";
 
 export async function listTrackedProducts(input: {
   userId: number;
