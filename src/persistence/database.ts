@@ -136,6 +136,29 @@ SqliteDB.serialize(() => {
      ON product_observations(source_variant_id, observed_at)`
   );
 
+  // Tracking evaluation runs sit on top of scrape history and power alerts later.
+  SqliteDB.run(
+    `CREATE TABLE IF NOT EXISTS tracking_runs(
+      id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+      scrape_run_id INTEGER,
+      trigger_type TEXT NOT NULL DEFAULT 'manual',
+      status TEXT NOT NULL DEFAULT 'completed',
+      error_message TEXT,
+      started_at TEXT NOT NULL DEFAULT (datetime('now')),
+      finished_at TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      FOREIGN KEY(scrape_run_id) REFERENCES scrape_runs(id) ON DELETE SET NULL
+    )`
+  );
+  SqliteDB.run(
+    `CREATE INDEX IF NOT EXISTS idx_tracking_runs_scrape_run_id
+     ON tracking_runs(scrape_run_id)`
+  );
+  SqliteDB.run(
+    `CREATE INDEX IF NOT EXISTS idx_tracking_runs_created_at
+     ON tracking_runs(created_at)`
+  );
+
   // Track a stable source product identity, not denormalized product text.
   SqliteDB.run(
     `CREATE TABLE IF NOT EXISTS tracked_products(
