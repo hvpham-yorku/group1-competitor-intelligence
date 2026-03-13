@@ -2,8 +2,51 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]/route";
 import { getExistingUserIdFromSession } from "../auth/auth-utils";
+import {
+  getTrackedProduct,
+  listTrackedProducts,
+} from "@/services/tracking/get-tracked-products";
 import { trackProduct } from "@/services/tracking/track-product";
 import { untrackProduct } from "@/services/tracking/untrack-product";
+import { initializeScheduledScraping } from "@/services/scheduled_scraping/scheduled_scraping";
+
+initializeScheduledScraping();
+
+export async function GET(request: Request) {
+  const session = await getServerSession(authOptions);
+  const userId = await getExistingUserIdFromSession(session);
+
+  if (!userId) {
+    return NextResponse.json({ message: "unauthorized" }, { status: 401 });
+  }
+
+  const { searchParams } = new URL(request.url);
+  const sourceProductIdParam = searchParams.get("sourceProductId");
+
+  if (sourceProductIdParam) {
+    const sourceProductId = Number(sourceProductIdParam);
+    if (!Number.isInteger(sourceProductId) || sourceProductId <= 0) {
+      return NextResponse.json(
+        { message: "Invalid sourceProductId" },
+        { status: 400 }
+      );
+    }
+
+    const trackedProduct = await getTrackedProduct({
+      userId,
+      sourceProductId,
+    });
+
+    if (!trackedProduct) {
+      return NextResponse.json({ message: "not found" }, { status: 404 });
+    }
+
+    return NextResponse.json({ product: trackedProduct });
+  }
+
+  const products = await listTrackedProducts({ userId });
+  return NextResponse.json({ products });
+}
 
 export async function POST(request: Request) {
   const session = await getServerSession(authOptions);

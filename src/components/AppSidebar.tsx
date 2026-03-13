@@ -4,24 +4,14 @@ import * as React from "react"
 import { usePathname } from "next/navigation"
 import {
     Search,
-    Settings,
     LayoutDashboard,
     Package,
     Users,
     FileText,
     User,
     Settings2,
-    TrendingUp,
     Activity,
-    List,
-    ChevronRight,
 } from "lucide-react"
-
-import {
-    Collapsible,
-    CollapsibleContent,
-    CollapsibleTrigger,
-} from "@/components/ui/collapsible"
 
 import {
     Sidebar,
@@ -32,12 +22,8 @@ import {
     SidebarGroupLabel,
     SidebarHeader,
     SidebarMenu,
-    SidebarMenuAction,
     SidebarMenuButton,
     SidebarMenuItem,
-    SidebarMenuSub,
-    SidebarMenuSubButton,
-    SidebarMenuSubItem,
     SidebarRail,
 } from "@/components/ui/sidebar"
 
@@ -57,6 +43,11 @@ const applicationItems = [
         title: "Products",
         url: "/products",
         icon: Package,
+    },
+    {
+        title: "Tracking",
+        url: "/tracking",
+        icon: Activity,
     },
 ]
 

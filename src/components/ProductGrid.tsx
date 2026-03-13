@@ -8,20 +8,37 @@
 // - Abdelrahman 
 "use client"
 
-import { useMemo, useState, type FC } from "react"
-import { MantineReactTable, type MRT_ColumnDef, type MRT_ColumnFiltersState, MRT_Row, useMantineReactTable } from "mantine-react-table"
+import { useEffect, useMemo, useState, type FC } from "react"
+import { MantineReactTable, type MRT_ColumnDef, type MRT_ColumnFiltersState, type MRT_RowSelectionState, MRT_Row, useMantineReactTable } from "mantine-react-table"
 import { MantineProvider, useMantineTheme, Box, Menu } from "@mantine/core"
-import { ChevronRight, ChevronDown } from "lucide-react"
+import { ChevronRight, ChevronDown, MoreHorizontal } from "lucide-react"
 import { download, generateCsv, mkConfig } from "export-to-csv"
 import { IconDownload } from '@tabler/icons-react';
 import { Button } from "./ui/button"
-import { METHODS } from "http"
+import { useSession } from "next-auth/react";
+import type { NormalizedProduct, NormalizedVariant } from "@/services/scraper/normalized-types";
+import Image from "next/image";
 
 interface ProductGridProps {
-    products: any[];
+    products: ProductRow[];
     sourceUrl?: string;
     showCompetitor?: boolean;
 }
+
+type ProductRow = NormalizedProduct & {
+    competitor?: string;
+};
+
+type TrackedProductSummary = {
+    product_url: string;
+};
+
+type ExportRow = {
+    title: string;
+    variant: string;
+    price: string;
+    availablity: string;
+};
 
 const csvConfig = mkConfig({
     fieldSeparator: ',',
@@ -30,7 +47,21 @@ const csvConfig = mkConfig({
     showColumnHeaders: false
 });
 
+function formatDateTime(value?: string) {
+    if (!value) {
+        return "N/A";
+    }
+
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+        return "N/A";
+    }
+
+    return date.toLocaleString();
+}
+
 export const ProductGrid: FC<ProductGridProps> = ({ products, sourceUrl }) => {
+    const { status } = useSession();
     // Enrich products on the spot in the UI
     const enrichedProducts = useMemo(() => {
         if (!sourceUrl) return products;
@@ -55,8 +86,55 @@ export const ProductGrid: FC<ProductGridProps> = ({ products, sourceUrl }) => {
     }, [products, sourceUrl]);
 
     const [columnFilters, setColumnFilters] = useState<MRT_ColumnFiltersState>([]);
+    const [rowSelection, setRowSelection] = useState<MRT_RowSelectionState>({});
+    const [trackedUrls, setTrackedUrls] = useState<Set<string>>(new Set());
+    const [trackingSelected, setTrackingSelected] = useState(false);
+    const hasCompetitorColumn = useMemo(
+        () => products.some((product) => Boolean(product.competitor)),
+        [products]
+    );
 
-    const columns = useMemo<MRT_ColumnDef<any>[]>(
+    useEffect(() => {
+        if (status !== "authenticated") {
+            setTrackedUrls(new Set());
+            return;
+        }
+
+        let active = true;
+
+        const loadTrackedProducts = async () => {
+            try {
+                const response = await fetch("/api/tracked_products", {
+                    cache: "no-store",
+                });
+
+                if (!response.ok) {
+                    return;
+                }
+
+                const data = await response.json() as { products?: TrackedProductSummary[] };
+                const next = new Set(
+                    (data.products || [])
+                        .map((product) => product.product_url)
+                        .filter((url): url is string => typeof url === "string" && url.length > 0)
+                );
+
+                if (active) {
+                    setTrackedUrls(next);
+                }
+            } catch (error) {
+                console.error("Failed to load tracked products", error);
+            }
+        };
+
+        void loadTrackedProducts();
+
+        return () => {
+            active = false;
+        };
+    }, [status]);
+
+    const columns = useMemo<MRT_ColumnDef<ProductRow>[]>(
         () => [
             {
                 accessorKey: 'title',
@@ -67,9 +145,11 @@ export const ProductGrid: FC<ProductGridProps> = ({ products, sourceUrl }) => {
                     return (
                         <div className="flex items-center gap-3 py-2">
                             {imageUrl ? (
-                                <img
+                                <Image
                                     src={imageUrl}
                                     alt={row.original?.title || "Product"}
+                                    width={40}
+                                    height={40}
                                     className="h-10 w-10 object-cover rounded shadow-sm border border-white/10"
                                 />
                             ) : (
@@ -78,7 +158,14 @@ export const ProductGrid: FC<ProductGridProps> = ({ products, sourceUrl }) => {
                                 </div>
                             )}
                             <div className="flex flex-col">
-                                <span className="font-medium text-sm leading-tight">{row.original?.title}</span>
+                                <span className="font-medium text-sm leading-tight">
+                                    {row.original?.title}
+                                </span>
+                                {trackedUrls.has(row.original.product_url) && (
+                                    <span className="text-[11px] uppercase tracking-[0.18em] text-emerald-300/70">
+                                        Tracked
+                                    </span>
+                                )}
                                 <span className="text-xs text-muted-foreground italic">{row.original?.product_type}</span>
                             </div>
                         </div>
@@ -100,7 +187,9 @@ export const ProductGrid: FC<ProductGridProps> = ({ products, sourceUrl }) => {
                 accessorFn: (row) => {
                     const variants = row.variants || [];
                     if (variants.length === 0) return 0;
-                    const prices = variants.map((v: any) => parseFloat(v.price)).filter((p: any) => !isNaN(p));
+                    const prices = variants
+                        .map((variant) => parseFloat(variant.price))
+                        .filter((price) => !isNaN(price));
                     return prices.length > 0 ? Math.min(...prices) : 0;
                 },
                 Cell: ({ row }) => {
@@ -110,7 +199,9 @@ export const ProductGrid: FC<ProductGridProps> = ({ products, sourceUrl }) => {
                         return `$${parseFloat(price).toFixed(2)}`;
                     }
 
-                    const prices = variants.map((v: any) => parseFloat(v.price)).filter((p: any) => !isNaN(p));
+                    const prices = variants
+                        .map((variant) => parseFloat(variant.price))
+                        .filter((price) => !isNaN(price));
                     const minPrice = Math.min(...prices);
                     const maxPrice = Math.max(...prices);
 
@@ -124,6 +215,26 @@ export const ProductGrid: FC<ProductGridProps> = ({ products, sourceUrl }) => {
                 size: 150,
             },
             {
+                accessorKey: 'created_at',
+                header: 'Created',
+                size: 190,
+                Cell: ({ cell }) => (
+                    <span className="text-muted-foreground">
+                        {formatDateTime(cell.getValue() as string | undefined)}
+                    </span>
+                ),
+            },
+            {
+                accessorKey: 'last_updated_at',
+                header: 'Last Updated',
+                size: 190,
+                Cell: ({ cell }) => (
+                    <span className="text-muted-foreground">
+                        {formatDateTime(cell.getValue() as string | undefined)}
+                    </span>
+                ),
+            },
+            {
                 id: 'availability',
                 header: 'Availability',
                 size: 140,
@@ -131,7 +242,9 @@ export const ProductGrid: FC<ProductGridProps> = ({ products, sourceUrl }) => {
                     const variants = row.variants || [];
                     if (variants.length === 0) return "N/A";
 
-                    const statuses = new Set(variants.map((v: any) => v.available ? "In Stock" : "Out of Stock"));
+                    const statuses = new Set(
+                        variants.map((variant) => (variant.available ? "In Stock" : "Out of Stock"))
+                    );
 
                     if (statuses.size > 1) return "Mixed";
 
@@ -161,16 +274,27 @@ export const ProductGrid: FC<ProductGridProps> = ({ products, sourceUrl }) => {
                 },
                 enableColumnFilter: false,
             },
+            ...(hasCompetitorColumn
+                ? [{
+                    accessorKey: "competitor",
+                    header: "Competitor",
+                    size: 170,
+                    Cell: ({ cell }: { cell: { getValue: () => unknown } }) => (
+                        <span className="text-muted-foreground">
+                            {String(cell.getValue() || "Unknown")}
+                        </span>
+                    ),
+                } satisfies MRT_ColumnDef<ProductRow>]
+                : []),
         ],
-        []
+        [hasCompetitorColumn, trackedUrls]
     );
 
-    function ExtractInformationFromRowsToExport(Rows: MRT_Row<any>[]) {
-
-        let Result: any[] = [{ title: "Title", variant: "Variant Name", price: "Price", availablity: "Availablity" }];
+    function ExtractInformationFromRowsToExport(Rows: MRT_Row<ProductRow>[]) {
+        const Result: ExportRow[] = [{ title: "Title", variant: "Variant Name", price: "Price", availablity: "Availablity" }];
         for (let i = 0; i < Rows.length; i++) {
             const Title = Rows[i].original.title;
-            const Variants: any[] = Rows[i].original.variants;
+            const Variants: NormalizedVariant[] = Rows[i].original.variants;
             for (let VariantIndex = 0; VariantIndex < Variants.length; VariantIndex++) {
                 const SecondTitle = Rows[i].original.variants[VariantIndex].title;
                 const Price = Rows[i].original.variants[VariantIndex].price;
@@ -179,22 +303,7 @@ export const ProductGrid: FC<ProductGridProps> = ({ products, sourceUrl }) => {
         }
         return Result;
     }
-    function ExtractInformationFromProductsToExport(Rows: any[]) {
-
-        let Result: any[] = [{ title: "Title", variant: "Variant Name", price: "Price", availablity: "Availablity" }];
-        for (let i = 0; i < Rows.length; i++) {
-            const Title = Rows[i].title;
-            const Variants: any[] = Rows[i].variants;
-            for (let VariantIndex = 0; VariantIndex < Variants.length; VariantIndex++) {
-                const SecondTitle = Rows[i].variants[VariantIndex].title;
-                const Price = Rows[i].variants[VariantIndex].price;
-                Result.push({ title: Title, variant: SecondTitle, price: Price, availablity: Rows[i].variants[VariantIndex].available == true ? "In Stock" : "Out of Stock" });
-            }
-        }
-        return Result;
-    }
-
-    const handleExportRows = (rows: MRT_Row<any>[]) => {
+    const handleExportRows = (rows: MRT_Row<ProductRow>[]) => {
 
         const rowData = ExtractInformationFromRowsToExport(rows);//rows.map((row) => {return {title: row.original.title}});
         //console.log({rowData})
@@ -202,11 +311,94 @@ export const ProductGrid: FC<ProductGridProps> = ({ products, sourceUrl }) => {
         download(csvConfig)(csv);
     };
 
-    const handleExportData = () => {
-        console.log({ products })
-        const rowData = ExtractInformationFromProductsToExport(products);
-        const csv = generateCsv(csvConfig)(rowData);
-        download(csvConfig)(csv);
+    const handleTrackSelectedRows = async (rows: MRT_Row<ProductRow>[]) => {
+        const trackableProducts = rows
+            .map((row) => row.original)
+            .filter((product) => Boolean(product.product_url))
+            .filter((product) => !trackedUrls.has(product.product_url));
+
+        if (trackableProducts.length === 0) {
+            return;
+        }
+
+        setTrackingSelected(true);
+
+        try {
+            await Promise.all(
+                trackableProducts.map(async (product) => {
+                    const response = await fetch("/api/tracked_products", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                            product_url: product.product_url,
+                        }),
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`Failed to track product: ${product.product_url}`);
+                    }
+                })
+            );
+
+            setTrackedUrls((current) => {
+                const next = new Set(current);
+                for (const product of trackableProducts) {
+                    next.add(product.product_url);
+                }
+                return next;
+            });
+        } catch (error) {
+            console.error("Failed to track selected products", error);
+        } finally {
+            setTrackingSelected(false);
+        }
+    };
+
+    const handleUntrackSelectedRows = async (rows: MRT_Row<ProductRow>[]) => {
+        const untrackableProducts = rows
+            .map((row) => row.original)
+            .filter((product) => Boolean(product.product_url))
+            .filter((product) => trackedUrls.has(product.product_url));
+
+        if (untrackableProducts.length === 0) {
+            return;
+        }
+
+        setTrackingSelected(true);
+
+        try {
+            await Promise.all(
+                untrackableProducts.map(async (product) => {
+                    const response = await fetch("/api/tracked_products", {
+                        method: "DELETE",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                            product_url: product.product_url,
+                        }),
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`Failed to untrack product: ${product.product_url}`);
+                    }
+                })
+            );
+
+            setTrackedUrls((current) => {
+                const next = new Set(current);
+                for (const product of untrackableProducts) {
+                    next.delete(product.product_url);
+                }
+                return next;
+            });
+        } catch (error) {
+            console.error("Failed to untrack selected products", error);
+        } finally {
+            setTrackingSelected(false);
+        }
     };
 
     const table = useMantineReactTable({
@@ -215,85 +407,114 @@ export const ProductGrid: FC<ProductGridProps> = ({ products, sourceUrl }) => {
         enableExpanding: true,
         enableExpandAll: false,
         enableRowSelection: true,
-        enableRowActions: true,
-        positionActionsColumn: 'last', 
-        renderRowActionMenuItems: ({ row }) => (
-            <>
-            <Menu.Item onClick={() => {
-                fetch("/api/tracked_products", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify(row.original)
-                });
-            }}>
-                Add to tracking
-            </Menu.Item>
-            <Menu.Item onClick={() => {
-                
-                //TODO use a query parameter instead as having DELETE body is discouraged
-                fetch("/api/tracked_products", {
-                    method: "DELETE",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify(row.original)
-                });
-            }}>Remove from tracking</Menu.Item>
-            </>
-        ),
+        getRowId: (row) => row.product_url,
+        onRowSelectionChange: setRowSelection,
         /*
         mantineSelectCheckboxProps: ({ row }) => ({
             color: 'gray', // Color based on row data
         }),
         */
-        renderTopToolbarCustomActions: ({ table }) => (
-            <Box
-                sx={{
-                    display: 'flex',
-                    gap: '16px',
-                    padding: '8px',
-                    flexWrap: 'wrap',
-                }}
-            >
-                <Button
-                    //export all data that is currently in the table (ignore pagination, sorting, filtering, etc.)
-                    onClick={handleExportData}
+        renderTopToolbarCustomActions: ({ table }) => {
+            const allRows = table.getPrePaginationRowModel().rows;
+            const selectedCount = Object.keys(rowSelection).length;
+            const allSelected = allRows.length > 0 && selectedCount === allRows.length;
+            const hasSelection = selectedCount > 0;
+
+            return (
+                <Box
+                    sx={{
+                        display: 'flex',
+                        gap: '12px',
+                        padding: '8px',
+                        flexWrap: 'wrap',
+                        alignItems: 'center',
+                    }}
                 >
-                    <IconDownload />
-                    Export All Data
-                </Button>
-                <Button
-                    disabled={table.getPrePaginationRowModel().rows.length === 0}
-                    //export all rows, including from the next page, (still respects filtering and sorting)
-                    onClick={() =>
-                        handleExportRows(table.getPrePaginationRowModel().rows)
-                    }
-                >
-                    <IconDownload />
-                    Export All Rows
-                </Button>
-                <Button
-                    disabled={table.getRowModel().rows.length === 0}
-                    //export all rows as seen on the screen (respects pagination, sorting, filtering, etc.)
-                    onClick={() => handleExportRows(table.getRowModel().rows)}
-                >
-                    <IconDownload />
-                    Export Page Rows
-                </Button>
-                <Button
-                    disabled={
-                        !table.getIsSomeRowsSelected() && !table.getIsAllRowsSelected()
-                    }
-                    //only export selected rows
-                    onClick={() => handleExportRows(table.getSelectedRowModel().rows)}
-                >
-                    <IconDownload />
-                    Export Selected Rows
-                </Button>
-            </Box >
-        ),
+                    <span className="text-sm text-muted-foreground min-w-[96px]">
+                        {selectedCount === 0 ? "No rows selected" : `${selectedCount} selected`}
+                    </span>
+                    {(() => {
+                        const selectedRows = table.getSelectedRowModel().rows;
+                        const selectedProducts = selectedRows.map((row) => row.original);
+                        const allSelectedTracked =
+                            selectedProducts.length > 0 &&
+                            selectedProducts.every((product) => trackedUrls.has(product.product_url));
+
+                        return (
+                            <>
+                                <Button
+                                    disabled={allRows.length === 0}
+                                    onClick={() => {
+                                        if (allSelected) {
+                                            setRowSelection({});
+                                            return;
+                                        }
+
+                                        const nextSelection = Object.fromEntries(
+                                            allRows.map((row) => [row.id, true])
+                                        );
+                                        setRowSelection(nextSelection);
+                                    }}
+                                    variant="outline"
+                                >
+                                    {allSelected ? "Deselect All Results" : "Select All Results"}
+                                </Button>
+                                <Button
+                                    disabled={
+                                        status !== "authenticated" ||
+                                        trackingSelected ||
+                                        !hasSelection
+                                    }
+                                    onClick={() =>
+                                        allSelectedTracked
+                                            ? void handleUntrackSelectedRows(selectedRows)
+                                            : void handleTrackSelectedRows(selectedRows)
+                                    }
+                                >
+                                    {trackingSelected
+                                        ? "Working..."
+                                        : allSelectedTracked
+                                            ? "Untrack Selected"
+                                            : "Track Selected"}
+                                </Button>
+                            </>
+                        );
+                    })()}
+                    <Button
+                        disabled={!hasSelection}
+                        onClick={() => handleExportRows(table.getSelectedRowModel().rows)}
+                        variant="outline"
+                    >
+                        <IconDownload />
+                        Export Selected
+                    </Button>
+                    <Menu position="bottom-end" shadow="md" width={200}>
+                        <Menu.Target>
+                            <Button
+                                disabled={!hasSelection}
+                                variant="outline"
+                            >
+                                <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                        </Menu.Target>
+                        <Menu.Dropdown>
+                            <Menu.Item
+                                disabled={
+                                    status !== "authenticated" ||
+                                    trackingSelected
+                                }
+                                onClick={() => void handleUntrackSelectedRows(table.getSelectedRowModel().rows)}
+                            >
+                                Untrack Selected
+                            </Menu.Item>
+                            <Menu.Item onClick={() => setRowSelection({})}>
+                                Clear Selection
+                            </Menu.Item>
+                        </Menu.Dropdown>
+                    </Menu>
+                </Box>
+            );
+        },
         getRowCanExpand: (row) => (row.original.variants?.length || 0) > 1,
         displayColumnDefOptions: {
             'mrt-row-expand': {
@@ -347,7 +568,7 @@ export const ProductGrid: FC<ProductGridProps> = ({ products, sourceUrl }) => {
             return (
                 <div className="bg-white/[0.02] px-6 py-3 border-t border-white/5">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-                        {variants.map((variant: any, idx: number) => (
+                        {variants.map((variant: NormalizedVariant, idx: number) => (
                             <div
                                 key={idx}
                                 className="p-3 rounded-md border border-white/10 bg-white/[0.02]"
@@ -386,10 +607,12 @@ export const ProductGrid: FC<ProductGridProps> = ({ products, sourceUrl }) => {
         onColumnFiltersChange: setColumnFilters,
         state: {
             columnFilters,
+            rowSelection,
         },
         mantineTableContainerProps: {
             sx: {
-                // Removed maxHeight to allow natural expansion
+                maxHeight: '72vh',
+                minHeight: '520px',
             },
         },
         initialState: {
@@ -397,6 +620,8 @@ export const ProductGrid: FC<ProductGridProps> = ({ products, sourceUrl }) => {
             density: 'xs',
             columnVisibility: {
                 product_type: false,
+                created_at: false,
+                last_updated_at: false,
             },
         },
         mantineTableProps: {
@@ -459,7 +684,7 @@ export const ProductGrid: FC<ProductGridProps> = ({ products, sourceUrl }) => {
     });
     const globalTheme = useMantineTheme();
     return (
-        <div className="h-[600px] w-full mb-12">
+        <div className="w-full mb-12">
             <MantineProvider theme={{ ...globalTheme, primaryColor: 'blue' }}>
                 <MantineReactTable table={table} />
             </MantineProvider>
