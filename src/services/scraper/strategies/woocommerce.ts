@@ -126,5 +126,9 @@ export const WooCommerceStrategy: ScraperStrategy = {
         };
 
         return result;
+    },
+    //TODO woocommerce TOO
+    ScrapeParticularProduct: async(url: string, shop: string) => {   
+        return "";
     }
 };

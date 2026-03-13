@@ -81,8 +81,20 @@ function normalizeShopifyProduct(product: Record<string, unknown>, baseUrl: stri
 export const ShopifyStrategy: ScraperStrategy = {
     name: 'Shopify',
     description: 'Extracts data from Shopify stores using JSON endpoints',
-    match: async (url) => {
-        const endpoint = url + "/products.json?limit=250";
+    match: async (req: ScraperRequest) => {
+        let endpoint : string;
+        switch(req.resourceType){
+            case "product":{
+                //let ProductHandle : string = req.url.substring(req.url.lastIndexOf('/') + 1);
+                endpoint = req.url + ".json";  
+                console.log(endpoint);
+                break;
+            }
+            default:{
+                endpoint = req.url + "/products.json?limit=250";
+                break;
+            }    
+        }
         const response = await getWithBrowserFallback(endpoint);
         if (response.ok) {
             return {
@@ -99,47 +111,71 @@ export const ShopifyStrategy: ScraperStrategy = {
             status: response.status,
             endpoint
         };
+        
     },
     scrape: async (req: ScraperRequest, onProgress?: ProgressCallback) => {
         const allProducts: Record<string, unknown>[] = [];
-        let page = 1;
-        let hasMore = true;
-        const limit = 250;
+        switch(req.resourceType){
 
-        while (hasMore) {
-            onProgress?.({
-                page,
-                count: allProducts.length,
-                message: `Fetching products from page ${page}...`
-            });
-            const url = `${req.url}/products.json?page=${page}&limit=${limit}`;
-            const response = await getWithBrowserFallback(url);
+            case "product":{
+                //console.log("Fetching product");
+                const url = `${req.url}.json`;
+                const response = await getWithBrowserFallback(url);
+                if (!response.ok) {
+                    console.error(`Error fetching Shopify page`);
+                    break;
+                }
 
-            if (!response.ok) {
-                console.error(`Error fetching Shopify page ${page}: ${response.statusText}`);
+                const data = asRecord(await response.json());
+                const product = asRecord(data.product);
+                //console.log({data});
+                //console.log({product});
+                allProducts.push(product);
+                await new Promise(resolve => setTimeout(resolve, 100));
+                 
                 break;
             }
+            default:{
+                let page = 1;
+                let hasMore = true;
+                const limit = 250;
 
-            const data = asRecord(await response.json());
-            const products = asRecordArray(data.products);
+                while (hasMore) {
+                    onProgress?.({
+                        page,
+                        count: allProducts.length,
+                        message: `Fetching products from page ${page}...`
+                    });
+                    const url = `${req.url}/products.json?page=${page}&limit=${limit}`;
+                    const response = await getWithBrowserFallback(url);
 
-            if (products.length > 0) {
-                allProducts.push(...products);
-                page++;
+                    if (!response.ok) {
+                        console.error(`Error fetching Shopify page ${page}: ${response.statusText}`);
+                        break;
+                    }
 
-                // Be respectful of rate limits
-                await new Promise(resolve => setTimeout(resolve, 100));
-            } else {
-                hasMore = false;
-            }
+                    const data = asRecord(await response.json());
+                    const products = asRecordArray(data.products);
 
-            // Safety break 
-            if (page > 50) {
-                console.warn('Reached maximum page limit (50) for Shopify scraping');
+                    if (products.length > 0) {
+                        allProducts.push(...products);
+                        page++;
+
+                        // Be respectful of rate limits
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                    } else {
+                        hasMore = false;
+                    }
+
+                    // Safety break 
+                    if (page > 50) {
+                        console.warn('Reached maximum page limit (50) for Shopify scraping');
+                        break;
+                    }
+                }
                 break;
             }
         }
-
         const normalized = allProducts.map((product) => normalizeShopifyProduct(product, req.url));
         const result: NormalizedScrapeResult = {
             products: normalized,
@@ -152,5 +188,9 @@ export const ShopifyStrategy: ScraperStrategy = {
         };
 
         return result;
+    },
+    ScrapeParticularProduct: async(url: string, shop: string) => {
+        
+        return "";
     }
 };

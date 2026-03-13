@@ -17,5 +17,10 @@ export const UniversalStrategy: ScraperStrategy = {
             platform: 'universal',
             source_url: req.url
         };
+    },
+    //TODO finish the universal scrapper
+    ScrapeParticularProduct: async(url: string, shop: string) => {
+        
+        return "";
     }
 };

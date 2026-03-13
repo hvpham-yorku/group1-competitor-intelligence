@@ -17,7 +17,8 @@ function sseData(event: string, payload: unknown): string {
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const rawUrl = (searchParams.get("url") || "").trim();
-
+  const ShouldSaveScrape = (searchParams.get("should_save_scrape") || "").trim();
+  const ResourceType = (searchParams.get("resource_type") || "store").trim();
   if (!rawUrl) {
     return NextResponse.json({ message: "Missing url" }, { status: 400 });
   }
@@ -37,8 +38,10 @@ export async function GET(request: Request) {
       (async () => {
         try {
           const engine = ScraperEngine.getInstance();
+          const ScrapeRequest = new ScraperRequest(rawUrl);
+          ScrapeRequest.resourceType = ResourceType as ("store" | "product" | "collection");
           const result = await engine.execute(
-            new ScraperRequest(rawUrl),
+            ScrapeRequest,
             (progress: ScrapeProgress) => {
               write("progress", progress);
             }
@@ -46,7 +49,7 @@ export async function GET(request: Request) {
 
           const products = Array.isArray(result?.products) ? result.products : [];
           let saved = false;
-          if (userId) {
+          if (userId && ShouldSaveScrape !== "false") {
             await saveScrapeRun({
               userId,
               rawUrl,

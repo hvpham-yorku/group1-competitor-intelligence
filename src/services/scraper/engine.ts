@@ -100,7 +100,7 @@ export class ScraperEngine {
         // Iterate through strategies sequentially and scrape if a match is found
         for (const strategy of this.strategies) {
             try {
-                const result = await strategy.match(request.url);
+                const result = await strategy.match(request);
                 if (result.isMatch) {
                     console.log(`Using strategy: ${strategy.name}`);
                     return strategy.scrape(request, onProgress);
@@ -123,5 +123,10 @@ export class ScraperEngine {
         const analysis = analyzeFailedAttempts(attempts);
         console.error(`No matching strategy found for ${request.url}`, analysis);
         throw new ScraperExecutionError(analysis);
+    }
+    async GetParticularProduct(url: string, shop: string) {
+        if(shop==="shopify"){
+
+        }
     }
 }

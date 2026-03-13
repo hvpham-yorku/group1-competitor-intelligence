@@ -21,6 +21,7 @@ export type ProgressCallback = (progress: ScrapeProgress) => void;
 export interface ScraperStrategy {
     name: string;
     description?: string;
-    match(url: string): Promise<MatchResult>;
+    match(req: ScraperRequest): Promise<MatchResult>;
     scrape(request: ScraperRequest, onProgress?: ProgressCallback): Promise<NormalizedScrapeResult>;
+    ScrapeParticularProduct(url: string, shop: string) : Promise<string>;
 }
