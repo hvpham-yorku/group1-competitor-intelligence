@@ -12,6 +12,92 @@ export const SqliteDB = new sqlite3.Database(
   }
 );
 
+function ensureUserScrapeRunsSchema() {
+  SqliteDB.all<{ name: string }>(
+    `PRAGMA table_info(user_scrape_runs)`,
+    (error, rows) => {
+      if (error) {
+        console.error("SQLite user_scrape_runs schema check error:", error.message);
+        return;
+      }
+
+      const columnNames = (rows || []).map((row) => row.name);
+      if (
+        columnNames.length === 0 ||
+        !columnNames.includes("id")
+      ) {
+        return;
+      }
+
+      SqliteDB.serialize(() => {
+        SqliteDB.run(`DROP INDEX IF EXISTS idx_user_scrape_runs_user_id`);
+        SqliteDB.run(`DROP INDEX IF EXISTS idx_user_scrape_runs_scrape_run_id`);
+        SqliteDB.run(`DROP TABLE IF EXISTS user_scrape_runs`);
+        SqliteDB.run(
+          `CREATE TABLE IF NOT EXISTS user_scrape_runs(
+            user_id INTEGER NOT NULL,
+            scrape_run_id INTEGER NOT NULL,
+            created_at TEXT NOT NULL DEFAULT (datetime('now')),
+            PRIMARY KEY(user_id, scrape_run_id),
+            FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
+            FOREIGN KEY(scrape_run_id) REFERENCES scrape_runs(id) ON DELETE CASCADE
+          )`
+        );
+        SqliteDB.run(
+          `CREATE INDEX IF NOT EXISTS idx_user_scrape_runs_user_id
+           ON user_scrape_runs(user_id)`
+        );
+        SqliteDB.run(
+          `CREATE INDEX IF NOT EXISTS idx_user_scrape_runs_scrape_run_id
+           ON user_scrape_runs(scrape_run_id)`
+        );
+      });
+    }
+  );
+}
+
+function ensureTrackingRunsSchema() {
+  SqliteDB.all<{ name: string }>(
+    `PRAGMA table_info(tracking_runs)`,
+    (error, rows) => {
+      if (error) {
+        console.error("SQLite tracking_runs schema check error:", error.message);
+        return;
+      }
+
+      const columnNames = (rows || []).map((row) => row.name);
+      if (
+        columnNames.length === 0 ||
+        !columnNames.includes("id")
+      ) {
+        return;
+      }
+
+      SqliteDB.serialize(() => {
+        SqliteDB.run(`DROP INDEX IF EXISTS idx_tracking_runs_scrape_run_id`);
+        SqliteDB.run(`DROP INDEX IF EXISTS idx_tracking_runs_created_at`);
+        SqliteDB.run(`DROP TABLE IF EXISTS tracking_runs`);
+        SqliteDB.run(
+          `CREATE TABLE IF NOT EXISTS tracking_runs(
+            scrape_run_id INTEGER PRIMARY KEY NOT NULL,
+            trigger_type TEXT NOT NULL DEFAULT 'manual',
+            status TEXT NOT NULL DEFAULT 'completed',
+            error_message TEXT,
+            started_at TEXT NOT NULL DEFAULT (datetime('now')),
+            finished_at TEXT,
+            created_at TEXT NOT NULL DEFAULT (datetime('now')),
+            FOREIGN KEY(scrape_run_id) REFERENCES scrape_runs(id) ON DELETE CASCADE
+          )`
+        );
+        SqliteDB.run(
+          `CREATE INDEX IF NOT EXISTS idx_tracking_runs_created_at
+           ON tracking_runs(created_at)`
+        );
+      });
+    }
+  );
+}
+
 SqliteDB.serialize(() => {
   SqliteDB.run(`PRAGMA foreign_keys = ON`);
 
@@ -92,13 +178,12 @@ SqliteDB.serialize(() => {
   );
   SqliteDB.run(
     `CREATE TABLE IF NOT EXISTS user_scrape_runs(
-      id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
       user_id INTEGER NOT NULL,
       scrape_run_id INTEGER NOT NULL,
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      PRIMARY KEY(user_id, scrape_run_id),
       FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
-      FOREIGN KEY(scrape_run_id) REFERENCES scrape_runs(id) ON DELETE CASCADE,
-      UNIQUE(user_id, scrape_run_id)
+      FOREIGN KEY(scrape_run_id) REFERENCES scrape_runs(id) ON DELETE CASCADE
     )`
   );
   SqliteDB.run(
@@ -139,20 +224,15 @@ SqliteDB.serialize(() => {
   // Tracking evaluation runs sit on top of scrape history and power alerts later.
   SqliteDB.run(
     `CREATE TABLE IF NOT EXISTS tracking_runs(
-      id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-      scrape_run_id INTEGER,
+      scrape_run_id INTEGER PRIMARY KEY NOT NULL,
       trigger_type TEXT NOT NULL DEFAULT 'manual',
       status TEXT NOT NULL DEFAULT 'completed',
       error_message TEXT,
       started_at TEXT NOT NULL DEFAULT (datetime('now')),
       finished_at TEXT,
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
-      FOREIGN KEY(scrape_run_id) REFERENCES scrape_runs(id) ON DELETE SET NULL
+      FOREIGN KEY(scrape_run_id) REFERENCES scrape_runs(id) ON DELETE CASCADE
     )`
-  );
-  SqliteDB.run(
-    `CREATE INDEX IF NOT EXISTS idx_tracking_runs_scrape_run_id
-     ON tracking_runs(scrape_run_id)`
   );
   SqliteDB.run(
     `CREATE INDEX IF NOT EXISTS idx_tracking_runs_created_at
@@ -220,4 +300,7 @@ SqliteDB.serialize(() => {
     `CREATE INDEX IF NOT EXISTS idx_canonical_links_variant_id
      ON canonical_product_links(source_variant_id)`
   );
+
+  ensureUserScrapeRunsSchema();
+  ensureTrackingRunsSchema();
 });

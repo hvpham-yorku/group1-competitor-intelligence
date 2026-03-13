@@ -15,6 +15,7 @@ function sseData(event: string, payload: unknown): string {
 }
 
 export async function GET(request: Request) {
+  const requestStartedAt = Date.now();
   const { searchParams } = new URL(request.url);
   const rawUrl = (searchParams.get("url") || "").trim();
   const ShouldSaveScrape = (searchParams.get("should_save_scrape") || "").trim();
@@ -37,6 +38,7 @@ export async function GET(request: Request) {
 
       (async () => {
         try {
+          const scrapeStartedAt = Date.now();
           const engine = ScraperEngine.getInstance();
           const ScrapeRequest = new ScraperRequest(rawUrl);
           ScrapeRequest.resourceType = ResourceType as ("store" | "product" | "collection");
@@ -48,15 +50,33 @@ export async function GET(request: Request) {
           );
 
           const products = Array.isArray(result?.products) ? result.products : [];
+          const scrapeDurationMs = Date.now() - scrapeStartedAt;
           let saved = false;
+          let saveDurationMs = 0;
           if (userId && ShouldSaveScrape !== "false") {
+            write("progress", {
+              message: "Saving scrape results...",
+              count: products.length,
+            });
+            const saveStartedAt = Date.now();
             await saveScrapeRun({
               userId,
               rawUrl,
               products,
             });
+            saveDurationMs = Date.now() - saveStartedAt;
             saved = true;
           }
+
+          console.log("[ScrapeStreamRoute]", {
+            url: rawUrl,
+            resource_type: ResourceType,
+            products: products.length,
+            scrape_duration_ms: scrapeDurationMs,
+            save_duration_ms: saveDurationMs,
+            total_duration_ms: Date.now() - requestStartedAt,
+            saved,
+          });
 
           write("done", {
             url: rawUrl,

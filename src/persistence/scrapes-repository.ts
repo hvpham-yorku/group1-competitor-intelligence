@@ -112,6 +112,25 @@ function all<T>(sql: string, params: unknown[] = []): Promise<T[]> {
   });
 }
 
+export async function runInTransaction<T>(
+  work: () => Promise<T>
+): Promise<T> {
+  await run("BEGIN TRANSACTION");
+
+  try {
+    const result = await work();
+    await run("COMMIT");
+    return result;
+  } catch (error) {
+    try {
+      await run("ROLLBACK");
+    } catch (rollbackError) {
+      console.error("Failed to rollback scrape transaction", rollbackError);
+    }
+    throw error;
+  }
+}
+
 export async function findOrCreateStore(domain: string, platform: string): Promise<number> {
   const existing = await get<{ id: number }>(
     `SELECT id FROM stores WHERE domain = ?`,

@@ -18,10 +18,11 @@ jest.mock("@/persistence/database", () => {
       )
     `);
 
+    db.run(`INSERT INTO scrape_runs (id) VALUES (1)`);
+
     db.run(`
       CREATE TABLE IF NOT EXISTS tracking_runs(
-        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-        scrape_run_id INTEGER,
+        scrape_run_id INTEGER PRIMARY KEY NOT NULL,
         trigger_type TEXT NOT NULL DEFAULT 'manual',
         status TEXT NOT NULL DEFAULT 'completed',
         error_message TEXT,
@@ -38,13 +39,14 @@ jest.mock("@/persistence/database", () => {
 describe("tracking runs repository", () => {
   test("creates and updates a tracking run", async () => {
     const trackingRunId = await insertTrackingRun({
+      scrapeRunId: 1,
       triggerType: "cron",
       status: "running",
       startedAt: "2026-03-13T12:00:00.000Z",
     });
 
     await updateTrackingRun({
-      id: trackingRunId,
+      scrapeRunId: trackingRunId,
       status: "completed",
       finishedAt: "2026-03-13T12:05:00.000Z",
     });
@@ -52,7 +54,7 @@ describe("tracking runs repository", () => {
     const row = await findTrackingRunById(trackingRunId);
 
     expect(row).toMatchObject({
-      id: trackingRunId,
+      scrape_run_id: trackingRunId,
       trigger_type: "cron",
       status: "completed",
       started_at: "2026-03-13T12:00:00.000Z",

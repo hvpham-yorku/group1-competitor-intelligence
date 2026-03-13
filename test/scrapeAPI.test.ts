@@ -92,11 +92,10 @@ jest.mock("@/persistence/database", () => {
 
     db.run(`
       CREATE TABLE IF NOT EXISTS user_scrape_runs(
-        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
         user_id INTEGER NOT NULL,
         scrape_run_id INTEGER NOT NULL,
         created_at TEXT NOT NULL DEFAULT (datetime('now')),
-        UNIQUE(user_id, scrape_run_id)
+        PRIMARY KEY(user_id, scrape_run_id)
       )
     `)
 

@@ -114,6 +114,7 @@ export const ShopifyStrategy: ScraperStrategy = {
         
     },
     scrape: async (req: ScraperRequest, onProgress?: ProgressCallback) => {
+        const scrapeStartedAt = Date.now();
         const allProducts: Record<string, unknown>[] = [];
         switch(req.resourceType){
 
@@ -141,6 +142,7 @@ export const ShopifyStrategy: ScraperStrategy = {
                 const limit = 250;
 
                 while (hasMore) {
+                    const pageStartedAt = Date.now();
                     onProgress?.({
                         page,
                         count: allProducts.length,
@@ -159,6 +161,11 @@ export const ShopifyStrategy: ScraperStrategy = {
 
                     if (products.length > 0) {
                         allProducts.push(...products);
+                        console.log("[ShopifyStrategy]", {
+                            page,
+                            products_fetched: products.length,
+                            duration_ms: Date.now() - pageStartedAt
+                        });
                         page++;
 
                         // Be respectful of rate limits
@@ -186,6 +193,12 @@ export const ShopifyStrategy: ScraperStrategy = {
                 fetched_products: allProducts.length
             }
         };
+
+        console.log("[ShopifyStrategy] completed", {
+            url: req.url,
+            total_products: normalized.length,
+            duration_ms: Date.now() - scrapeStartedAt
+        });
 
         return result;
     },

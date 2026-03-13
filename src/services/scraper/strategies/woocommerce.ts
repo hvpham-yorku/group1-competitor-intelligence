@@ -73,12 +73,14 @@ export const WooCommerceStrategy: ScraperStrategy = {
         };
     },
     scrape: async (req: ScraperRequest, onProgress?: ProgressCallback) => {
+        const scrapeStartedAt = Date.now();
         const allProducts: Record<string, unknown>[] = [];
         let page = 1;
         let totalPages = 1;
         const perPage = 100;
 
         while (page <= totalPages) {
+            const pageStartedAt = Date.now();
             onProgress?.({
                 page,
                 count: allProducts.length,
@@ -97,6 +99,11 @@ export const WooCommerceStrategy: ScraperStrategy = {
             const data: unknown = await response.json();
             const products = asRecordArray(data);
             allProducts.push(...products);
+            console.log("[WooCommerceStrategy]", {
+                page,
+                products_fetched: products.length,
+                duration_ms: Date.now() - pageStartedAt
+            });
 
             const headerTotalPages = Number(response.headers.get('x-wp-totalpages'));
             if (Number.isFinite(headerTotalPages) && headerTotalPages > 0) {
@@ -124,6 +131,12 @@ export const WooCommerceStrategy: ScraperStrategy = {
                 fetched_products: allProducts.length
             }
         };
+
+        console.log("[WooCommerceStrategy] completed", {
+            url: req.url,
+            total_products: normalized.length,
+            duration_ms: Date.now() - scrapeStartedAt
+        });
 
         return result;
     },

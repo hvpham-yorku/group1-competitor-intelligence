@@ -1,11 +1,9 @@
 import { SqliteDB } from "@/persistence/database";
 
-export type tracked_products = {
+export type TrackedProductRow = {
   id: number;
   user_id: number;
-  title: string;
-  shop: string;
-  url: string;
+  source_product_id: number;
   created_at: string;
 };
 
@@ -80,6 +78,14 @@ function all<T>(sql: string, params: unknown[] = []): Promise<T[]> {
   });
 }
 
-export async function getTrackedProducts(): Promise<tracked_products[]> {
-  return await all(`SELECT * FROM tracked_items`);
+export async function getTrackedProducts(input: {
+  userId: number;
+}): Promise<TrackedProductRow[]> {
+  return all<TrackedProductRow>(
+    `SELECT id, user_id, source_product_id, created_at
+     FROM tracked_products
+     WHERE user_id = ?
+     ORDER BY id DESC`,
+    [input.userId]
+  );
 }

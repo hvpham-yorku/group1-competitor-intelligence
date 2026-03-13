@@ -1,8 +1,7 @@
 import { SqliteDB } from "@/persistence/database";
 
 export type TrackingRunRow = {
-  id: number;
-  scrape_run_id: number | null;
+  scrape_run_id: number;
   trigger_type: string;
   status: string;
   error_message: string | null;
@@ -36,19 +35,23 @@ function get<T>(sql: string, params: unknown[] = []): Promise<T | undefined> {
 }
 
 export async function insertTrackingRun(input?: {
-  scrapeRunId?: number | null;
+  scrapeRunId?: number;
   triggerType?: string;
   status?: string;
   errorMessage?: string | null;
   startedAt?: string;
   finishedAt?: string | null;
 }): Promise<number> {
+  const scrapeRunId = input?.scrapeRunId;
+  if (!scrapeRunId) {
+    throw new Error("Tracking run requires scrapeRunId");
+  }
+
   const triggerType = input?.triggerType || "manual";
   const status = input?.status || "completed";
   const errorMessage = input?.errorMessage ?? null;
   const startedAt = input?.startedAt || new Date().toISOString();
   const finishedAt = input?.finishedAt ?? null;
-  const scrapeRunId = input?.scrapeRunId ?? null;
 
   await run(
     `INSERT INTO tracking_runs (
@@ -57,19 +60,11 @@ export async function insertTrackingRun(input?: {
     [scrapeRunId, triggerType, status, errorMessage, startedAt, finishedAt]
   );
 
-  const row = await get<{ id: number }>(
-    `SELECT id FROM tracking_runs ORDER BY id DESC LIMIT 1`
-  );
-
-  if (!row) {
-    throw new Error("Failed to create tracking run");
-  }
-
-  return row.id;
+  return scrapeRunId;
 }
 
 export async function updateTrackingRun(input: {
-  id: number;
+  scrapeRunId: number;
   status: string;
   errorMessage?: string | null;
   finishedAt?: string | null;
@@ -77,24 +72,23 @@ export async function updateTrackingRun(input: {
   await run(
     `UPDATE tracking_runs
      SET status = ?,
-         error_message = ?,
-         finished_at = ?
-     WHERE id = ?`,
+        error_message = ?,
+        finished_at = ?
+     WHERE scrape_run_id = ?`,
     [
       input.status,
       input.errorMessage ?? null,
       input.finishedAt ?? new Date().toISOString(),
-      input.id,
+      input.scrapeRunId,
     ]
   );
 }
 
 export async function findTrackingRunById(
-  id: number
+  scrapeRunId: number
 ): Promise<TrackingRunRow | null> {
   const row = await get<TrackingRunRow>(
     `SELECT
-       id,
        scrape_run_id,
        trigger_type,
        status,
@@ -103,8 +97,8 @@ export async function findTrackingRunById(
        finished_at,
        created_at
      FROM tracking_runs
-     WHERE id = ?`,
-    [id]
+     WHERE scrape_run_id = ?`,
+    [scrapeRunId]
   );
 
   return row || null;
