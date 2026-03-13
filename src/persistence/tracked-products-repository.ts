@@ -12,26 +12,49 @@ function run(sql: string, params: unknown[] = []): Promise<void> {
   });
 }
 
+function get<T>(sql: string, params: unknown[] = []): Promise<T | undefined> {
+  return new Promise((resolve, reject) => {
+    SqliteDB.get(sql, params, (error, row) => {
+      if (error) {
+        reject(error);
+      } else {
+        resolve((row as T | undefined) || undefined);
+      }
+    });
+  });
+}
+
+export async function findSourceProductIdByUrl(
+  productUrl: string
+): Promise<number | null> {
+  const row = await get<{ id: number }>(
+    `SELECT id
+     FROM source_products
+     WHERE product_url = ?`,
+    [productUrl]
+  );
+
+  return row?.id ?? null;
+}
+
 export async function insertTrackedProduct(input: {
   userId: number;
-  title: string;
-  shop: string;
-  url: string;
+  sourceProductId: number;
 }): Promise<void> {
   await run(
-    `INSERT OR IGNORE INTO tracked_products (user_id, title, shop, url)
-     VALUES (?, ?, ?, ?)`,
-    [input.userId, input.title, input.shop, input.url]
+    `INSERT OR IGNORE INTO tracked_products (user_id, source_product_id)
+     VALUES (?, ?)`,
+    [input.userId, input.sourceProductId]
   );
 }
 
 export async function deleteTrackedProduct(input: {
   userId: number;
-  url: string;
+  sourceProductId: number;
 }): Promise<void> {
   await run(
     `DELETE FROM tracked_products
-     WHERE user_id = ? AND url = ?`,
-    [input.userId, input.url]
+     WHERE user_id = ? AND source_product_id = ?`,
+    [input.userId, input.sourceProductId]
   );
 }

@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]/route";
-import { getUserIdFromSession } from "../auth/auth-utils";
+import { getExistingUserIdFromSession } from "../auth/auth-utils";
 import { trackProduct } from "@/services/tracking/track-product";
 import { untrackProduct } from "@/services/tracking/untrack-product";
 
 export async function POST(request: Request) {
   const session = await getServerSession(authOptions);
-  const userId = getUserIdFromSession(session);
+  const userId = await getExistingUserIdFromSession(session);
 
   if (!userId) {
     return NextResponse.json({ message: "unauthorized" }, { status: 401 });
@@ -18,8 +18,6 @@ export async function POST(request: Request) {
 
     await trackProduct({
       userId,
-      title: requestBody?.title,
-      platform: requestBody?.platform,
       product_url: requestBody?.product_url,
     });
 
@@ -27,11 +25,12 @@ export async function POST(request: Request) {
   } catch (error) {
     if (
       error instanceof Error &&
-      error.message === "Missing tracked product fields"
+      (error.message === "Missing tracked product fields" ||
+        error.message === "Tracked product was not found in source_products")
     ) {
       return NextResponse.json(
-        { message: "Missing tracked product fields" },
-        { status: 400 }
+        { message: error.message },
+        { status: error.message === "Missing tracked product fields" ? 400 : 404 }
       );
     }
 
@@ -42,7 +41,7 @@ export async function POST(request: Request) {
 
 export async function DELETE(request: Request) {
   const session = await getServerSession(authOptions);
-  const userId = getUserIdFromSession(session);
+  const userId = await getExistingUserIdFromSession(session);
 
   if (!userId) {
     return NextResponse.json({ message: "unauthorized" }, { status: 401 });
@@ -53,8 +52,6 @@ export async function DELETE(request: Request) {
 
     await untrackProduct({
       userId,
-      title: requestBody?.title,
-      platform: requestBody?.platform,
       product_url: requestBody?.product_url,
     });
 

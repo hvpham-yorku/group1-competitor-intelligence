@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../../auth/[...nextauth]/route";
-import { getUserIdFromSession } from "../../../auth/auth-utils";
+import { getExistingUserIdFromSession } from "../../../auth/auth-utils";
 import { saveScrapeRun } from "@/services/scrape-runs/save-scrape";
 import { ScraperEngine, ScraperExecutionError } from "@/services/scraper/engine";
 import { ScraperRequest } from "@/services/scraper/request";
@@ -23,7 +23,7 @@ export async function GET(request: Request) {
   }
 
   const session = await getServerSession(authOptions);
-  const userId = getUserIdFromSession(session);
+  const userId = await getExistingUserIdFromSession(session);
 
   const stream = new ReadableStream({
     start(controller) {

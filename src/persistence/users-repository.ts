@@ -53,3 +53,14 @@ export async function findUserByEmail(email: string): Promise<UserRow | null> {
 
   return user || null;
 }
+
+export async function findUserById(id: number): Promise<UserRow | null> {
+  const user = await get<UserRow>(
+    `SELECT id, email, password, username
+     FROM users
+     WHERE id = ?`,
+    [id]
+  );
+
+  return user || null;
+}

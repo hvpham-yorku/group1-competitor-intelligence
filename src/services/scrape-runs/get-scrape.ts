@@ -2,7 +2,6 @@ import {
   findPreviousScrapeRun,
   findScrapeRunById,
 } from "@/persistence/scrapes-repository";
-import { safeJsonParse } from "./utils";
 
 export type GetScrapeRunResult = {
   id: number;
@@ -31,9 +30,7 @@ export async function getScrapeRun(input: {
     id: scrapeRecord.id,
     url: scrapeRecord.url,
     created_at: scrapeRecord.created_at,
-    products: safeJsonParse<unknown[]>(scrapeRecord.products_json || "[]", []),
-    previousProducts: previousRun
-      ? safeJsonParse<unknown[]>(previousRun.products_json || "[]", [])
-      : null,
+    products: scrapeRecord.products,
+    previousProducts: previousRun ? previousRun.products : null,
   };
 }

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../auth/[...nextauth]/route";
-import { getUserIdFromSession } from "../../auth/auth-utils";
+import { getExistingUserIdFromSession } from "../../auth/auth-utils";
 import { deleteSiteHistory } from "@/services/scrape-runs/delete-site-history";
 
 export async function DELETE(request: Request) {
@@ -9,7 +9,7 @@ export async function DELETE(request: Request) {
   const currentSession = await getServerSession(authOptions);
 
   // Convert the user id to a number
-  const currentUserId = getUserIdFromSession(currentSession);
+  const currentUserId = await getExistingUserIdFromSession(currentSession);
 
   // If user is not logged in, return unauthorized
   if (!currentUserId) {
