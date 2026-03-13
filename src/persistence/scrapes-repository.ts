@@ -330,7 +330,7 @@ export async function findScrapeRunById(
     `SELECT sr.id, s.domain AS url, sr.started_at AS created_at
      FROM user_scrape_runs usr
      INNER JOIN scrape_runs sr ON sr.id = usr.scrape_run_id
-     INNER JOIN stores s ON s.id = sr.store_id
+     INNER JOIN stores s ON s.id = usr.store_id
      WHERE usr.user_id = ? AND sr.id = ?`,
     [userId, scrapeId]
   );
@@ -358,7 +358,7 @@ export async function findPreviousScrapeRun(
     `SELECT sr.id, s.domain AS url, sr.started_at AS created_at
      FROM user_scrape_runs usr
      INNER JOIN scrape_runs sr ON sr.id = usr.scrape_run_id
-     INNER JOIN stores s ON s.id = sr.store_id
+     INNER JOIN stores s ON s.id = usr.store_id
      WHERE usr.user_id = ? AND s.domain = ? AND sr.id < ?
      ORDER BY sr.id DESC
      LIMIT 1`,
@@ -399,7 +399,7 @@ export async function deleteScrapesByUrl(
     `SELECT usr.scrape_run_id
      FROM user_scrape_runs usr
      INNER JOIN scrape_runs sr ON sr.id = usr.scrape_run_id
-     INNER JOIN stores s ON s.id = sr.store_id
+     INNER JOIN stores s ON s.id = usr.store_id
      WHERE usr.user_id = ? AND s.domain = ?`,
     [userId, url]
   );
@@ -409,7 +409,7 @@ export async function deleteScrapesByUrl(
      WHERE user_id = ? AND scrape_run_id IN (
        SELECT sr.id
        FROM scrape_runs sr
-       INNER JOIN stores s ON s.id = sr.store_id
+       INNER JOIN stores s ON s.id = usr.store_id
        WHERE s.domain = ?
      )`,
     [userId, url]
