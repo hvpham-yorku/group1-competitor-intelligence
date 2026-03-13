@@ -26,6 +26,12 @@ export interface NormalizedProduct {
   description?: string;
   tags?: string[];
   product_url: string;
+  price?: string;
+  compare_at_price?: string;
+  currency?: string;
+  available?: boolean;
+  inventory_quantity?: number;
+  inventory_policy?: string;
   images?: Array<{
     src?: string;
     alt?: string;

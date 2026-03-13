@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../auth/[...nextauth]/route";
-import { getUserIdFromSession } from "../../auth/auth-utils";
+import { getExistingUserIdFromSession } from "../../auth/auth-utils";
 import { listScrapeSites } from "@/services/scrape-runs/list-sites";
 import { normalizeUrl } from "@/services/scrape-runs/utils";
 
@@ -10,7 +10,7 @@ export async function GET(request: Request) {
   const session = await getServerSession(authOptions);
 
   // Convert the session user id to a number
-  const userId = getUserIdFromSession(session);
+  const userId = await getExistingUserIdFromSession(session);
 
   // If there is no valid user, return unauthorized
   if (!userId) {

@@ -2,7 +2,6 @@ import {
   listScrapeSites as listScrapeSitesFromRepository,
   type ListScrapeSitesResult as RepositoryListScrapeSitesResult,
 } from "@/persistence/scrapes-repository";
-import { safeJsonParse } from "./utils";
 
 export type ListScrapeSitesInput = {
   userId: number;
@@ -42,10 +41,7 @@ function mapResult(
         ? {
             id: site.latestRun.id,
             created_at: site.latestRun.created_at,
-            products: safeJsonParse<unknown[]>(
-              site.latestRun.products_json || "[]",
-              []
-            ),
+            products: site.latestRun.products,
           }
         : null,
     })),

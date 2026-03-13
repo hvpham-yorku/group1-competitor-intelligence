@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../auth/[...nextauth]/route";
-import { getUserIdFromSession } from "../../auth/auth-utils";
+import { getExistingUserIdFromSession } from "../../auth/auth-utils";
 import { deleteScrapeRun } from "@/services/scrape-runs/delete-scrape";
 import { getScrapeRun } from "@/services/scrape-runs/get-scrape";
 import { saveScrapeRun } from "@/services/scrape-runs/save-scrape";
@@ -14,7 +14,7 @@ function getErrorMessage(error: unknown, fallback: string): string {
 
 export async function POST(request: Request) {
   const currentSession = await getServerSession(authOptions);
-  const currentUserId = getUserIdFromSession(currentSession);
+  const currentUserId = await getExistingUserIdFromSession(currentSession);
 
   try {
     const body = await request.json();
@@ -57,7 +57,7 @@ export async function POST(request: Request) {
 
 export async function GET(request: Request) {
   const currentSession = await getServerSession(authOptions);
-  const currentUserId = getUserIdFromSession(currentSession);
+  const currentUserId = await getExistingUserIdFromSession(currentSession);
 
   if (!currentUserId) {
     return NextResponse.json({ message: "unauthorized" }, { status: 401 });
@@ -89,7 +89,7 @@ export async function GET(request: Request) {
 
 export async function DELETE(request: Request) {
   const currentSession = await getServerSession(authOptions);
-  const currentUserId = getUserIdFromSession(currentSession);
+  const currentUserId = await getExistingUserIdFromSession(currentSession);
 
   if (!currentUserId) {
     return NextResponse.json({ message: "unauthorized" }, { status: 401 });
