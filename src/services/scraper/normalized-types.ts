@@ -19,6 +19,7 @@ export interface NormalizedVariant {
 }
 
 export interface NormalizedProduct {
+  source_product_id?: number;
   id?: string | number;
   title: string;
   handle?: string;

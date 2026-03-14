@@ -163,6 +163,7 @@ export function buildProductsFromRows(
 
     if (!product) {
       product = {
+        source_product_id: row.source_product_id,
         id: row.platform_product_id || row.source_product_id,
         title: row.title_snapshot || row.product_title,
         handle: row.handle || undefined,

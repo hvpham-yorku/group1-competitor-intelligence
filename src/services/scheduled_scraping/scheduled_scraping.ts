@@ -39,7 +39,7 @@ async function scrapeTrackedProduct(target: Awaited<ReturnType<typeof getTracked
   });
 }
 
-async function runScheduledTrackingSweep() {
+export async function runScheduledTrackingSweep() {
   if (globalThis.__trackingSchedulerRunning) {
     return;
   }

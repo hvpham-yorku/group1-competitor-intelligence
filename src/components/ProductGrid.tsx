@@ -11,13 +11,14 @@
 import { useEffect, useMemo, useState, type FC } from "react"
 import { MantineReactTable, type MRT_ColumnDef, type MRT_ColumnFiltersState, type MRT_RowSelectionState, MRT_Row, useMantineReactTable } from "mantine-react-table"
 import { MantineProvider, useMantineTheme, Box, Menu } from "@mantine/core"
-import { ChevronRight, ChevronDown, MoreHorizontal } from "lucide-react"
+import { ChevronRight, ChevronDown, MoreHorizontal, ArrowUpRight } from "lucide-react"
 import { download, generateCsv, mkConfig } from "export-to-csv"
 import { IconDownload } from '@tabler/icons-react';
 import { Button } from "./ui/button"
 import { useSession } from "next-auth/react";
 import type { NormalizedProduct, NormalizedVariant } from "@/services/scraper/normalized-types";
 import Image from "next/image";
+import Link from "next/link";
 
 interface ProductGridProps {
     products: ProductRow[];
@@ -286,6 +287,29 @@ export const ProductGrid: FC<ProductGridProps> = ({ products, sourceUrl }) => {
                     ),
                 } satisfies MRT_ColumnDef<ProductRow>]
                 : []),
+            {
+                id: "open",
+                header: "Open",
+                size: 150,
+                enableSorting: false,
+                enableColumnFilter: false,
+                Cell: ({ row }) => (
+                    <div className="flex items-center gap-2">
+                        {row.original?.source_product_id ? (
+                            <Button asChild size="sm" variant="outline" className="h-8 px-3">
+                                <Link href={`/products/${row.original.source_product_id}`}>Details</Link>
+                            </Button>
+                        ) : null}
+                        {row.original?.product_url ? (
+                            <Button asChild size="sm" variant="outline" className="h-8 px-3">
+                                <a href={row.original.product_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1">
+                                    Visit <ArrowUpRight className="h-3.5 w-3.5" />
+                                </a>
+                            </Button>
+                        ) : null}
+                    </div>
+                ),
+            },
         ],
         [hasCompetitorColumn, trackedUrls]
     );
@@ -635,16 +659,6 @@ export const ProductGrid: FC<ProductGridProps> = ({ products, sourceUrl }) => {
                 borderSpacing: 0,
             },
         },
-        mantineTableBodyRowProps: ({ row }) => ({
-            onClick: () => {
-                if (row.original?.product_url) {
-                    window.open(row.original.product_url, '_blank');
-                }
-            },
-            sx: {
-                cursor: 'pointer',
-            },
-        }),
         mantinePaperProps: {
             sx: {
                 backgroundColor: '#0C0C0D',

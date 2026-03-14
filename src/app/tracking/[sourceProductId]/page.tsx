@@ -1,5 +1,4 @@
-import { ProtectPage } from "@/components/ProtectPage";
-import { TrackingDetailClient } from "./tracking-detail-client";
+import { redirect } from "next/navigation";
 
 export default async function TrackingDetailPage({
   params,
@@ -7,10 +6,5 @@ export default async function TrackingDetailPage({
   params: Promise<{ sourceProductId: string }>;
 }) {
   const { sourceProductId } = await params;
-
-  return (
-    <ProtectPage>
-      <TrackingDetailClient sourceProductId={sourceProductId} />
-    </ProtectPage>
-  );
+  redirect(`/products/${sourceProductId}`);
 }

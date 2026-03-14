@@ -1,14 +1,16 @@
 import sqlite3 from "sqlite3";
 
+const SQLITE_DB_PATH = process.env.SQLITE_DB_PATH || "database/sqlite_database.db";
+
 export const SqliteDB = new sqlite3.Database(
-  "database/sqlite_database.db",
+  SQLITE_DB_PATH,
   sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE,
   (err) => {
     if (err) {
       console.error("SQLite open error:", err.message);
       return;
     }
-    console.log("Connected to the sqlite database.");
+    console.log("Connected to the sqlite database.", { path: SQLITE_DB_PATH });
   }
 );
 
@@ -37,7 +39,7 @@ function ensureUserScrapeRunsSchema() {
           `CREATE TABLE IF NOT EXISTS user_scrape_runs(
             user_id INTEGER NOT NULL,
             scrape_run_id INTEGER NOT NULL,
-            store_id INTEGER NOT NULL
+            store_id INTEGER NOT NULL,
             created_at TEXT NOT NULL DEFAULT (datetime('now')),
             PRIMARY KEY(user_id, scrape_run_id),
             FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,

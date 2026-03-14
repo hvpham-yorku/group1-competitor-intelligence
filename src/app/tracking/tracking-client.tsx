@@ -342,7 +342,7 @@ export function TrackingClient() {
                     <TableCell>
                       <Link
                         className="flex items-center gap-3"
-                        href={`/tracking/${product.source_product_id}`}
+                        href={`/products/${product.source_product_id}`}
                       >
                         {product.image_url ? (
                           <Image

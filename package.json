@@ -7,8 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "jest",
-    "test:watch": "jest --watch"
+    "test": "npm run test:unit && npm run test:integration",
+    "test:watch": "jest --watch",
+    "test:unit": "jest --config jest.unit.config.ts",
+    "test:integration": "jest --config jest.integration.config.ts --runInBand"
   },
   "dependencies": {
     "@mantine/core": "^6.0.22",
