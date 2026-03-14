@@ -176,3 +176,114 @@
 | SCRUM-37 | Live Alerts of Product Pricing and Metadata Changes  | 4.5          | Backlog |
 
 
+
+---
+
+## 4. Iteration 2 Log (Sprint 2)
+
+**Iteration Window:** Mon, Mar 9, 2026 - Fri, Mar 13, 2026  
+**Sprint:** SCRUM Sprint 2
+
+### 4.1 Meeting Minutes
+
+### Meeting 1: Iteration 2 Planning
+- **Date:** Monday, March 9, 2026
+- **Time:** 7:00 PM - 8:15 PM
+
+**Agenda**
+- Re-prioritize carryover stories from earlier iterations.
+- Confirm implementation/testing focus for Iteration 2.
+- Break top stories into dev tasks with time estimates.
+
+**Decisions Made**
+- Promoted the following stories to active Iteration 2 scope:
+- **SCRUM-36** Graphing and Historical Price Trends of Products (**4 SP**)
+- **SCRUM-13** Detect Price Changes Between Scrapes (**5 SP**)
+- **SCRUM-10** Schedule Periodic Scraping (Cron / Worker) (**5 SP**)
+- Corrected Jira naming in notes from `RUM-*` to `SCRUM-*`.
+
+**Action Items**
+- Finalize unit/integration testing structure.
+- Implement scheduler and tracking-run persistence integration.
+- Finish competitor analytics visualization flow.
+
+### Meeting 2: Mid-Iteration Technical Checkpoint
+- **Date:** Wednesday, March 11, 2026
+- **Time:** 6:30 PM - 7:45 PM
+
+**Agenda**
+- Review cron scheduling progress and failure handling.
+- Validate scrape run persistence model with tracking runs.
+- Confirm test plan split into unit and integration.
+
+**Decisions Made**
+- Scheduler runs daily at **01:00 UTC**.
+- Single-product scheduled scrapes persist as product-targeted runs through existing save flow.
+- Integration tests must run against a dedicated SQLite test DB file.
+
+**Action Items**
+- Add scheduler failure-isolation unit tests.
+- Add integration tests for tracked products, tracking runs, and product detail history.
+
+### Meeting 3: Documentation and Submission Readiness Review
+- **Date:** Thursday, March 12, 2026
+- **Time:** 8:00 PM - 9:00 PM
+
+**Agenda**
+- Review architecture documentation and UML alignment with current code.
+- Verify README setup and test commands for TA reproducibility.
+- Check open risks for iteration hand-in.
+
+**Decisions Made**
+- Update architecture docs to explicitly map Presentation/Business/Persistence boundaries.
+- Keep `log.md` updated per sprint and include planned vs actual task effort.
+
+**Action Items**
+- Final pass on tests and docs before push.
+
+### Meeting 4: Final Iteration 2 Triage
+- **Date:** Friday, March 13, 2026
+- **Time:** 4:30 PM - 5:10 PM
+
+**Agenda**
+- Confirm completion status for SCRUM-36, SCRUM-13, SCRUM-10.
+- Confirm test execution and known risks.
+
+**Decisions Made**
+- Core implementation complete for all three stories.
+- Risk accepted: full-repo lint includes legacy issues outside Iteration 2 scope.
+
+---
+
+### 4.2 Iteration 2 Stories and Story Points
+
+| Story ID  | Story Name                                           | Story Points | Iteration 2 Status |
+|----------|-------------------------------------------------------|-------------:|--------------------|
+| SCRUM-36 | Graphing and Historical Price Trends of Products      | 4            | Completed |
+| SCRUM-13 | Detect Price Changes Between Scrapes                  | 5            | Completed |
+| SCRUM-10 | Schedule Periodic Scraping (Cron / Worker)           | 5            | Completed |
+
+---
+
+### 4.3 Rationale and Plan Changes for Iteration 2
+
+- **From prior plan to current scope:**
+- `SCRUM-36`, `SCRUM-13`, and `SCRUM-10` were moved from backlog/deprioritized to active implementation due customer priority on analytics visibility and automated tracking.
+
+- **Key design decisions this iteration:**
+- Kept normalized source model (`source_products`, `source_variants`, `product_observations`) and built analytics/read models on top.
+- Added `tracking_runs` as execution/audit layer for scheduled tracking workflows.
+- Standardized test organization into `test/unit` and `test/integration` to match iteration requirements.
+
+- **Known concerns/open issues:**
+- Some legacy lint issues remain in unrelated older UI files; this does not block execution of unit/integration test suites.
+
+---
+
+### 4.4 Iteration 2 Test/Release Notes
+
+- Added dedicated scripts for test execution:
+- `npm run test:unit`
+- `npm run test:integration`
+- Added integration DB isolation with a dedicated SQLite test file.
+- Updated architecture/UML documentation to match current module boundaries and flows.
