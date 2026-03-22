@@ -1,9 +1,12 @@
-import { SqliteDB } from "@/persistence/database";
+import { getAll, getRow, runSql } from "@/persistence/sqlite-helpers";
+import {
+  buildObservationHistory,
+  buildRecentEvents,
+} from "@/services/products/observation-utils";
 import {
   parseImageUrl,
   TRACKING_SCHEDULE_LABEL,
   type TrackedProductDetail,
-  type TrackedProductHistoryPoint,
   type TrackedProductSummary,
 } from "@/services/tracking/utils";
 
@@ -32,99 +35,6 @@ export type ScheduledTrackedProductTarget = {
   user_ids: number[];
 };
 
-function run(sql: string, params: unknown[] = []): Promise<void> {
-  return new Promise((resolve, reject) => {
-    SqliteDB.run(sql, params, (error) => {
-      if (error) {
-        reject(error);
-      } else {
-        resolve();
-      }
-    });
-  });
-}
-
-function get<T>(sql: string, params: unknown[] = []): Promise<T | undefined> {
-  return new Promise((resolve, reject) => {
-    SqliteDB.get(sql, params, (error, row) => {
-      if (error) {
-        reject(error);
-      } else {
-        resolve((row as T | undefined) || undefined);
-      }
-    });
-  });
-}
-
-function all<T>(sql: string, params: unknown[] = []): Promise<T[]> {
-  return new Promise((resolve, reject) => {
-    SqliteDB.all(sql, params, (error, rows) => {
-      if (error) {
-        reject(error);
-      } else {
-        resolve((rows as T[]) || []);
-      }
-    });
-  });
-}
-
-function summarizeSnapshot(rows: ObservationRow[]) {
-  const numericPrices = rows
-    .map((row) => row.price)
-    .filter((value): value is number => typeof value === "number");
-  const numericComparePrices = rows
-    .map((row) => row.compare_at_price)
-    .filter((value): value is number => typeof value === "number");
-  const availabilityRows = rows.filter(
-    (row) => row.source_variant_id != null || row.scrape_run_id != null
-  );
-
-  return {
-    price: numericPrices.length > 0 ? Math.min(...numericPrices) : null,
-    compareAtPrice:
-      numericComparePrices.length > 0 ? Math.min(...numericComparePrices) : null,
-    availableVariants: rows.filter((row) => row.available === 1).length,
-    totalVariants: availabilityRows.length,
-  };
-}
-
-function toHistory(
-  rows: ObservationRow[]
-): TrackedProductHistoryPoint[] {
-  const snapshots = new Map<number, ObservationRow[]>();
-
-  for (const row of rows) {
-    if (!row.scrape_run_id || !row.observed_at) {
-      continue;
-    }
-
-    const existing = snapshots.get(row.scrape_run_id) || [];
-    existing.push(row);
-    snapshots.set(row.scrape_run_id, existing);
-  }
-
-  return Array.from(snapshots.entries())
-    .map(([scrapeRunId, snapshotRows]) => {
-      const summary = summarizeSnapshot(snapshotRows);
-      const observedAt =
-        snapshotRows
-          .map((row) => row.observed_at)
-          .filter((value): value is string => typeof value === "string")
-          .sort()
-          .at(-1) || "";
-
-      return {
-        scrape_run_id: scrapeRunId,
-        observed_at: observedAt,
-        price: summary.price,
-        compare_at_price: summary.compareAtPrice,
-        available_variants: summary.availableVariants,
-        total_variants: summary.totalVariants,
-      };
-    })
-    .sort((left, right) => right.observed_at.localeCompare(left.observed_at));
-}
-
 function buildSummary(
   rows: ObservationRow[]
 ): TrackedProductSummary | null {
@@ -133,7 +43,7 @@ function buildSummary(
     return null;
   }
 
-  const history = toHistory(rows);
+  const history = buildObservationHistory(rows);
   const latest = history[0] || null;
   const previous = history[1] || null;
 
@@ -172,7 +82,7 @@ async function getTrackedObservationRows(input: {
     params.push(input.sourceProductId);
   }
 
-  return all<ObservationRow>(
+  return getAll<ObservationRow>(
     `SELECT
        tp.id AS tracked_id,
        tp.created_at AS tracked_at,
@@ -205,7 +115,7 @@ async function getTrackedObservationRows(input: {
 export async function findSourceProductIdByUrl(
   productUrl: string
 ): Promise<number | null> {
-  const row = await get<{ id: number }>(
+  const row = await getRow<{ id: number }>(
     `SELECT id
      FROM source_products
      WHERE product_url = ?`,
@@ -219,7 +129,7 @@ export async function insertTrackedProduct(input: {
   userId: number;
   sourceProductId: number;
 }): Promise<void> {
-  await run(
+  await runSql(
     `INSERT OR IGNORE INTO tracked_products (user_id, source_product_id)
      VALUES (?, ?)`,
     [input.userId, input.sourceProductId]
@@ -230,7 +140,7 @@ export async function deleteTrackedProduct(input: {
   userId: number;
   sourceProductId: number;
 }): Promise<void> {
-  await run(
+  await runSql(
     `DELETE FROM tracked_products
      WHERE user_id = ? AND source_product_id = ?`,
     [input.userId, input.sourceProductId]
@@ -238,7 +148,7 @@ export async function deleteTrackedProduct(input: {
 }
 
 export async function getTrackedProductsForScheduling(): Promise<ScheduledTrackedProductTarget[]> {
-  const rows = await all<{
+  const rows = await getAll<{
     source_product_id: number;
     product_url: string;
     user_ids_csv: string;
@@ -295,22 +205,13 @@ export async function getTrackedProductDetail(input: {
     return null;
   }
 
-  const history = toHistory(rows).sort((left, right) =>
+  const history = buildObservationHistory(rows).sort((left, right) =>
     left.observed_at.localeCompare(right.observed_at)
   );
   const recentDescending = [...history].sort((left, right) =>
     right.observed_at.localeCompare(left.observed_at)
   );
-  const recentEvents = recentDescending.slice(0, 8).map((point, index) => {
-    const previous = recentDescending[index + 1];
-    return {
-      ...point,
-      price_delta:
-        point.price != null && previous?.price != null
-          ? point.price - previous.price
-          : null,
-    };
-  });
+  const recentEvents = buildRecentEvents(recentDescending, 8);
 
   return {
     summary,

@@ -4,10 +4,8 @@ import { NormalizedScrapeResult } from '../normalized-types';
 
 export interface MatchResult {
     isMatch: boolean;
-    data?: unknown; // first batch of data saved here if match is found
-    error?: string; // Optional error message
-    status?: number;
-    endpoint?: string;
+    data?: unknown;
+    error?: string;
 }
 
 export interface ScrapeProgress {
@@ -21,7 +19,6 @@ export type ProgressCallback = (progress: ScrapeProgress) => void;
 export interface ScraperStrategy {
     name: string;
     description?: string;
-    match(req: ScraperRequest): Promise<MatchResult>;
+    match(url: string): Promise<MatchResult>;
     scrape(request: ScraperRequest, onProgress?: ProgressCallback): Promise<NormalizedScrapeResult>;
-    ScrapeParticularProduct(url: string, shop: string) : Promise<string>;
 }

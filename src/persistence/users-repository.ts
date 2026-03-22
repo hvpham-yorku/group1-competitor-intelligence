@@ -1,4 +1,4 @@
-import { SqliteDB } from "@/persistence/database";
+import { getRow, runSql } from "@/persistence/sqlite-helpers";
 
 export type UserRow = {
   id: number;
@@ -7,36 +7,12 @@ export type UserRow = {
   username: string;
 };
 
-function run(sql: string, params: unknown[] = []): Promise<void> {
-  return new Promise((resolve, reject) => {
-    SqliteDB.run(sql, params, (error) => {
-      if (error) {
-        reject(error);
-      } else {
-        resolve();
-      }
-    });
-  });
-}
-
-function get<T>(sql: string, params: unknown[] = []): Promise<T | undefined> {
-  return new Promise((resolve, reject) => {
-    SqliteDB.get(sql, params, (error, row) => {
-      if (error) {
-        reject(error);
-      } else {
-        resolve((row as T | undefined) || undefined);
-      }
-    });
-  });
-}
-
 export async function insertUser(input: {
   email: string;
   passwordHash: string;
   username: string;
 }): Promise<void> {
-  await run(
+  await runSql(
     `INSERT INTO users(email, password, username)
      VALUES(?, ?, ?)`,
     [input.email, input.passwordHash, input.username]
@@ -44,7 +20,7 @@ export async function insertUser(input: {
 }
 
 export async function findUserByEmail(email: string): Promise<UserRow | null> {
-  const user = await get<UserRow>(
+  const user = await getRow<UserRow>(
     `SELECT id, email, password, username
      FROM users
      WHERE email = ?`,
@@ -55,7 +31,7 @@ export async function findUserByEmail(email: string): Promise<UserRow | null> {
 }
 
 export async function findUserById(id: number): Promise<UserRow | null> {
-  const user = await get<UserRow>(
+  const user = await getRow<UserRow>(
     `SELECT id, email, password, username
      FROM users
      WHERE id = ?`,

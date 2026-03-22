@@ -2,8 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import * as React from "react";
-import { ArrowLeft, ArrowUpRight, Loader2 } from "lucide-react";
+import { ArrowLeft, ArrowUpRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -15,43 +14,26 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import type { ObservationHistoryPoint, ObservationRecentEvent } from "@/services/products/observation-utils";
 
-type TrackedProductSummary = {
-  source_product_id: number;
+type DetailSummary = {
   title: string;
   product_url: string;
   vendor: string | null;
-  product_type: string | null;
   store_domain: string;
   store_platform: string | null;
   image_url: string | null;
-  tracked_at: string;
-  schedule_label: string;
   latest_price: number | null;
   previous_price: number | null;
   price_delta: number | null;
-  latest_seen_at: string | null;
-  latest_scrape_run_id: number | null;
+  latest_seen_at?: string | null;
+  schedule_label?: string | null;
 };
 
-type HistoryPoint = {
-  scrape_run_id: number;
-  observed_at: string;
-  price: number | null;
-  compare_at_price: number | null;
-  available_variants: number;
-  total_variants: number;
-};
-
-type TrackedProductDetail = {
-  summary: TrackedProductSummary;
-  history: HistoryPoint[];
-  recent_events: Array<HistoryPoint & { price_delta: number | null }>;
-};
-
-type TrackingDetailResponse = {
-  product?: TrackedProductDetail;
-  message?: string;
+type DetailRecord = {
+  summary: DetailSummary;
+  history: ObservationHistoryPoint[];
+  recent_events: ObservationRecentEvent[];
 };
 
 function formatPrice(value: number | null) {
@@ -69,7 +51,13 @@ function formatAxisDate(value: string) {
   });
 }
 
-function PriceHistoryChart({ points }: { points: HistoryPoint[] }) {
+function PriceHistoryChart({
+  points,
+  description,
+}: {
+  points: ObservationHistoryPoint[];
+  description: string;
+}) {
   const chartData = points
     .filter((point) => typeof point.price === "number")
     .map((point) => ({
@@ -80,13 +68,9 @@ function PriceHistoryChart({ points }: { points: HistoryPoint[] }) {
 
   return (
     <div className="rounded-xl border border-white/10 bg-black/20 p-4">
-      <div className="mb-3 flex items-center justify-between">
-        <div>
-          <h3 className="font-semibold">Price history</h3>
-          <p className="text-sm text-muted-foreground">
-            Snapshot series reconstructed from recent scrape observations.
-          </p>
-        </div>
+      <div className="mb-3">
+        <h3 className="font-semibold">Price history</h3>
+        <p className="text-sm text-muted-foreground">{description}</p>
       </div>
       {chartData.length === 0 ? (
         <div className="flex h-[240px] items-center justify-center text-sm text-muted-foreground">
@@ -95,10 +79,7 @@ function PriceHistoryChart({ points }: { points: HistoryPoint[] }) {
       ) : (
         <div className="h-[260px] w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart
-              data={chartData}
-              margin={{ top: 12, right: 20, bottom: 8, left: 0 }}
-            >
+            <LineChart data={chartData} margin={{ top: 12, right: 20, bottom: 8, left: 0 }}>
               <CartesianGrid stroke="rgba(255,255,255,0.08)" vertical={false} />
               <XAxis
                 dataKey="formattedTime"
@@ -142,67 +123,34 @@ function PriceHistoryChart({ points }: { points: HistoryPoint[] }) {
   );
 }
 
-export function TrackingDetailClient({
-  sourceProductId,
+export function ProductDetailView({
+  detail,
+  backHref,
+  backLabel,
+  emptyLabel,
+  visitLabel,
+  chartDescription,
+  eventDescription,
+  fourthCard,
 }: {
-  sourceProductId: string;
+  detail: DetailRecord | null;
+  backHref: string;
+  backLabel: string;
+  emptyLabel: string;
+  visitLabel: string;
+  chartDescription: string;
+  eventDescription: string;
+  fourthCard: {
+    label: string;
+    value: string;
+  };
 }) {
-  const [loading, setLoading] = React.useState(true);
-  const [detail, setDetail] = React.useState<TrackedProductDetail | null>(null);
-
-  React.useEffect(() => {
-    let active = true;
-
-    async function load() {
-      setLoading(true);
-      try {
-        const response = await fetch(
-          `/api/tracked_products?sourceProductId=${encodeURIComponent(sourceProductId)}`,
-          { cache: "no-store" }
-        );
-
-        if (!response.ok) {
-          throw new Error("Failed to load tracked product");
-        }
-
-        const data = (await response.json()) as TrackingDetailResponse;
-        if (active) {
-          setDetail(data.product || null);
-        }
-      } catch (error) {
-        console.error("Failed to load tracked product", error);
-        if (active) {
-          setDetail(null);
-        }
-      } finally {
-        if (active) {
-          setLoading(false);
-        }
-      }
-    }
-
-    void load();
-
-    return () => {
-      active = false;
-    };
-  }, [sourceProductId]);
-
-  if (loading) {
-    return (
-      <div className="flex min-h-[60vh] items-center justify-center text-muted-foreground">
-        <Loader2 className="mr-3 h-5 w-5 animate-spin" />
-        Loading tracking details...
-      </div>
-    );
-  }
-
-  if (!detail) {
+  if (detail === null) {
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4">
-        <p className="text-lg font-medium">Tracked product not found</p>
-        <Link className="text-sm text-muted-foreground underline" href="/tracking">
-          Back to tracking
+        <p className="text-lg font-medium">{emptyLabel}</p>
+        <Link className="text-sm text-muted-foreground underline" href={backHref}>
+          {backLabel}
         </Link>
       </div>
     );
@@ -214,9 +162,9 @@ export function TrackingDetailClient({
     <div className="flex flex-col gap-6 p-4">
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div className="space-y-3">
-          <Link className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground" href="/tracking">
+          <Link className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground" href={backHref}>
             <ArrowLeft className="h-4 w-4" />
-            Back to tracking
+            {backLabel}
           </Link>
           <div className="flex items-start gap-4">
             {summary.image_url ? (
@@ -253,7 +201,7 @@ export function TrackingDetailClient({
           rel="noreferrer"
           target="_blank"
         >
-          Open product
+          {visitLabel}
           <ArrowUpRight className="h-4 w-4" />
         </a>
       </div>
@@ -293,23 +241,21 @@ export function TrackingDetailClient({
         </Card>
         <Card className="border-white/10 bg-white/[0.02]">
           <CardHeader>
-            <CardDescription>Schedule</CardDescription>
-            <CardTitle>{summary.schedule_label}</CardTitle>
+            <CardDescription>{fourthCard.label}</CardDescription>
+            <CardTitle>{fourthCard.value}</CardTitle>
           </CardHeader>
         </Card>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,4fr)_minmax(280px,1fr)]">
         <div className="space-y-6">
-          <PriceHistoryChart points={history} />
+          <PriceHistoryChart points={history} description={chartDescription} />
         </div>
 
         <Card className="border-white/10 bg-white/[0.02]">
           <CardHeader>
             <CardTitle>Recent scrape events</CardTitle>
-            <CardDescription>
-              Latest snapshots for this tracked product.
-            </CardDescription>
+            <CardDescription>{eventDescription}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {recentEvents.length === 0 ? (
@@ -321,15 +267,15 @@ export function TrackingDetailClient({
                   className="rounded-lg border border-white/10 bg-black/20 p-3"
                 >
                   <div className="flex items-center justify-between gap-3">
-                    <span className="text-sm font-medium">
-                      Run #{event.scrape_run_id}
-                    </span>
+                    <span className="text-sm font-medium">Run #{event.scrape_run_id}</span>
                     <span className="text-xs text-muted-foreground">
                       {formatDate(event.observed_at)}
                     </span>
                   </div>
                   <div className="mt-2 text-sm text-muted-foreground">
-                    <div>Price: <span className="text-foreground">{formatPrice(event.price)}</span></div>
+                    <div>
+                      Price: <span className="text-foreground">{formatPrice(event.price)}</span>
+                    </div>
                     <div>
                       Variants in stock:{" "}
                       <span className="text-foreground">
@@ -361,6 +307,14 @@ export function TrackingDetailClient({
           </CardContent>
         </Card>
       </div>
+    </div>
+  );
+}
+
+export function ProductDetailLoading({ label }: { label: string }) {
+  return (
+    <div className="flex min-h-[60vh] items-center justify-center text-muted-foreground">
+      {label}
     </div>
   );
 }

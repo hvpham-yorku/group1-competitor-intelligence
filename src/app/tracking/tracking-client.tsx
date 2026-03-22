@@ -403,7 +403,7 @@ export function TrackingClient() {
                     <TableCell className="text-right">
                       <Link
                         className="inline-flex items-center gap-2 text-sm font-medium text-foreground/80 transition hover:text-foreground"
-                        href={`/tracking/${product.source_product_id}`}
+                        href={`/products/${product.source_product_id}`}
                       >
                         Details
                         <ArrowUpRight className="h-4 w-4" />

@@ -1,13 +1,10 @@
-import { parseImageUrl } from "@/services/tracking/utils";
+import type {
+  ObservationHistoryPoint,
+  ObservationRecentEvent,
+} from "@/services/products/observation-utils";
+import { parseImageUrl } from "@/services/products/observation-utils";
 
-export type ProductHistoryPoint = {
-  scrape_run_id: number;
-  observed_at: string;
-  price: number | null;
-  compare_at_price: number | null;
-  available_variants: number;
-  total_variants: number;
-};
+export type ProductHistoryPoint = ObservationHistoryPoint;
 
 export type ProductDetailSummary = {
   source_product_id: number;
@@ -28,11 +25,7 @@ export type ProductDetailSummary = {
 export type ProductDetail = {
   summary: ProductDetailSummary;
   history: ProductHistoryPoint[];
-  recent_events: Array<
-    ProductHistoryPoint & {
-      price_delta: number | null;
-    }
-  >;
+  recent_events: ObservationRecentEvent[];
 };
 
 export { parseImageUrl };

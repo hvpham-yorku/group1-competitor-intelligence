@@ -1,9 +1,12 @@
-import { SqliteDB } from "@/persistence/database";
+import { getAll } from "@/persistence/sqlite-helpers";
+import {
+  buildObservationHistory,
+  buildRecentEvents,
+} from "@/services/products/observation-utils";
 import {
   parseImageUrl,
   type ProductDetail,
   type ProductDetailSummary,
-  type ProductHistoryPoint,
 } from "@/services/products/utils";
 
 type ObservationRow = {
@@ -23,80 +26,13 @@ type ObservationRow = {
   observed_at: string | null;
 };
 
-function all<T>(sql: string, params: unknown[] = []): Promise<T[]> {
-  return new Promise((resolve, reject) => {
-    SqliteDB.all(sql, params, (error, rows) => {
-      if (error) {
-        reject(error);
-      } else {
-        resolve((rows as T[]) || []);
-      }
-    });
-  });
-}
-
-function summarizeSnapshot(rows: ObservationRow[]) {
-  const numericPrices = rows
-    .map((row) => row.price)
-    .filter((value): value is number => typeof value === "number");
-  const numericComparePrices = rows
-    .map((row) => row.compare_at_price)
-    .filter((value): value is number => typeof value === "number");
-  const availabilityRows = rows.filter(
-    (row) => row.source_variant_id != null || row.scrape_run_id != null
-  );
-
-  return {
-    price: numericPrices.length > 0 ? Math.min(...numericPrices) : null,
-    compareAtPrice:
-      numericComparePrices.length > 0 ? Math.min(...numericComparePrices) : null,
-    availableVariants: rows.filter((row) => row.available === 1).length,
-    totalVariants: availabilityRows.length,
-  };
-}
-
-function toHistory(rows: ObservationRow[]): ProductHistoryPoint[] {
-  const snapshots = new Map<number, ObservationRow[]>();
-
-  for (const row of rows) {
-    if (!row.scrape_run_id || !row.observed_at) {
-      continue;
-    }
-
-    const existing = snapshots.get(row.scrape_run_id) || [];
-    existing.push(row);
-    snapshots.set(row.scrape_run_id, existing);
-  }
-
-  return Array.from(snapshots.entries())
-    .map(([scrapeRunId, snapshotRows]) => {
-      const summary = summarizeSnapshot(snapshotRows);
-      const observedAt =
-        snapshotRows
-          .map((row) => row.observed_at)
-          .filter((value): value is string => typeof value === "string")
-          .sort()
-          .at(-1) || "";
-
-      return {
-        scrape_run_id: scrapeRunId,
-        observed_at: observedAt,
-        price: summary.price,
-        compare_at_price: summary.compareAtPrice,
-        available_variants: summary.availableVariants,
-        total_variants: summary.totalVariants,
-      };
-    })
-    .sort((left, right) => right.observed_at.localeCompare(left.observed_at));
-}
-
 function buildSummary(rows: ObservationRow[]): ProductDetailSummary | null {
   const first = rows[0];
   if (!first) {
     return null;
   }
 
-  const history = toHistory(rows);
+  const history = buildObservationHistory(rows);
   const latest = history[0] || null;
   const previous = history[1] || null;
 
@@ -121,7 +57,7 @@ function buildSummary(rows: ObservationRow[]): ProductDetailSummary | null {
 }
 
 async function getProductObservationRows(sourceProductId: number): Promise<ObservationRow[]> {
-  return all<ObservationRow>(
+  return getAll<ObservationRow>(
     `SELECT
        sp.id AS source_product_id,
        s.domain AS store_domain,
@@ -159,22 +95,13 @@ export async function getProductDetail(sourceProductId: number): Promise<Product
     return null;
   }
 
-  const history = toHistory(rows).sort((left, right) =>
+  const history = buildObservationHistory(rows).sort((left, right) =>
     left.observed_at.localeCompare(right.observed_at)
   );
   const recentDescending = [...history].sort((left, right) =>
     right.observed_at.localeCompare(left.observed_at)
   );
-  const recentEvents = recentDescending.slice(0, 12).map((point, index) => {
-    const previous = recentDescending[index + 1];
-    return {
-      ...point,
-      price_delta:
-        point.price != null && previous?.price != null
-          ? point.price - previous.price
-          : null,
-    };
-  });
+  const recentEvents = buildRecentEvents(recentDescending, 12);
 
   return {
     summary,

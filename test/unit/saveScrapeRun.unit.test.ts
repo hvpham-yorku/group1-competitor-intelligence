@@ -10,7 +10,6 @@ const mockLinkUserToScrapeRun = jest.fn();
 const mockUpsertSourceProduct = jest.fn();
 const mockUpsertSourceVariant = jest.fn();
 const mockInsertObservation = jest.fn();
-const mockFindLatestStoreScrape = jest.fn();
 
 jest.mock("@/persistence/scrapes-repository", () => ({
   runInTransaction: (...args: unknown[]) => mockRunInTransaction(...args),
@@ -20,7 +19,6 @@ jest.mock("@/persistence/scrapes-repository", () => ({
   upsertSourceProduct: (...args: unknown[]) => mockUpsertSourceProduct(...args),
   upsertSourceVariant: (...args: unknown[]) => mockUpsertSourceVariant(...args),
   insertObservation: (...args: unknown[]) => mockInsertObservation(...args),
-  findLatestStoreScrape: (...args: unknown[]) => mockFindLatestStoreScrape(...args),
 }));
 
 describe("saveScrapeRun", () => {
@@ -32,7 +30,6 @@ describe("saveScrapeRun", () => {
     mockUpsertSourceProduct.mockReset();
     mockUpsertSourceVariant.mockReset();
     mockInsertObservation.mockReset();
-    mockFindLatestStoreScrape.mockReset();
 
     mockRunInTransaction.mockImplementation(async (callback: () => Promise<void>) => {
       await callback();
@@ -60,10 +57,21 @@ describe("saveScrapeRun", () => {
 
     expect(result).toEqual({ scrapeRunId: 10, storeId: 5 });
     expect(mockFindOrCreateStore).toHaveBeenCalled();
-    expect(mockCreateScrapeRun).toHaveBeenCalledWith(5);
+    expect(mockCreateScrapeRun).toHaveBeenCalledWith(5, "store");
     expect(mockLinkUserToScrapeRun).toHaveBeenCalledWith(7, 10, 5);
     expect(mockUpsertSourceProduct).not.toHaveBeenCalled();
     expect(mockUpsertSourceVariant).not.toHaveBeenCalled();
     expect(mockInsertObservation).not.toHaveBeenCalled();
+  });
+
+  test("passes product resource type through to scrape run creation", async () => {
+    await saveScrapeRun({
+      userId: 7,
+      rawUrl: "example.com/products/p1",
+      products: [],
+      resourceType: "product",
+    });
+
+    expect(mockCreateScrapeRun).toHaveBeenCalledWith(5, "product");
   });
 });

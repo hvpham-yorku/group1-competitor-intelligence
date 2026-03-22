@@ -5,7 +5,6 @@ import {
 } from "@/services/scrape-runs/mappers";
 import {
   createScrapeRun,
-  findLatestStoreScrape,
   findOrCreateStore,
   insertObservation,
   linkUserToScrapeRun,
@@ -15,41 +14,6 @@ import {
 } from "@/persistence/scrapes-repository";
 import type { NormalizedProduct } from "@/services/scraper/normalized-types";
 import { getVariants, inferPlatform, normalizeStoreDomain, normalizeUrl } from "./utils";
-
-function getProductKey(product: NormalizedProduct): string {
-  const productUrl =
-    typeof product.product_url === "string" ? normalizeUrl(product.product_url) : "";
-  if (productUrl) {
-    return productUrl;
-  }
-
-  if (product.id != null) {
-    return `id:${String(product.id)}`;
-  }
-
-  if (typeof product.handle === "string" && product.handle.trim()) {
-    return `handle:${product.handle.trim().toLowerCase()}`;
-  }
-
-  return `title:${product.title.trim().toLowerCase()}`;
-}
-
-function mergeStoreProducts(
-  existingProducts: NormalizedProduct[],
-  incomingProducts: NormalizedProduct[]
-): NormalizedProduct[] {
-  const merged = new Map<string, NormalizedProduct>();
-
-  for (const product of existingProducts) {
-    merged.set(getProductKey(product), product);
-  }
-
-  for (const product of incomingProducts) {
-    merged.set(getProductKey(product), product);
-  }
-
-  return Array.from(merged.values());
-}
 
 export async function saveScrapeRun(input: {
   userId?: number;
@@ -78,13 +42,8 @@ export async function saveScrapeRun(input: {
     throw new Error("Missing user id");
   }
 
-  const products =
-    input.resourceType === "product"
-      ? mergeStoreProducts(
-          (await findLatestStoreScrape(storeDomain))?.products || [],
-          incomingProducts
-        )
-      : incomingProducts;
+  const products = incomingProducts;
+  const resourceType = input.resourceType || "store";
 
   let persistedProducts = 0;
   let persistedVariants = 0;
@@ -93,7 +52,7 @@ export async function saveScrapeRun(input: {
 
   await runInTransaction(async () => {
     storeId = await findOrCreateStore(storeDomain, inferPlatform(products));
-    scrapeRunId = await createScrapeRun(storeId);
+    scrapeRunId = await createScrapeRun(storeId, resourceType);
 
     for (const userId of userIds) {
       await linkUserToScrapeRun(userId, scrapeRunId, storeId);
@@ -129,8 +88,8 @@ export async function saveScrapeRun(input: {
   console.log("[saveScrapeRun]", {
     url,
     store_domain: storeDomain,
+    resource_type: resourceType,
     products_in_payload: incomingProducts.length,
-    persisted_snapshot_products: products.length,
     persisted_products: persistedProducts,
     persisted_variants: persistedVariants,
     duration_ms: Date.now() - startedAt,

@@ -23,7 +23,8 @@ export async function getScrapeRun(input: {
   const previousRun = await findPreviousScrapeRun(
     input.userId,
     scrapeRecord.url,
-    input.scrapeId
+    input.scrapeId,
+    scrapeRecord.resource_type
   );
 
   return {

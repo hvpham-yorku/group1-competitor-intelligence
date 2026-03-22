@@ -1,4 +1,4 @@
-import { SqliteDB } from "@/persistence/database";
+import { getRow, runSql } from "@/persistence/sqlite-helpers";
 
 export type TrackingRunRow = {
   scrape_run_id: number;
@@ -9,30 +9,6 @@ export type TrackingRunRow = {
   finished_at: string | null;
   created_at: string;
 };
-
-function run(sql: string, params: unknown[] = []): Promise<void> {
-  return new Promise((resolve, reject) => {
-    SqliteDB.run(sql, params, (error) => {
-      if (error) {
-        reject(error);
-      } else {
-        resolve();
-      }
-    });
-  });
-}
-
-function get<T>(sql: string, params: unknown[] = []): Promise<T | undefined> {
-  return new Promise((resolve, reject) => {
-    SqliteDB.get(sql, params, (error, row) => {
-      if (error) {
-        reject(error);
-      } else {
-        resolve((row as T | undefined) || undefined);
-      }
-    });
-  });
-}
 
 export async function insertTrackingRun(input?: {
   scrapeRunId?: number;
@@ -53,7 +29,7 @@ export async function insertTrackingRun(input?: {
   const startedAt = input?.startedAt || new Date().toISOString();
   const finishedAt = input?.finishedAt ?? null;
 
-  await run(
+  await runSql(
     `INSERT INTO tracking_runs (
       scrape_run_id, trigger_type, status, error_message, started_at, finished_at
     ) VALUES (?, ?, ?, ?, ?, ?)`,
@@ -69,7 +45,7 @@ export async function updateTrackingRun(input: {
   errorMessage?: string | null;
   finishedAt?: string | null;
 }): Promise<void> {
-  await run(
+  await runSql(
     `UPDATE tracking_runs
      SET status = ?,
         error_message = ?,
@@ -87,7 +63,7 @@ export async function updateTrackingRun(input: {
 export async function findTrackingRunById(
   scrapeRunId: number
 ): Promise<TrackingRunRow | null> {
-  const row = await get<TrackingRunRow>(
+  const row = await getRow<TrackingRunRow>(
     `SELECT
        scrape_run_id,
        trigger_type,

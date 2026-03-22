@@ -127,6 +127,29 @@ function ensureSourceProductsTimestampSchema() {
   );
 }
 
+function ensureScrapeRunsResourceTypeSchema() {
+  SqliteDB.all<{ name: string }>(
+    `PRAGMA table_info(scrape_runs)`,
+    (error, rows) => {
+      if (error) {
+        console.error("SQLite scrape_runs schema check error:", error.message);
+        return;
+      }
+
+      const columnNames = (rows || []).map((row) => row.name);
+      if (columnNames.length === 0) {
+        return;
+      }
+
+      if (!columnNames.includes("resource_type")) {
+        SqliteDB.run(
+          `ALTER TABLE scrape_runs ADD COLUMN resource_type TEXT NOT NULL DEFAULT 'store'`
+        );
+      }
+    }
+  );
+}
+
 SqliteDB.serialize(() => {
   SqliteDB.run(`PRAGMA foreign_keys = ON`);
 
@@ -155,7 +178,8 @@ SqliteDB.serialize(() => {
       started_at TEXT NOT NULL DEFAULT (datetime('now')),
       finished_at TEXT,
       status TEXT NOT NULL DEFAULT 'completed',
-      error_message TEXT
+      error_message TEXT,
+      resource_type TEXT NOT NULL DEFAULT 'store'
     )`
   );
   /*
@@ -337,4 +361,5 @@ SqliteDB.serialize(() => {
   ensureUserScrapeRunsSchema();
   ensureTrackingRunsSchema();
   ensureSourceProductsTimestampSchema();
+  ensureScrapeRunsResourceTypeSchema();
 });

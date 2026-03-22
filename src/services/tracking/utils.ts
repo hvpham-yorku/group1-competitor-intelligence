@@ -1,3 +1,9 @@
+import type {
+  ObservationHistoryPoint,
+  ObservationRecentEvent,
+} from "@/services/products/observation-utils";
+import { parseImageUrl } from "@/services/products/observation-utils";
+
 function cleanString(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
 }
@@ -21,23 +27,12 @@ export type TrackedProductSummary = {
   latest_scrape_run_id: number | null;
 };
 
-export type TrackedProductHistoryPoint = {
-  scrape_run_id: number;
-  observed_at: string;
-  price: number | null;
-  compare_at_price: number | null;
-  available_variants: number;
-  total_variants: number;
-};
+export type TrackedProductHistoryPoint = ObservationHistoryPoint;
 
 export type TrackedProductDetail = {
   summary: TrackedProductSummary;
   history: TrackedProductHistoryPoint[];
-  recent_events: Array<
-    TrackedProductHistoryPoint & {
-      price_delta: number | null;
-    }
-  >;
+  recent_events: ObservationRecentEvent[];
 };
 
 export const TRACKING_SCHEDULE_LABEL = "Daily at 01:00 UTC";
@@ -58,16 +53,4 @@ export function normalizeTrackedProductInput(input: {
   };
 }
 
-export function parseImageUrl(imagesJson: string | null): string | null {
-  if (!imagesJson) {
-    return null;
-  }
-
-  try {
-    const parsed = JSON.parse(imagesJson) as Array<{ src?: string }>;
-    const first = Array.isArray(parsed) ? parsed[0] : null;
-    return typeof first?.src === "string" ? first.src : null;
-  } catch {
-    return null;
-  }
-}
+export { parseImageUrl };
