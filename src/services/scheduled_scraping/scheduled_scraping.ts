@@ -1,5 +1,6 @@
 import cron from "node-cron";
 import { getTrackedProductsForScheduling } from "@/persistence/tracked-products-repository";
+import { getTrackedStoresForScheduling } from "@/persistence/tracked-stores-repository";
 import { insertTrackingRun } from "@/persistence/tracking-runs-repository";
 import { saveScrapeRun } from "@/services/scrape-runs/save-scrape";
 import { ScraperEngine } from "@/services/scraper/engine";
@@ -39,6 +40,37 @@ async function scrapeTrackedProduct(target: Awaited<ReturnType<typeof getTracked
   });
 }
 
+async function scrapeTrackedStore(
+  target: Awaited<ReturnType<typeof getTrackedStoresForScheduling>>[number]
+) {
+  const startedAt = new Date();
+  const engine = ScraperEngine.getInstance();
+  const request = new ScraperRequest(target.store_domain);
+  request.resourceType = "store";
+
+  console.log("[scheduled_tracking] scraping tracked store", {
+    store_id: target.store_id,
+    store_domain: target.store_domain,
+    tracked_users: target.user_ids.length,
+  });
+
+  const result = await engine.execute(request);
+  const savedRun = await saveScrapeRun({
+    userIds: target.user_ids,
+    rawUrl: target.store_domain,
+    products: Array.isArray(result?.products) ? result.products : [],
+    resourceType: "store",
+  });
+
+  await insertTrackingRun({
+    scrapeRunId: savedRun.scrapeRunId,
+    triggerType: "scheduled",
+    status: "completed",
+    startedAt: startedAt.toISOString(),
+    finishedAt: new Date().toISOString(),
+  });
+}
+
 export async function runScheduledTrackingSweep() {
   if (globalThis.__trackingSchedulerRunning) {
     return;
@@ -48,9 +80,12 @@ export async function runScheduledTrackingSweep() {
   const startedAt = new Date();
 
   try {
-    const targets = await getTrackedProductsForScheduling();
+    const [productTargets, storeTargets] = await Promise.all([
+      getTrackedProductsForScheduling(),
+      getTrackedStoresForScheduling(),
+    ]);
 
-    for (const target of targets) {
+    for (const target of productTargets) {
       if (!target.product_url || target.user_ids.length === 0) {
         continue;
       }
@@ -61,6 +96,22 @@ export async function runScheduledTrackingSweep() {
         console.error("[scheduled_tracking] scheduled scrape failed", {
           source_product_id: target.source_product_id,
           product_url: target.product_url,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
+    }
+
+    for (const target of storeTargets) {
+      if (!target.store_domain || target.user_ids.length === 0) {
+        continue;
+      }
+
+      try {
+        await scrapeTrackedStore(target);
+      } catch (error) {
+        console.error("[scheduled_tracking] scheduled store scrape failed", {
+          store_id: target.store_id,
+          store_domain: target.store_domain,
           error: error instanceof Error ? error.message : String(error),
         });
       }

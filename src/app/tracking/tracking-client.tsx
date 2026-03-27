@@ -5,15 +5,18 @@ import Image from "next/image";
 import * as React from "react";
 import {
   ArrowUpRight,
+  CheckCircle2,
   Loader2,
+  MoreHorizontal,
   Search,
   SlidersHorizontal,
 } from "lucide-react";
-import { Select } from "@mantine/core";
+import { Menu, Select } from "@mantine/core";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table,
   TableBody,
@@ -22,38 +25,32 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-
-type TrackedProductSummary = {
-  tracked_id: number;
-  source_product_id: number;
-  title: string;
-  product_url: string;
-  vendor: string | null;
-  product_type: string | null;
-  store_domain: string;
-  store_platform: string | null;
-  image_url: string | null;
-  tracked_at: string;
-  schedule_label: string;
-  latest_price: number | null;
-  previous_price: number | null;
-  price_delta: number | null;
-  latest_seen_at: string | null;
-  latest_scrape_run_id: number | null;
-};
+import type {
+  TrackedProductSummary,
+  TrackedStoreSummary,
+} from "@/services/tracking/utils";
 
 type TrackingResponse = {
   products?: TrackedProductSummary[];
+  stores?: TrackedStoreSummary[];
   message?: string;
 };
 
-type SortKey = "title" | "latest_price" | "price_delta" | "latest_seen_at";
+type ProductSortKey = "title" | "latest_price" | "price_delta" | "latest_seen_at";
+type StoreSortKey = "store_domain" | "latest_scraped_at" | "is_owned_store";
+type ActiveTab = "products" | "stores";
 
-const SORT_OPTIONS: Array<{ key: SortKey; label: string }> = [
+const PRODUCT_SORT_OPTIONS: Array<{ key: ProductSortKey; label: string }> = [
   { key: "latest_seen_at", label: "Latest event" },
   { key: "title", label: "Title" },
   { key: "latest_price", label: "Latest price" },
   { key: "price_delta", label: "Price delta" },
+];
+
+const STORE_SORT_OPTIONS: Array<{ key: StoreSortKey; label: string }> = [
+  { key: "is_owned_store", label: "Ownership" },
+  { key: "latest_scraped_at", label: "Latest event" },
+  { key: "store_domain", label: "Store" },
 ];
 
 function getNextUtcOne(now: Date): Date {
@@ -100,50 +97,75 @@ function formatDate(value: string | null) {
   return new Date(value).toLocaleString();
 }
 
+function StatusBanner({
+  tone,
+  message,
+}: {
+  tone: "success" | "error";
+  message: string;
+}) {
+  return (
+    <div
+      className={
+        tone === "success"
+          ? "flex items-center gap-2 rounded-md border border-emerald-400/20 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200"
+          : "rounded-md border border-rose-400/20 bg-rose-500/10 px-3 py-2 text-sm text-rose-200"
+      }
+    >
+      {tone === "success" ? <CheckCircle2 className="h-4 w-4" /> : null}
+      <span>{message}</span>
+    </div>
+  );
+}
+
 export function TrackingClient() {
   const [loading, setLoading] = React.useState(true);
   const [query, setQuery] = React.useState("");
-  const [sortKey, setSortKey] = React.useState<SortKey>("latest_seen_at");
+  const [activeTab, setActiveTab] = React.useState<ActiveTab>("products");
+  const [productSortKey, setProductSortKey] = React.useState<ProductSortKey>("latest_seen_at");
+  const [storeSortKey, setStoreSortKey] = React.useState<StoreSortKey>("is_owned_store");
   const [sortDescending, setSortDescending] = React.useState(true);
   const [products, setProducts] = React.useState<TrackedProductSummary[]>([]);
+  const [stores, setStores] = React.useState<TrackedStoreSummary[]>([]);
+  const [storeUrl, setStoreUrl] = React.useState("");
+  const [submittingStore, setSubmittingStore] = React.useState(false);
+  const [workingKey, setWorkingKey] = React.useState<string | null>(null);
+  const [notice, setNotice] = React.useState<{
+    tone: "success" | "error";
+    message: string;
+  } | null>(null);
   const [now, setNow] = React.useState(() => new Date());
 
-  React.useEffect(() => {
-    let active = true;
+  const loadTrackedItems = React.useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await fetch("/api/tracked_products", {
+        cache: "no-store",
+      });
 
-    async function load() {
-      setLoading(true);
-      try {
-        const response = await fetch("/api/tracked_products", {
-          cache: "no-store",
-        });
-
-        if (!response.ok) {
-          throw new Error("Failed to load tracked products");
-        }
-
-        const data = (await response.json()) as TrackingResponse;
-        if (active) {
-          setProducts(Array.isArray(data.products) ? data.products : []);
-        }
-      } catch (error) {
-        console.error("Failed to load tracked products", error);
-        if (active) {
-          setProducts([]);
-        }
-      } finally {
-        if (active) {
-          setLoading(false);
-        }
+      if (!response.ok) {
+        throw new Error("Failed to load tracked products");
       }
+
+      const data = (await response.json()) as TrackingResponse;
+      setProducts(Array.isArray(data.products) ? data.products : []);
+      setStores(Array.isArray(data.stores) ? data.stores : []);
+    } catch (error) {
+      console.error("Failed to load tracked products", error);
+      setProducts([]);
+      setStores([]);
+      setNotice({
+        tone: "error",
+        message: "Failed to load tracking data.",
+      });
+    } finally {
+      setLoading(false);
     }
-
-    void load();
-
-    return () => {
-      active = false;
-    };
   }, []);
+
+  React.useEffect(() => {
+    void loadTrackedItems();
+  }, [loadTrackedItems]);
 
   React.useEffect(() => {
     const timer = window.setInterval(() => {
@@ -170,29 +192,63 @@ export function TrackingClient() {
       ].some((value) => value.toLowerCase().includes(lowered));
     });
 
-    const compare = (left: TrackedProductSummary, right: TrackedProductSummary) => {
-      if (sortKey === "title") {
-        return left.title.localeCompare(right.title);
+    next.sort((left, right) => {
+      if (productSortKey === "title") {
+        return sortDescending
+          ? right.title.localeCompare(left.title)
+          : left.title.localeCompare(right.title);
       }
 
-      if (sortKey === "latest_seen_at") {
+      if (productSortKey === "latest_seen_at") {
         const leftValue = left.latest_seen_at ? new Date(left.latest_seen_at).getTime() : 0;
         const rightValue = right.latest_seen_at ? new Date(right.latest_seen_at).getTime() : 0;
-        return leftValue - rightValue;
+        return sortDescending ? rightValue - leftValue : leftValue - rightValue;
       }
 
-      const leftValue = left[sortKey] ?? Number.NEGATIVE_INFINITY;
-      const rightValue = right[sortKey] ?? Number.NEGATIVE_INFINITY;
-      return leftValue - rightValue;
-    };
-
-    next.sort((left, right) => {
-      const result = compare(left, right);
-      return sortDescending ? -result : result;
+      const leftValue = left[productSortKey] ?? Number.NEGATIVE_INFINITY;
+      const rightValue = right[productSortKey] ?? Number.NEGATIVE_INFINITY;
+      return sortDescending
+        ? Number(rightValue) - Number(leftValue)
+        : Number(leftValue) - Number(rightValue);
     });
 
     return next;
-  }, [products, query, sortKey, sortDescending]);
+  }, [products, query, productSortKey, sortDescending]);
+
+  const filteredStores = React.useMemo(() => {
+    const lowered = query.trim().toLowerCase();
+    const next = stores.filter((store) => {
+      if (!lowered) {
+        return true;
+      }
+
+      return [
+        store.store_domain,
+        store.store_platform || "",
+        store.is_owned_store ? "my store" : "tracked store",
+      ].some((value) => value.toLowerCase().includes(lowered));
+    });
+
+    next.sort((left, right) => {
+      if (storeSortKey === "store_domain") {
+        return sortDescending
+          ? right.store_domain.localeCompare(left.store_domain)
+          : left.store_domain.localeCompare(right.store_domain);
+      }
+
+      if (storeSortKey === "latest_scraped_at") {
+        const leftValue = left.latest_scraped_at ? new Date(left.latest_scraped_at).getTime() : 0;
+        const rightValue = right.latest_scraped_at ? new Date(right.latest_scraped_at).getTime() : 0;
+        return sortDescending ? rightValue - leftValue : leftValue - rightValue;
+      }
+
+      return sortDescending
+        ? Number(right.is_owned_store) - Number(left.is_owned_store)
+        : Number(left.is_owned_store) - Number(right.is_owned_store);
+    });
+
+    return next;
+  }, [stores, query, storeSortKey, sortDescending]);
 
   const metrics = React.useMemo(() => {
     const latestTracked = products.filter((product) => product.latest_price != null);
@@ -201,11 +257,136 @@ export function TrackingClient() {
     );
 
     return {
-      total: products.length,
+      totalProducts: products.length,
+      totalStores: stores.length,
       live: latestTracked.length,
       changed: changed.length,
     };
-  }, [products]);
+  }, [products, stores]);
+
+  const handleTrackStore = async (isOwnedStore = false) => {
+    const trimmed = storeUrl.trim();
+    if (!trimmed) {
+      return;
+    }
+
+    setSubmittingStore(true);
+    setNotice(null);
+
+    try {
+      const response = await fetch("/api/tracked_products", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          track_type: "store",
+          store_url: trimmed,
+          is_owned_store: isOwnedStore,
+        }),
+      });
+
+      const data = (await response.json().catch(() => ({}))) as { message?: string };
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to track store");
+      }
+
+      await loadTrackedItems();
+      setStoreUrl("");
+      setActiveTab("stores");
+      setNotice({
+        tone: "success",
+        message: isOwnedStore ? "Store saved as your store." : "Store added to tracking.",
+      });
+    } catch (error) {
+      console.error("Failed to track store", error);
+      setNotice({
+        tone: "error",
+        message: error instanceof Error ? error.message : "Failed to track store.",
+      });
+    } finally {
+      setSubmittingStore(false);
+    }
+  };
+
+  const handleUntrackProduct = async (product: TrackedProductSummary) => {
+    setWorkingKey(`product:${product.source_product_id}`);
+    setNotice(null);
+
+    try {
+      const response = await fetch("/api/tracked_products", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          product_url: product.product_url,
+        }),
+      });
+
+      const data = (await response.json().catch(() => ({}))) as { message?: string };
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to untrack product");
+      }
+
+      setProducts((current) =>
+        current.filter((item) => item.product_url !== product.product_url)
+      );
+      setNotice({
+        tone: "success",
+        message: "Product removed from tracking.",
+      });
+    } catch (error) {
+      console.error("Failed to untrack product", error);
+      setNotice({
+        tone: "error",
+        message: error instanceof Error ? error.message : "Failed to untrack product.",
+      });
+    } finally {
+      setWorkingKey(null);
+    }
+  };
+
+  const handleStoreAction = async (
+    store: TrackedStoreSummary,
+    action: "untrack" | "own"
+  ) => {
+    setWorkingKey(`store:${store.store_id}:${action}`);
+    setNotice(null);
+
+    try {
+      const response = await fetch("/api/tracked_products", {
+        method: action === "untrack" ? "DELETE" : "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          track_type: "store",
+          store_url: store.store_domain,
+          is_owned_store: action === "own",
+        }),
+      });
+
+      const data = (await response.json().catch(() => ({}))) as { message?: string };
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to update store tracking");
+      }
+
+      await loadTrackedItems();
+      setNotice({
+        tone: "success",
+        message: action === "own" ? "Store marked as your store." : "Store removed from tracking.",
+      });
+    } catch (error) {
+      console.error("Failed to update tracked store", error);
+      setNotice({
+        tone: "error",
+        message: error instanceof Error ? error.message : "Failed to update store tracking.",
+      });
+    } finally {
+      setWorkingKey(null);
+    }
+  };
 
   const nextScheduledRun = React.useMemo(() => getNextUtcOne(now), [now]);
   const nextScheduledCountdown = React.useMemo(
@@ -215,11 +396,17 @@ export function TrackingClient() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-4">
         <Card className="border-white/10 bg-white/[0.02]">
           <CardHeader>
             <CardDescription>Tracked products</CardDescription>
-            <CardTitle>{metrics.total}</CardTitle>
+            <CardTitle>{metrics.totalProducts}</CardTitle>
+          </CardHeader>
+        </Card>
+        <Card className="border-white/10 bg-white/[0.02]">
+          <CardHeader>
+            <CardDescription>Tracked stores</CardDescription>
+            <CardTitle>{metrics.totalStores}</CardTitle>
           </CardHeader>
         </Card>
         <Card className="border-white/10 bg-white/[0.02]">
@@ -253,7 +440,7 @@ export function TrackingClient() {
               </div>
               <Input
                 className="h-10 pl-9"
-                placeholder="Search tracked products"
+                placeholder={activeTab === "products" ? "Search tracked products" : "Search tracked stores"}
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
               />
@@ -263,16 +450,22 @@ export function TrackingClient() {
                 <SlidersHorizontal className="h-4 w-4 text-muted-foreground" />
               </div>
               <Select
-                aria-label="Sort tracked products"
+                aria-label="Sort tracked items"
                 checkIconPosition="right"
                 className="min-w-[180px]"
-                data={SORT_OPTIONS.map((option) => ({
+                data={(activeTab === "products" ? PRODUCT_SORT_OPTIONS : STORE_SORT_OPTIONS).map((option) => ({
                   value: option.key,
                   label: option.label,
                 }))}
                 onChange={(value) => {
-                  if (value) {
-                    setSortKey(value as SortKey);
+                  if (!value) {
+                    return;
+                  }
+
+                  if (activeTab === "products") {
+                    setProductSortKey(value as ProductSortKey);
+                  } else {
+                    setStoreSortKey(value as StoreSortKey);
                   }
                 }}
                 radius="md"
@@ -296,7 +489,7 @@ export function TrackingClient() {
                     color: "rgba(255,255,255,0.62)",
                   },
                 }}
-                value={sortKey}
+                value={activeTab === "products" ? productSortKey : storeSortKey}
               />
               <Button
                 className="h-9 px-4"
@@ -309,111 +502,237 @@ export function TrackingClient() {
             </div>
           </div>
         </CardHeader>
-        <CardContent className="pt-0">
-          {loading ? (
-            <div className="flex items-center justify-center py-16 text-muted-foreground">
-              <Loader2 className="mr-3 h-5 w-5 animate-spin" />
-              Loading tracked products...
-            </div>
-          ) : filteredProducts.length === 0 ? (
-            <div className="py-16 text-center">
-              <p className="text-lg font-medium">No tracked products yet</p>
-              <p className="mt-2 text-sm text-muted-foreground">
-                Select products in the results grid, use `Track Selected`, then
-                inspect them here.
-              </p>
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Product</TableHead>
-                  <TableHead>Store</TableHead>
-                  <TableHead>Schedule</TableHead>
-                  <TableHead>Latest price</TableHead>
-                  <TableHead>Delta</TableHead>
-                  <TableHead>Latest event</TableHead>
-                  <TableHead className="text-right">Open</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredProducts.map((product) => (
-                  <TableRow key={product.source_product_id}>
-                    <TableCell>
-                      <Link
-                        className="flex items-center gap-3"
-                        href={`/products/${product.source_product_id}`}
-                      >
-                        {product.image_url ? (
-                          <Image
-                            alt={product.title}
-                            className="h-11 w-11 rounded-md border border-white/10 object-cover"
-                            height={44}
-                            src={product.image_url}
-                            width={44}
-                          />
-                        ) : (
-                          <div className="flex h-11 w-11 items-center justify-center rounded-md border border-dashed border-white/10 text-[10px] text-muted-foreground">
-                            N/A
+        <CardContent className="space-y-4 pt-4">
+          {notice ? <StatusBanner message={notice.message} tone={notice.tone} /> : null}
+
+          <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as ActiveTab)}>
+            <TabsList>
+              <TabsTrigger value="products">Products</TabsTrigger>
+              <TabsTrigger value="stores">Stores</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="products" className="pt-4">
+              {loading ? (
+                <div className="flex items-center justify-center py-16 text-muted-foreground">
+                  <Loader2 className="mr-3 h-5 w-5 animate-spin" />
+                  Loading tracked products...
+                </div>
+              ) : filteredProducts.length === 0 ? (
+                <div className="py-16 text-center">
+                  <p className="text-lg font-medium">No tracked products yet</p>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    Select products in the results grid, use `Track Selected`, then inspect them here.
+                  </p>
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Product</TableHead>
+                      <TableHead>Store</TableHead>
+                      <TableHead>Schedule</TableHead>
+                      <TableHead>Latest price</TableHead>
+                      <TableHead>Delta</TableHead>
+                      <TableHead>Latest event</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredProducts.map((product) => (
+                      <TableRow key={product.source_product_id}>
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            {product.image_url ? (
+                              <Image
+                                alt={product.title}
+                                className="h-11 w-11 rounded-md border border-white/10 object-cover"
+                                height={44}
+                                src={product.image_url}
+                                width={44}
+                              />
+                            ) : (
+                              <div className="flex h-11 w-11 items-center justify-center rounded-md border border-dashed border-white/10 text-[10px] text-muted-foreground">
+                                N/A
+                              </div>
+                            )}
+                            <div className="min-w-0">
+                              <div className="truncate font-medium">{product.title}</div>
+                              <div className="truncate text-xs text-muted-foreground">
+                                {product.vendor || "Unknown vendor"}
+                                {product.product_type ? ` - ${product.product_type}` : ""}
+                              </div>
+                            </div>
                           </div>
-                        )}
-                        <div className="min-w-0">
-                          <div className="truncate font-medium">{product.title}</div>
-                          <div className="truncate text-xs text-muted-foreground">
-                            {product.vendor || "Unknown vendor"}
-                            {product.product_type ? ` • ${product.product_type}` : ""}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex flex-col gap-1">
+                            <span>{product.store_domain}</span>
+                            {product.store_platform && (
+                              <Badge className="w-fit capitalize" variant="outline">
+                                {product.store_platform}
+                              </Badge>
+                            )}
                           </div>
-                        </div>
-                      </Link>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-col gap-1">
-                        <span>{product.store_domain}</span>
-                        {product.store_platform && (
-                          <Badge className="w-fit capitalize" variant="outline">
-                            {product.store_platform}
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-sm text-muted-foreground">{product.schedule_label}</span>
+                        </TableCell>
+                        <TableCell>{formatPrice(product.latest_price)}</TableCell>
+                        <TableCell>
+                          <span
+                            className={
+                              typeof product.price_delta !== "number"
+                                ? "text-muted-foreground"
+                                : product.price_delta > 0
+                                  ? "text-rose-400"
+                                  : product.price_delta < 0
+                                    ? "text-emerald-400"
+                                    : "text-muted-foreground"
+                            }
+                          >
+                            {formatDelta(product.price_delta)}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">{formatDate(product.latest_seen_at)}</TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            <Button asChild size="sm" variant="outline">
+                              <Link href={`/products/${product.source_product_id}`}>Details</Link>
+                            </Button>
+                            <Button
+                              disabled={workingKey === `product:${product.source_product_id}`}
+                              onClick={() => void handleUntrackProduct(product)}
+                              size="sm"
+                              type="button"
+                              variant="outline"
+                            >
+                              {workingKey === `product:${product.source_product_id}` ? "Removing..." : "Untrack"}
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </TabsContent>
+
+            <TabsContent value="stores" className="space-y-4 pt-4">
+              <div className="flex flex-col gap-3 md:flex-row md:items-center">
+                <Input
+                  className="h-10 md:max-w-md"
+                  placeholder="Add store URL to tracking"
+                  value={storeUrl}
+                  onChange={(event) => setStoreUrl(event.target.value)}
+                />
+                <div className="flex gap-2">
+                  <Button
+                    className="h-10 px-4"
+                    disabled={submittingStore || storeUrl.trim().length === 0}
+                    onClick={() => void handleTrackStore(false)}
+                    type="button"
+                  >
+                    {submittingStore ? "Adding..." : "Track Store"}
+                  </Button>
+                  <Button
+                    className="h-10 px-4"
+                    disabled={submittingStore || storeUrl.trim().length === 0}
+                    onClick={() => void handleTrackStore(true)}
+                    type="button"
+                    variant="outline"
+                  >
+                    Set As My Store
+                  </Button>
+                </div>
+              </div>
+
+              {loading ? (
+                <div className="flex items-center justify-center py-16 text-muted-foreground">
+                  <Loader2 className="mr-3 h-5 w-5 animate-spin" />
+                  Loading tracked stores...
+                </div>
+              ) : filteredStores.length === 0 ? (
+                <div className="py-16 text-center">
+                  <p className="text-lg font-medium">No tracked stores yet</p>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    Track a store from the playground, competitors page, or add it directly here.
+                  </p>
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Store</TableHead>
+                      <TableHead>Role</TableHead>
+                      <TableHead>Schedule</TableHead>
+                      <TableHead>Latest event</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredStores.map((store) => (
+                      <TableRow key={store.store_id}>
+                        <TableCell>
+                          <div className="flex flex-col gap-1">
+                            <span className="font-medium">{store.store_domain}</span>
+                            <span className="text-xs capitalize text-muted-foreground">
+                              {store.store_platform || "Unknown platform"}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={store.is_owned_store ? "default" : "outline"}>
+                            {store.is_owned_store ? "My Store" : "Tracked Store"}
                           </Badge>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-sm text-muted-foreground">
-                        {product.schedule_label}
-                      </span>
-                    </TableCell>
-                    <TableCell>{formatPrice(product.latest_price)}</TableCell>
-                    <TableCell>
-                      <span
-                        className={
-                          typeof product.price_delta !== "number"
-                            ? "text-muted-foreground"
-                            : product.price_delta > 0
-                              ? "text-rose-400"
-                              : product.price_delta < 0
-                                ? "text-emerald-400"
-                                : "text-muted-foreground"
-                        }
-                      >
-                        {formatDelta(product.price_delta)}
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {formatDate(product.latest_seen_at)}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Link
-                        className="inline-flex items-center gap-2 text-sm font-medium text-foreground/80 transition hover:text-foreground"
-                        href={`/products/${product.source_product_id}`}
-                      >
-                        Details
-                        <ArrowUpRight className="h-4 w-4" />
-                      </Link>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-sm text-muted-foreground">{store.schedule_label}</span>
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">{formatDate(store.latest_scraped_at)}</TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            <Button asChild size="sm" variant="outline">
+                              <Link href={`/competitors?site=${encodeURIComponent(store.store_domain)}`}>Analysis</Link>
+                            </Button>
+                            <Button asChild size="sm" variant="outline">
+                              <a href={`https://${store.store_domain}`} target="_blank" rel="noreferrer">
+                                Visit
+                                <ArrowUpRight className="ml-2 h-4 w-4" />
+                              </a>
+                            </Button>
+                            <Button
+                              disabled={workingKey === `store:${store.store_id}:untrack`}
+                              onClick={() => void handleStoreAction(store, "untrack")}
+                              size="sm"
+                              type="button"
+                              variant="outline"
+                            >
+                              {workingKey === `store:${store.store_id}:untrack` ? "Removing..." : "Untrack"}
+                            </Button>
+                            <Menu position="bottom-end" shadow="md" width={220}>
+                              <Menu.Target>
+                                <Button size="sm" type="button" variant="outline">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </Menu.Target>
+                              <Menu.Dropdown>
+                                <Menu.Item
+                                  disabled={store.is_owned_store || workingKey === `store:${store.store_id}:own`}
+                                  onClick={() => void handleStoreAction(store, "own")}
+                                >
+                                  {store.is_owned_store ? "Current My Store" : "Set As My Store"}
+                                </Menu.Item>
+                              </Menu.Dropdown>
+                            </Menu>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
     </div>

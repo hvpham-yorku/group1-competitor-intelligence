@@ -4,6 +4,7 @@
 import { runScheduledTrackingSweep } from "@/services/scheduled_scraping/scheduled_scraping";
 
 const mockGetTrackedProductsForScheduling = jest.fn();
+const mockGetTrackedStoresForScheduling = jest.fn();
 const mockInsertTrackingRun = jest.fn();
 const mockSaveScrapeRun = jest.fn();
 const mockExecute = jest.fn();
@@ -11,6 +12,11 @@ const mockExecute = jest.fn();
 jest.mock("@/persistence/tracked-products-repository", () => ({
   getTrackedProductsForScheduling: (...args: unknown[]) =>
     mockGetTrackedProductsForScheduling(...args),
+}));
+
+jest.mock("@/persistence/tracked-stores-repository", () => ({
+  getTrackedStoresForScheduling: (...args: unknown[]) =>
+    mockGetTrackedStoresForScheduling(...args),
 }));
 
 jest.mock("@/persistence/tracking-runs-repository", () => ({
@@ -32,6 +38,7 @@ jest.mock("@/services/scraper/engine", () => ({
 describe("scheduled scraping", () => {
   beforeEach(() => {
     mockGetTrackedProductsForScheduling.mockReset();
+    mockGetTrackedStoresForScheduling.mockReset();
     mockInsertTrackingRun.mockReset();
     mockSaveScrapeRun.mockReset();
     mockExecute.mockReset();
@@ -60,6 +67,7 @@ describe("scheduled scraping", () => {
         user_ids: [7, 8],
       },
     ]);
+    mockGetTrackedStoresForScheduling.mockResolvedValue([]);
 
     mockExecute
       .mockRejectedValueOnce(new Error("blocked"))
@@ -86,5 +94,35 @@ describe("scheduled scraping", () => {
       })
     );
     expect(globalThis.__trackingSchedulerRunning).toBe(false);
+  });
+
+  test("saves scheduled tracked stores as store resource type", async () => {
+    mockGetTrackedProductsForScheduling.mockResolvedValue([]);
+    mockGetTrackedStoresForScheduling.mockResolvedValue([
+      {
+        store_id: 4,
+        store_domain: "tone.shop",
+        user_ids: [3, 5],
+      },
+    ]);
+
+    mockExecute.mockResolvedValueOnce({ products: [{ title: "Store Product" }] });
+    mockSaveScrapeRun.mockResolvedValue({ scrapeRunId: 31, storeId: 4 });
+
+    await runScheduledTrackingSweep();
+
+    expect(mockSaveScrapeRun).toHaveBeenCalledWith({
+      userIds: [3, 5],
+      rawUrl: "tone.shop",
+      products: [{ title: "Store Product" }],
+      resourceType: "store",
+    });
+    expect(mockInsertTrackingRun).toHaveBeenCalledWith(
+      expect.objectContaining({
+        scrapeRunId: 31,
+        triggerType: "scheduled",
+        status: "completed",
+      })
+    );
   });
 });

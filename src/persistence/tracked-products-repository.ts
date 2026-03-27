@@ -147,6 +147,23 @@ export async function deleteTrackedProduct(input: {
   );
 }
 
+export async function deleteTrackedProductsByStoreDomain(input: {
+  userId: number;
+  storeDomain: string;
+}): Promise<void> {
+  await runSql(
+    `DELETE FROM tracked_products
+     WHERE user_id = ?
+       AND source_product_id IN (
+         SELECT sp.id
+         FROM source_products sp
+         INNER JOIN stores s ON s.id = sp.store_id
+         WHERE s.domain = ?
+       )`,
+    [input.userId, input.storeDomain]
+  );
+}
+
 export async function getTrackedProductsForScheduling(): Promise<ScheduledTrackedProductTarget[]> {
   const rows = await getAll<{
     source_product_id: number;
