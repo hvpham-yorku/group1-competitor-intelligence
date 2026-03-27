@@ -1,66 +1,2538 @@
-from rlm import RLM
-
-rlm = RLM(
-    backend="openai",
-    backend_kwargs={"model_name": "meta-llama/llama-4-scout-17b-16e-instruct", "base_url": "https://api.groq.com/openai/v1/", "max_budget": "50000"},
-    verbose=True,  # For printing to console with rich, disabled by default.
-)
-Prompt ="""
-    Take the following HTML and extract all the products as json adhering to the following interface 
-    export interface NormalizedVariant {
-    id?: string | number;
-    title: string;
-    sku?: string;
-    price: string;
-    compare_at_price?: string;
-    currency?: string;
-    available?: boolean;
-    inventory_quantity?: number;
-    inventory_policy?: string;
-    options?: string[];
-    image?: {
-        src?: string;
-        alt?: string;
-    };
-    product_url?: string;
-    observed_at?: string;
-    raw?: unknown;
-    }
-
-    export interface NormalizedProduct {
-    source_product_id?: number;
-    id?: string | number;
-    title: string;
-    handle?: string;
-    vendor?: string;
-    product_type?: string;
-    description?: string;
-    tags?: string[];
-    product_url: string;
-    price?: string;
-    compare_at_price?: string;
-    currency?: string;
-    available?: boolean;
-    inventory_quantity?: number;
-    inventory_policy?: string;
-    images?: Array<{
-        src?: string;
-        alt?: string;
-    }>;
-    platform?: "shopify" | "woocommerce" | "universal" | string;
-    source_url?: string;
-    created_at?: string;
-    source_updated_at?: string;
-    last_updated_at?: string;
-    variants: NormalizedVariant[];
-    raw?: unknown;
-    }
-"""
-
-content = """
 <html>
 <html class="js" lang="en">
+  <head>
   
+
+
+
+
+
+
+
+      
+
+      
+<script type="text/javascript">
+var a = window.performance && window.performance.mark;
+if (a) {
+  window.performance.mark("shopsheriff.amp-snippet.start");
+}
+var doc = document;
+var redirect = "/cart" === window.location.pathname
+&& (doc.referrer.includes("ampproject.org") || doc.referrer.includes("/a/s/") || doc.referrer.includes("amp.mrbeast.store"))
+&& !doc.location.search.includes("utm");
+
+if(redirect) {
+  var f = doc.location.search ? "&" : "?";
+  window.location =
+    window.location.origin
+  + window.location.pathname
+  + f
+  + "utm_source=shopsheriff&utm_medium=amp&utm_campaign=shopsheriff&utm_content=add-to-cart";
+}
+if (a) {
+  window.performance.mark("shopsheriff.amp-snippet.end");
+}
+      </script>
+
+
+   <link rel="amphtml" href="https://amp.mrbeast.store/products/mrbeast-particle-backpack-black-o-s">
+
+
+
+    <meta charset="utf-8">
+    <script>document.documentElement.className=document.documentElement.className.replace('no-js','js')</script><link rel="preconnect" href="https://fonts.shopifycdn.com" crossorigin><link rel="preconnect" href="https://use.typekit.net" crossorigin>
+
+    <!-- DNS Prefetch -->
+    <link rel="dns-prefetch" href="//cdnwidget.judge.me">
+    <link rel="dns-prefetch" href="//static.klaviyo.com">
+    <link rel="dns-prefetch" href="//www.googletagmanager.com">
+    <link rel="dns-prefetch" href="//analytics.tiktok.com">
+    <link rel="dns-prefetch" href="//c.amazon-adsystem.com">
+    <link rel="dns-prefetch" href="//www.clarity.ms">
+    <link rel="dns-prefetch" href="//shop.app">
+    <link rel="dns-prefetch" href="//cdn.chord.co">
+    <link rel="dns-prefetch" href="//app.gettixel.com">
+    <link rel="dns-prefetch" href="//static-tracking.klaviyo.com">
+    <link rel="dns-prefetch" href="//cdn.shopify.com">
+    <link rel="dns-prefetch" href="//app.backinstock.org">
+
+    <!-- Critical preloads -->
+    <link rel="preload" href="https://www.googletagmanager.com/gtag/js?id=AW-765997558" as="script">
+    <link rel="preload" href="https://www.googletagmanager.com/gtag/js?id=G-1EWH7RFSKD" as="script">
+    <link rel="preload" href="https://www.googletagmanager.com/gtag/js?id=GT-PBS8569J" as="script">
+    <link rel="preload" href="https://www.googletagmanager.com/gtag/js?id=GT-5NTCPR7G" as="script">
+    <link rel="preload" href="https://www.googletagmanager.com/gtag/js?id=GT-P3FFPZKG" as="script">
+    <link rel="preload" href="https://www.googletagmanager.com/gtag/js?id=G-0L5ZW41G59" as="script">
+    <link rel="preload" href="https://www.googletagmanager.com/gtag/js?id=G-JPMTN5PKPE" as="script">
+    <link rel="preload" href="https://www.googletagmanager.com/gtag/js?id=GT-NNM9JCJ" as="script">
+
+
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="theme-color" content="rgb()">
+    
+    <link rel="canonical" href="https://mrbeast.store/products/mrbeast-particle-backpack-black-o-s"><link rel="icon" type="image/png" href="//mrbeast.store/cdn/shop/files/512x512-MrBeast-dot-store-favicon.png?crop=center&height=32&v=1711384227&width=32"><link rel="preconnect" href="https://fonts.shopifycdn.com" crossorigin><title>
+      MrBeast Particle Backpack - Black
+ &ndash; MrBeast.store</title>
+    <meta name="view-transition" content="same-origin">
+    
+      <meta name="description" content="Whether you&#39;re a student, a professional, or an adventurer, the MrBeast Backpack is designed to keep up with your dynamic lifestyle. Show the world your passion for pushing limits and making a difference, just like MrBeast. Details 100% Polyester Authentic MrBeast merchandise from MrBeast.Store Multiple compartments, i">
+    
+
+    
+
+<meta property="og:site_name" content="MrBeast.store">
+<meta property="og:url" content="https://mrbeast.store/products/mrbeast-particle-backpack-black-o-s">
+<meta property="og:title" content="MrBeast Particle Backpack - Black">
+<meta property="og:type" content="product">
+<meta property="og:description" content="Whether you&#39;re a student, a professional, or an adventurer, the MrBeast Backpack is designed to keep up with your dynamic lifestyle. Show the world your passion for pushing limits and making a difference, just like MrBeast. Details 100% Polyester Authentic MrBeast merchandise from MrBeast.Store Multiple compartments, i"><meta property="og:image" content="http://mrbeast.store/cdn/shop/files/BackpackFront_Particle_BP.jpg?v=1774290366">
+  <meta property="og:image:secure_url" content="https://mrbeast.store/cdn/shop/files/BackpackFront_Particle_BP.jpg?v=1774290366">
+  <meta property="og:image:width" content="1800">
+  <meta property="og:image:height" content="2700"><meta property="og:price:amount" content="70.00">
+  <meta property="og:price:currency" content="CAD"><meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="MrBeast Particle Backpack - Black">
+<meta name="twitter:description" content="Whether you&#39;re a student, a professional, or an adventurer, the MrBeast Backpack is designed to keep up with your dynamic lifestyle. Show the world your passion for pushing limits and making a difference, just like MrBeast. Details 100% Polyester Authentic MrBeast merchandise from MrBeast.Store Multiple compartments, i">
+
+    <script>window.performance && window.performance.mark && window.performance.mark('shopify.content_for_header.start');</script><meta name="google-site-verification" content="oaAL681dV8_psVaPJANJpKFAA6ZOeW2zFCc5wfkEGZI">
+<meta name="facebook-domain-verification" content="qsglyq5734bc2fyaqfknrklcf1qw32">
+<meta id="shopify-digital-wallet" name="shopify-digital-wallet" content="/1619755059/digital_wallets/dialog">
+<meta name="shopify-checkout-api-token" content="21ff37776d812c919731fba9826bb82f">
+<meta id="in-context-paypal-metadata" data-shop-id="1619755059" data-venmo-supported="true" data-environment="production" data-locale="en_US" data-paypal-v4="true" data-currency="CAD">
+<link rel="alternate" type="application/json+oembed" href="https://mrbeast.store/products/mrbeast-particle-backpack-black-o-s.oembed">
+<script async="async" src="/checkouts/internal/preloads.js?locale=en-CA"></script>
+<link rel="preconnect" href="https://shop.app" crossorigin="anonymous">
+<script async="async" src="https://shop.app/checkouts/internal/preloads.js?locale=en-CA&shop_id=1619755059" crossorigin="anonymous"></script>
+<link rel="preconnect" href="https://shop.app">
+<script id="apple-pay-shop-capabilities" type="application/json">{"shopId":1619755059,"countryCode":"US","currencyCode":"CAD","merchantCapabilities":["supports3DS"],"merchantId":"gid:\/\/shopify\/Shop\/1619755059","merchantName":"MrBeast.store","requiredBillingContactFields":["postalAddress","email"],"requiredShippingContactFields":["postalAddress","email"],"shippingType":"shipping","supportedNetworks":["visa","masterCard","amex","discover","elo","jcb"],"total":{"type":"pending","label":"MrBeast.store","amount":"1.00"},"shopifyPaymentsEnabled":true,"supportsSubscriptions":true}</script>
+<script id="shopify-features" type="application/json">{"accessToken":"21ff37776d812c919731fba9826bb82f","betas":["rich-media-storefront-analytics"],"domain":"mrbeast.store","predictiveSearch":true,"shopId":1619755059,"locale":"en"}</script>
+<script>var Shopify = Shopify || {};
+Shopify.shop = "mr-beast-2.myshopify.com";
+Shopify.locale = "en";
+Shopify.currency = {"active":"CAD","rate":"1.40635355"};
+Shopify.country = "CA";
+Shopify.theme = {"name":"shopify-theme\/main","id":143375138943,"schema_name":"MrBeast Store","schema_version":"15.2.0","theme_store_id":null,"role":"main"};
+Shopify.theme.handle = "null";
+Shopify.theme.style = {"id":null,"handle":null};
+Shopify.cdnHost = "mrbeast.store/cdn";
+Shopify.routes = Shopify.routes || {};
+Shopify.routes.root = "/";
+Shopify.shopJsCdnBaseUrl = "https://cdn.shopify.com/shopifycloud/shop-js";</script>
+<script type="module">!function(o){(o.Shopify=o.Shopify||{}).modules=!0}(window);</script>
+<script>!function(o){function n(){var o=[];function n(){o.push(Array.prototype.slice.apply(arguments))}return n.q=o,n}var t=o.Shopify=o.Shopify||{};t.loadFeatures=n(),t.autoloadFeatures=n()}(window);</script>
+<script>
+  window.ShopifyPay = window.ShopifyPay || {};
+  window.ShopifyPay.apiHost = "shop.app\/pay";
+  window.ShopifyPay.redirectState = "pending";
+</script>
+<script id="shop-js-analytics" type="application/json">{"pageType":"product"}</script>
+<script defer="defer" async type="module" src="//mrbeast.store/cdn/shopifycloud/shop-js/modules/v2/loader.init-shop-cart-sync.en.esm.js"></script>
+<script type="module">
+  await import("//mrbeast.store/cdn/shopifycloud/shop-js/modules/v2/loader.init-shop-cart-sync.en.esm.js");
+
+  window.Shopify.SignInWithShop?.initShopCartSync?.({"fedCMEnabled":true,"windoidEnabled":true});
+
+</script>
+<script>
+  window.Shopify = window.Shopify || {};
+  if (!window.Shopify.featureAssets) window.Shopify.featureAssets = {};
+  window.Shopify.featureAssets['shop-js'] = {"shop-toast-manager":["modules/v2/loader.shop-toast-manager.en.esm.js"],"init-windoid":["modules/v2/loader.init-windoid.en.esm.js"],"init-shop-email-lookup-coordinator":["modules/v2/loader.init-shop-email-lookup-coordinator.en.esm.js"],"init-fed-cm":["modules/v2/loader.init-fed-cm.en.esm.js"],"shop-cash-offers":["modules/v2/loader.shop-cash-offers.en.esm.js"],"shop-button":["modules/v2/loader.shop-button.en.esm.js"],"avatar":["modules/v2/loader.avatar.en.esm.js"],"checkout-modal":["modules/v2/loader.checkout-modal.en.esm.js"],"shop-login-button":["modules/v2/loader.shop-login-button.en.esm.js"],"init-customer-accounts-sign-up":["modules/v2/loader.init-customer-accounts-sign-up.en.esm.js"],"init-shop-cart-sync":["modules/v2/loader.init-shop-cart-sync.en.esm.js"],"init-shop-for-new-customer-accounts":["modules/v2/loader.init-shop-for-new-customer-accounts.en.esm.js"],"shop-cart-sync":["modules/v2/loader.shop-cart-sync.en.esm.js"],"pay-button":["modules/v2/loader.pay-button.en.esm.js"],"shop-login":["modules/v2/loader.shop-login.en.esm.js"],"init-customer-accounts":["modules/v2/loader.init-customer-accounts.en.esm.js"],"shop-follow-button":["modules/v2/loader.shop-follow-button.en.esm.js"],"lead-capture":["modules/v2/loader.lead-capture.en.esm.js"],"payment-terms":["modules/v2/loader.payment-terms.en.esm.js"]};
+</script>
+<script>(function() {
+  var isLoaded = false;
+  function asyncLoad() {
+    if (isLoaded) return;
+    isLoaded = true;
+    var urls = ["\/\/cdn.shopify.com\/proxy\/fd8a74c0f9ae87af6dae1f1862e92682a9556ed4058168bcc116644d4ad3816e\/bingshoppingtool-t2app-prod.trafficmanager.net\/uet\/tracking_script?shop=mr-beast-2.myshopify.com\u0026sp-cache-control=cHVibGljLCBtYXgtYWdlPTkwMA","https:\/\/id-shop.govx.com\/app\/mr-beast-2.myshopify.com\/govx.js?shop=mr-beast-2.myshopify.com","https:\/\/intg.snapchat.com\/shopify\/shopify-scevent-init.js?id=b64d97e5-0f1a-4246-bf5c-ca1271fe781b\u0026shop=mr-beast-2.myshopify.com","https:\/\/config.gorgias.chat\/bundle-loader\/01HXTZVCFKBEQSRRM341AFQG8H?source=shopify1click\u0026shop=mr-beast-2.myshopify.com","https:\/\/cdn.rebuyengine.com\/onsite\/js\/rebuy.js?shop=mr-beast-2.myshopify.com","https:\/\/cdn.rebuyengine.com\/onsite\/js\/rebuy.js?shop=mr-beast-2.myshopify.com","https:\/\/media.9gtb.com\/loader.js?g_cvt_id=f2eb0c6b-c856-4366-93df-17b9a1ab1ca7\u0026shop=mr-beast-2.myshopify.com"];
+    for (var i = 0; i < urls.length; i++) {
+      var s = document.createElement('script');
+      s.type = 'text/javascript';
+      s.async = true;
+      s.src = urls[i];
+      var x = document.getElementsByTagName('script')[0];
+      x.parentNode.insertBefore(s, x);
+    }
+  };
+  if(window.attachEvent) {
+    window.attachEvent('onload', asyncLoad);
+  } else {
+    window.addEventListener('load', asyncLoad, false);
+  }
+})();</script>
+<script id="__st">var __st={"a":1619755059,"offset":-14400,"reqid":"2f08d586-eed1-44a2-a2e3-61b5dbd19902-1774582144","pageurl":"mrbeast.store\/products\/mrbeast-particle-backpack-black-o-s","u":"a70bd5588bb6","p":"product","rtyp":"product","rid":8160917848191};</script>
+<script>window.ShopifyPaypalV4VisibilityTracking = true;</script>
+<script id="captcha-bootstrap">!function(){'use strict';const t='contact',e='account',n='new_comment',o=[[t,t],['blogs',n],['comments',n],[t,'customer']],c=[[e,'customer_login'],[e,'guest_login'],[e,'recover_customer_password'],[e,'create_customer']],r=t=>t.map((([t,e])=>`form[action*='/${t}']:not([data-nocaptcha='true']) input[name='form_type'][value='${e}']`)).join(','),a=t=>()=>t?[...document.querySelectorAll(t)].map((t=>t.form)):[];function s(){const t=[...o],e=r(t);return a(e)}const i='password',u='form_key',d=['recaptcha-v3-token','g-recaptcha-response','h-captcha-response',i],f=()=>{try{return window.sessionStorage}catch{return}},m='__shopify_v',_=t=>t.elements[u];function p(t,e,n=!1){try{const o=window.sessionStorage,c=JSON.parse(o.getItem(e)),{data:r}=function(t){const{data:e,action:n}=t;return t[m]||n?{data:e,action:n}:{data:t,action:n}}(c);for(const[e,n]of Object.entries(r))t.elements[e]&&(t.elements[e].value=n);n&&o.removeItem(e)}catch(o){console.error('form repopulation failed',{error:o})}}const l='form_type',E='cptcha';function T(t){t.dataset[E]=!0}const w=window,h=w.document,L='Shopify',v='ce_forms',y='captcha';let A=!1;((t,e)=>{const n=(g='f06e6c50-85a8-45c8-87d0-21a2b65856fe',I='https://cdn.shopify.com/shopifycloud/storefront-forms-hcaptcha/ce_storefront_forms_captcha_hcaptcha.v1.5.2.iife.js',D={infoText:'Protected by hCaptcha',privacyText:'Privacy',termsText:'Terms'},(t,e,n)=>{const o=w[L][v],c=o.bindForm;if(c)return c(t,g,e,D).then(n);var r;o.q.push([[t,g,e,D],n]),r=I,A||(h.body.append(Object.assign(h.createElement('script'),{id:'captcha-provider',async:!0,src:r})),A=!0)});var g,I,D;w[L]=w[L]||{},w[L][v]=w[L][v]||{},w[L][v].q=[],w[L][y]=w[L][y]||{},w[L][y].protect=function(t,e){n(t,void 0,e),T(t)},Object.freeze(w[L][y]),function(t,e,n,w,h,L){const[v,y,A,g]=function(t,e,n){const i=e?o:[],u=t?c:[],d=[...i,...u],f=r(d),m=r(i),_=r(d.filter((([t,e])=>n.includes(e))));return[a(f),a(m),a(_),s()]}(w,h,L),I=t=>{const e=t.target;return e instanceof HTMLFormElement?e:e&&e.form},D=t=>v().includes(t);t.addEventListener('submit',(t=>{const e=I(t);if(!e)return;const n=D(e)&&!e.dataset.hcaptchaBound&&!e.dataset.recaptchaBound,o=_(e),c=g().includes(e)&&(!o||!o.value);(n||c)&&t.preventDefault(),c&&!n&&(function(t){try{if(!f())return;!function(t){const e=f();if(!e)return;const n=_(t);if(!n)return;const o=n.value;o&&e.removeItem(o)}(t);const e=Array.from(Array(32),(()=>Math.random().toString(36)[2])).join('');!function(t,e){_(t)||t.append(Object.assign(document.createElement('input'),{type:'hidden',name:u})),t.elements[u].value=e}(t,e),function(t,e){const n=f();if(!n)return;const o=[...t.querySelectorAll(`input[type='${i}']`)].map((({name:t})=>t)),c=[...d,...o],r={};for(const[a,s]of new FormData(t).entries())c.includes(a)||(r[a]=s);n.setItem(e,JSON.stringify({[m]:1,action:t.action,data:r}))}(t,e)}catch(e){console.error('failed to persist form',e)}}(e),e.submit())}));const S=(t,e)=>{t&&!t.dataset[E]&&(n(t,e.some((e=>e===t))),T(t))};for(const o of['focusin','change'])t.addEventListener(o,(t=>{const e=I(t);D(e)&&S(e,y())}));const B=e.get('form_key'),M=e.get(l),P=B&&M;t.addEventListener('DOMContentLoaded',(()=>{const t=y();if(P)for(const e of t)e.elements[l].value===M&&p(e,B);[...new Set([...A(),...v().filter((t=>'true'===t.dataset.shopifyCaptcha))])].forEach((e=>S(e,t)))}))}(h,new URLSearchParams(w.location.search),n,t,e,['guest_login'])})(!0,!0)}();</script>
+<script integrity="sha256-Rd0I1U3I5BUKM/ZklNQ9ssBhyhvFP+5roZEEsW2MGUw=" data-source-attribution="shopify.loadfeatures" defer="defer" src="//mrbeast.store/cdn/shopifycloud/storefront/assets/storefront/load_feature-496de5fe.js" crossorigin="anonymous"></script>
+<script crossorigin="anonymous" defer="defer" src="//mrbeast.store/cdn/shopifycloud/storefront/assets/shopify_pay/storefront-65b4c6d7.js?v=20250812"></script>
+<script data-source-attribution="shopify.dynamic_checkout.dynamic.init">var Shopify=Shopify||{};Shopify.PaymentButton=Shopify.PaymentButton||{isStorefrontPortableWallets:!0,init:function(){window.Shopify.PaymentButton.init=function(){};var t=document.createElement("script");t.src="https://mrbeast.store/cdn/shopifycloud/portable-wallets/latest/portable-wallets.en.js",t.type="module",document.head.appendChild(t)}};
+</script>
+<script data-source-attribution="shopify.dynamic_checkout.buyer_consent">
+  function portableWalletsHideBuyerConsent(e){var t=document.getElementById("shopify-buyer-consent"),n=document.getElementById("shopify-subscription-policy-button");t&&n&&(t.classList.add("hidden"),t.setAttribute("aria-hidden","true"),n.removeEventListener("click",e))}function portableWalletsShowBuyerConsent(e){var t=document.getElementById("shopify-buyer-consent"),n=document.getElementById("shopify-subscription-policy-button");t&&n&&(t.classList.remove("hidden"),t.removeAttribute("aria-hidden"),n.addEventListener("click",e))}window.Shopify?.PaymentButton&&(window.Shopify.PaymentButton.hideBuyerConsent=portableWalletsHideBuyerConsent,window.Shopify.PaymentButton.showBuyerConsent=portableWalletsShowBuyerConsent);
+</script>
+<script data-source-attribution="shopify.dynamic_checkout.cart.bootstrap">document.addEventListener("DOMContentLoaded",(function(){function t(){return document.querySelector("shopify-accelerated-checkout-cart, shopify-accelerated-checkout")}if(t())Shopify.PaymentButton.init();else{new MutationObserver((function(e,n){t()&&(Shopify.PaymentButton.init(),n.disconnect())})).observe(document.body,{childList:!0,subtree:!0})}}));
+</script>
+<script id='scb4127' type='text/javascript' async='' src='https://mrbeast.store/cdn/shopifycloud/privacy-banner/storefront-banner.js'></script><link id="shopify-accelerated-checkout-styles" rel="stylesheet" media="screen" href="https://mrbeast.store/cdn/shopifycloud/portable-wallets/latest/accelerated-checkout-backwards-compat.css" crossorigin="anonymous">
+<style id="shopify-accelerated-checkout-cart">
+        #shopify-buyer-consent {
+  margin-top: 1em;
+  display: inline-block;
+  width: 100%;
+}
+
+#shopify-buyer-consent.hidden {
+  display: none;
+}
+
+#shopify-subscription-policy-button {
+  background: none;
+  border: none;
+  padding: 0;
+  text-decoration: underline;
+  font-size: inherit;
+  cursor: pointer;
+}
+
+#shopify-subscription-policy-button::before {
+  box-shadow: none;
+}
+
+      </style>
+<script id="sections-script" data-sections="header" defer="defer" src="//mrbeast.store/cdn/shop/t/310/compiled_assets/scripts.js?v=184325197989695213571750877799"></script>
+<script>window.performance && window.performance.mark && window.performance.mark('shopify.content_for_header.end');</script>
+    <script src="//mrbeast.store/cdn/shop/t/310/assets/constants.js?v=132983761750457495441750877784" defer="defer"></script>
+    <script src="//mrbeast.store/cdn/shop/t/310/assets/pubsub.js?v=158357773527763999511750877784" defer="defer"></script>
+    <script src="//mrbeast.store/cdn/shop/t/310/assets/global.js?v=152862011079830610291750877784" defer="defer"></script>
+    <script src="//mrbeast.store/cdn/shop/t/310/assets/details-disclosure.js?v=97251137919191736111759181383" defer="defer"></script>
+    <script src="//mrbeast.store/cdn/shop/t/310/assets/details-modal.js?v=25581673532751508451750877785" defer="defer"></script>
+    <script src="//mrbeast.store/cdn/shop/t/310/assets/search-form.js?v=133129549252120666541750877783" defer="defer"></script>
+
+
+    <style data-shopify>
+      @font-face {
+  font-family: "Work Sans";
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  src: url("//mrbeast.store/cdn/fonts/work_sans/worksans_n4.b7973b3d07d0ace13de1b1bea9c45759cdbe12cf.woff2") format("woff2"),
+       url("//mrbeast.store/cdn/fonts/work_sans/worksans_n4.cf5ceb1e6d373a9505e637c1aff0a71d0959556d.woff") format("woff");
+}
+
+      @font-face {
+  font-family: "Work Sans";
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  src: url("//mrbeast.store/cdn/fonts/work_sans/worksans_n7.e2cf5bd8f2c7e9d30c030f9ea8eafc69f5a92f7b.woff2") format("woff2"),
+       url("//mrbeast.store/cdn/fonts/work_sans/worksans_n7.20f1c80359e7f7b4327b81543e1acb5c32cd03cd.woff") format("woff");
+}
+
+      @font-face {
+  font-family: "Work Sans";
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+  src: url("//mrbeast.store/cdn/fonts/work_sans/worksans_i4.16ff51e3e71fc1d09ff97b9ff9ccacbeeb384ec4.woff2") format("woff2"),
+       url("//mrbeast.store/cdn/fonts/work_sans/worksans_i4.ed4a1418cba5b7f04f79e4d5c8a5f1a6bd34f23b.woff") format("woff");
+}
+
+      @font-face {
+  font-family: "Work Sans";
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+  src: url("//mrbeast.store/cdn/fonts/work_sans/worksans_i7.7cdba6320b03c03dcaa365743a4e0e729fe97e54.woff2") format("woff2"),
+       url("//mrbeast.store/cdn/fonts/work_sans/worksans_i7.42a9f4016982495f4c0b0fb3dc64cf8f2d0c3eaa.woff") format("woff");
+}
+
+      @font-face {
+  font-family: "Work Sans";
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  src: url("//mrbeast.store/cdn/fonts/work_sans/worksans_n4.b7973b3d07d0ace13de1b1bea9c45759cdbe12cf.woff2") format("woff2"),
+       url("//mrbeast.store/cdn/fonts/work_sans/worksans_n4.cf5ceb1e6d373a9505e637c1aff0a71d0959556d.woff") format("woff");
+}
+
+
+      
+        :root,
+        .color-scheme-1 {
+          --color-background: 255,255,255;
+        
+          --gradient-background: #ffffff;
+        
+
+        
+
+        --color-foreground: 18,18,18;
+        --color-background-contrast: 191,191,191;
+        --color-shadow: 18,18,18;
+        --color-button: 18,18,18;
+        --color-button-text: 255,255,255;
+        --color-secondary-button: 255,255,255;
+        --color-secondary-button-text: 18,18,18;
+        --color-link: 18,18,18;
+        --color-badge-foreground: 18,18,18;
+        --color-badge-background: 255,255,255;
+        --color-badge-border: 18,18,18;
+        --payment-terms-background-color: rgb(255 255 255);
+      }
+      
+        
+        .color-scheme-2 {
+          --color-background: 243,243,243;
+        
+          --gradient-background: #f3f3f3;
+        
+
+        
+
+        --color-foreground: 18,18,18;
+        --color-background-contrast: 179,179,179;
+        --color-shadow: 18,18,18;
+        --color-button: 18,18,18;
+        --color-button-text: 243,243,243;
+        --color-secondary-button: 243,243,243;
+        --color-secondary-button-text: 18,18,18;
+        --color-link: 18,18,18;
+        --color-badge-foreground: 18,18,18;
+        --color-badge-background: 243,243,243;
+        --color-badge-border: 18,18,18;
+        --payment-terms-background-color: rgb(243 243 243);
+      }
+      
+        
+        .color-scheme-3 {
+          --color-background: 0,0,0;
+        
+          --gradient-background: #000000;
+        
+
+        
+
+        --color-foreground: 255,255,255;
+        --color-background-contrast: 128,128,128;
+        --color-shadow: 18,18,18;
+        --color-button: 255,255,255;
+        --color-button-text: 0,0,0;
+        --color-secondary-button: 0,0,0;
+        --color-secondary-button-text: 255,255,255;
+        --color-link: 255,255,255;
+        --color-badge-foreground: 255,255,255;
+        --color-badge-background: 0,0,0;
+        --color-badge-border: 255,255,255;
+        --payment-terms-background-color: rgb(0 0 0);
+      }
+      
+        
+        .color-scheme-4 {
+          --color-background: 0,188,231;
+        
+          --gradient-background: #00bce7;
+        
+
+        
+
+        --color-foreground: 0,0,0;
+        --color-background-contrast: 0,84,104;
+        --color-shadow: 18,18,18;
+        --color-button: 255,255,255;
+        --color-button-text: 0,188,231;
+        --color-secondary-button: 0,188,231;
+        --color-secondary-button-text: 0,0,0;
+        --color-link: 0,0,0;
+        --color-badge-foreground: 0,0,0;
+        --color-badge-background: 0,188,231;
+        --color-badge-border: 0,0,0;
+        --payment-terms-background-color: rgb(0 188 231);
+      }
+      
+        
+        .color-scheme-5 {
+          --color-background: 231,70,131;
+        
+          --gradient-background: #e74683;
+        
+
+        
+
+        --color-foreground: 255,255,255;
+        --color-background-contrast: 154,20,71;
+        --color-shadow: 18,18,18;
+        --color-button: 255,255,255;
+        --color-button-text: 231,70,131;
+        --color-secondary-button: 231,70,131;
+        --color-secondary-button-text: 255,255,255;
+        --color-link: 255,255,255;
+        --color-badge-foreground: 255,255,255;
+        --color-badge-background: 231,70,131;
+        --color-badge-border: 255,255,255;
+        --payment-terms-background-color: rgb(231 70 131);
+      }
+      
+        
+        .color-scheme-abe6358e-cdfd-4d6f-9c75-121800c86a98 {
+          --color-background: 117,217,106;
+        
+          --gradient-background: #75d96a;
+        
+
+        
+
+        --color-foreground: 18,18,18;
+        --color-background-contrast: 51,156,40;
+        --color-shadow: 18,18,18;
+        --color-button: 255,255,255;
+        --color-button-text: 117,217,106;
+        --color-secondary-button: 117,217,106;
+        --color-secondary-button-text: 255,255,255;
+        --color-link: 255,255,255;
+        --color-badge-foreground: 18,18,18;
+        --color-badge-background: 117,217,106;
+        --color-badge-border: 18,18,18;
+        --payment-terms-background-color: rgb(117 217 106);
+      }
+      
+        
+        .color-scheme-4e0b7a57-d812-43e5-82cf-bd16bffceaa2 {
+          --color-background: 255,255,255;
+        
+          --gradient-background: #ffffff;
+        
+
+        
+
+        --color-foreground: 18,18,18;
+        --color-background-contrast: 191,191,191;
+        --color-shadow: 18,18,18;
+        --color-button: 255,225,0;
+        --color-button-text: 255,255,255;
+        --color-secondary-button: 255,255,255;
+        --color-secondary-button-text: 18,18,18;
+        --color-link: 18,18,18;
+        --color-badge-foreground: 18,18,18;
+        --color-badge-background: 255,255,255;
+        --color-badge-border: 18,18,18;
+        --payment-terms-background-color: rgb(255 255 255);
+      }
+      
+        
+        .color-scheme-f19d16d0-af8a-438e-9faf-6980a4868cca {
+          --color-background: 0,62,75;
+        
+          --gradient-background: #003e4b;
+        
+
+        
+
+        --color-foreground: 255,255,255;
+        --color-background-contrast: 0,83,101;
+        --color-shadow: 255,255,255;
+        --color-button: 255,255,255;
+        --color-button-text: 255,255,255;
+        --color-secondary-button: 0,62,75;
+        --color-secondary-button-text: 255,255,255;
+        --color-link: 255,255,255;
+        --color-badge-foreground: 255,255,255;
+        --color-badge-background: 0,62,75;
+        --color-badge-border: 255,255,255;
+        --payment-terms-background-color: rgb(0 62 75);
+      }
+      
+        
+        .color-scheme-2fa1b321-cca9-4cca-8254-cd7ed61cd636 {
+          --color-background: 3,53,193;
+        
+          --gradient-background: #0335c1;
+        
+
+        
+
+        --color-foreground: 255,255,255;
+        --color-background-contrast: 3,60,218;
+        --color-shadow: 18,18,18;
+        --color-button: 255,255,255;
+        --color-button-text: 255,255,255;
+        --color-secondary-button: 3,53,193;
+        --color-secondary-button-text: 18,18,18;
+        --color-link: 18,18,18;
+        --color-badge-foreground: 255,255,255;
+        --color-badge-background: 3,53,193;
+        --color-badge-border: 255,255,255;
+        --payment-terms-background-color: rgb(3 53 193);
+      }
+      
+        
+        .color-scheme-17a42bf5-6c59-4de1-9964-0f515223e6c7 {
+          --color-background: 251,121,77;
+        
+          --gradient-background: #fb794d;
+        
+
+        
+
+        --color-foreground: 0,0,0;
+        --color-background-contrast: 196,53,4;
+        --color-shadow: 18,18,18;
+        --color-button: 18,18,18;
+        --color-button-text: 255,255,255;
+        --color-secondary-button: 251,121,77;
+        --color-secondary-button-text: 18,18,18;
+        --color-link: 18,18,18;
+        --color-badge-foreground: 0,0,0;
+        --color-badge-background: 251,121,77;
+        --color-badge-border: 0,0,0;
+        --payment-terms-background-color: rgb(251 121 77);
+      }
+      
+
+      body, .color-scheme-1, .color-scheme-2, .color-scheme-3, .color-scheme-4, .color-scheme-5, .color-scheme-abe6358e-cdfd-4d6f-9c75-121800c86a98, .color-scheme-4e0b7a57-d812-43e5-82cf-bd16bffceaa2, .color-scheme-f19d16d0-af8a-438e-9faf-6980a4868cca, .color-scheme-2fa1b321-cca9-4cca-8254-cd7ed61cd636, .color-scheme-17a42bf5-6c59-4de1-9964-0f515223e6c7 {
+        color: rgba(var(--color-foreground), 1);
+        /* color: rgba(var(--color-foreground), 0.75); */
+        background-color: rgb(var(--color-background));
+      }
+
+      :root {
+        --font-body-family: "Work Sans", sans-serif;
+        --font-body-style: normal;
+        --font-body-weight: 400;
+        --font-body-weight-bold: 700;
+
+        --font-heading-family: "Work Sans", sans-serif;
+        --font-heading-style: normal;
+        --font-heading-weight: 400;
+
+        --font-body-scale: 1.0;
+        --font-heading-scale: 1.0;
+
+        --media-padding: px;
+        --media-border-opacity: 0.05;
+        --media-border-width: 1px;
+        --media-radius: 0px;
+        --media-shadow-opacity: 0.0;
+        --media-shadow-horizontal-offset: 0px;
+        --media-shadow-vertical-offset: 4px;
+        --media-shadow-blur-radius: 5px;
+        --media-shadow-visible: 0;
+
+        --page-width: 120rem;
+        --page-width-margin: 0rem;
+
+        --product-card-image-padding: 0.0rem;
+        --product-card-corner-radius: 0.0rem;
+        --product-card-text-alignment: left;
+        --product-card-border-width: 0.0rem;
+        --product-card-border-opacity: 0.0;
+        --product-card-shadow-opacity: 0.0;
+        --product-card-shadow-visible: 0;
+        --product-card-shadow-horizontal-offset: 0.0rem;
+        --product-card-shadow-vertical-offset: 0.4rem;
+        --product-card-shadow-blur-radius: 0.5rem;
+
+        --collection-card-image-padding: 0.0rem;
+        --collection-card-corner-radius: 0.0rem;
+        --collection-card-text-alignment: left;
+        --collection-card-border-width: 0.0rem;
+        --collection-card-border-opacity: 0.1;
+        --collection-card-shadow-opacity: 0.0;
+        --collection-card-shadow-visible: 0;
+        --collection-card-shadow-horizontal-offset: 0.0rem;
+        --collection-card-shadow-vertical-offset: 0.4rem;
+        --collection-card-shadow-blur-radius: 0.5rem;
+
+        --blog-card-image-padding: 0.0rem;
+        --blog-card-corner-radius: 0.0rem;
+        --blog-card-text-alignment: left;
+        --blog-card-border-width: 0.0rem;
+        --blog-card-border-opacity: 0.1;
+        --blog-card-shadow-opacity: 0.0;
+        --blog-card-shadow-visible: 0;
+        --blog-card-shadow-horizontal-offset: 0.0rem;
+        --blog-card-shadow-vertical-offset: 0.4rem;
+        --blog-card-shadow-blur-radius: 0.5rem;
+
+        --badge-corner-radius: 4.0rem;
+
+        --popup-border-width: 1px;
+        --popup-border-opacity: 0.1;
+        --popup-corner-radius: 0px;
+        --popup-shadow-opacity: 0.05;
+        --popup-shadow-horizontal-offset: 0px;
+        --popup-shadow-vertical-offset: 4px;
+        --popup-shadow-blur-radius: 5px;
+
+        --drawer-border-width: 1px;
+        --drawer-border-opacity: 0.1;
+        --drawer-shadow-opacity: 0.0;
+        --drawer-shadow-horizontal-offset: 0px;
+        --drawer-shadow-vertical-offset: 4px;
+        --drawer-shadow-blur-radius: 5px;
+
+        --spacing-sections-desktop: 0px;
+        --spacing-sections-mobile: 0px;
+
+        --grid-desktop-vertical-spacing: 8px;
+        --grid-desktop-horizontal-spacing: 8px;
+        --grid-mobile-vertical-spacing: 4px;
+        --grid-mobile-horizontal-spacing: 4px;
+
+        --text-boxes-border-opacity: 0.1;
+        --text-boxes-border-width: 0px;
+        --text-boxes-radius: 0px;
+        --text-boxes-shadow-opacity: 0.0;
+        --text-boxes-shadow-visible: 0;
+        --text-boxes-shadow-horizontal-offset: 0px;
+        --text-boxes-shadow-vertical-offset: 4px;
+        --text-boxes-shadow-blur-radius: 5px;
+
+        --buttons-radius: 0px;
+        --buttons-radius-outset: 0px;
+        --buttons-border-width: 1px;
+        --buttons-border-opacity: 1.0;
+        --buttons-shadow-opacity: 0.0;
+        --buttons-shadow-visible: 0;
+        --buttons-shadow-horizontal-offset: 0px;
+        --buttons-shadow-vertical-offset: 4px;
+        --buttons-shadow-blur-radius: 5px;
+        --buttons-border-offset: 0px;
+
+        --inputs-radius: 0px;
+        --inputs-border-width: 1px;
+        --inputs-border-opacity: 0.55;
+        --inputs-shadow-opacity: 0.0;
+        --inputs-shadow-horizontal-offset: 0px;
+        --inputs-margin-offset: 0px;
+        --inputs-shadow-vertical-offset: 0px;
+        --inputs-shadow-blur-radius: 5px;
+        --inputs-radius-outset: 0px;
+
+        --variant-pills-radius: 40px;
+        --variant-pills-border-width: 1px;
+        --variant-pills-border-opacity: 0.55;
+        --variant-pills-shadow-opacity: 0.0;
+        --variant-pills-shadow-horizontal-offset: 0px;
+        --variant-pills-shadow-vertical-offset: 4px;
+        --variant-pills-shadow-blur-radius: 5px;
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: inherit;
+      }
+
+      html {
+        box-sizing: border-box;
+        font-size: calc(var(--font-body-scale) * 62.5%);
+        height: 100%;
+      }
+
+      body {
+        display: grid;
+        grid-template-rows: auto auto 1fr auto;
+        grid-template-columns: 100%;
+        min-height: 100%;
+        margin: 0;
+        font-size: 1.5rem;
+        letter-spacing: 0.06rem;
+        line-height: calc(1 + 0.8 / var(--font-body-scale));
+        font-family: var(--font-body-family);
+        font-style: var(--font-body-style);
+        font-weight: var(--font-body-weight);
+        scroll-behavior: smooth;
+      }
+
+      @media screen and (min-width: 750px) {
+        body {
+          font-size: 1.6rem;
+        }
+      }
+      
+    </style>
+
+    <link href="//mrbeast.store/cdn/shop/t/310/assets/base.css?v=69554942660050289651773333389" rel="stylesheet" type="text/css" media="all" />
+    
+    <link href="//mrbeast.store/cdn/shop/t/310/assets/component-custom-rebuy.min.css?v=121747428690970556631750877785" rel="stylesheet" type="text/css" media="all" />
+    
+    <link rel="stylesheet" href="//mrbeast.store/cdn/shop/t/310/assets/component-cart-items.css?v=154480973894213973791755274454" media="print" onload="this.media='all'"><link href="//mrbeast.store/cdn/shop/t/310/assets/component-cart-drawer.min.css?v=184402674024524042151769181948" rel="stylesheet" type="text/css" media="all" />
+      <link href="//mrbeast.store/cdn/shop/t/310/assets/component-cart.css?v=164708765130180853531750877785" rel="stylesheet" type="text/css" media="all" />
+      <link href="//mrbeast.store/cdn/shop/t/310/assets/component-totals.css?v=15906652033866631521750877783" rel="stylesheet" type="text/css" media="all" />
+      <link href="//mrbeast.store/cdn/shop/t/310/assets/component-price.css?v=70172745017360139101750877782" rel="stylesheet" type="text/css" media="all" />
+      <link href="//mrbeast.store/cdn/shop/t/310/assets/component-discounts.css?v=152760482443307489271750877785" rel="stylesheet" type="text/css" media="all" />
+
+      <link rel="preload" as="font" href="//mrbeast.store/cdn/fonts/work_sans/worksans_n4.b7973b3d07d0ace13de1b1bea9c45759cdbe12cf.woff2" type="font/woff2" crossorigin>
+      
+
+      <link rel="preload" as="font" href="//mrbeast.store/cdn/fonts/work_sans/worksans_n4.b7973b3d07d0ace13de1b1bea9c45759cdbe12cf.woff2" type="font/woff2" crossorigin>
+      
+<link href="//mrbeast.store/cdn/shop/t/310/assets/component-localization-form.css?v=170315343355214948141750877783" rel="stylesheet" type="text/css" media="all" />
+      <script src="//mrbeast.store/cdn/shop/t/310/assets/localization-form.js?v=144176611646395275351750877782" defer="defer"></script><link
+        rel="stylesheet"
+        href="//mrbeast.store/cdn/shop/t/310/assets/component-predictive-search.css?v=118923337488134913561750877782"
+        media="print"
+        onload="this.media='all'"
+      ><script>
+      if (Shopify.designMode) {
+        document.documentElement.classList.add('shopify-design-mode');
+      }
+    </script>
+    
+    
+
+
+
+
+
+
+
+      
+
+      
+<script type="text/javascript">
+var a = window.performance && window.performance.mark;
+if (a) {
+  window.performance.mark("shopsheriff.amp-snippet.start");
+}
+var doc = document;
+var redirect = "/cart" === window.location.pathname
+&& (doc.referrer.includes("ampproject.org") || doc.referrer.includes("/a/s/") || doc.referrer.includes("amp.mrbeast.store"))
+&& !doc.location.search.includes("utm");
+
+if(redirect) {
+  var f = doc.location.search ? "&" : "?";
+  window.location =
+    window.location.origin
+  + window.location.pathname
+  + f
+  + "utm_source=shopsheriff&utm_medium=amp&utm_campaign=shopsheriff&utm_content=add-to-cart";
+}
+if (a) {
+  window.performance.mark("shopsheriff.amp-snippet.end");
+}
+      </script>
+
+
+   <link rel="amphtml" href="https://amp.mrbeast.store/products/mrbeast-particle-backpack-black-o-s">
+
+
+
+    
+    <link href="//mrbeast.store/cdn/shop/t/310/assets/typekit.css?v=135680829525684154631750877782" rel="stylesheet" type="text/css" media="all" />
+    
+    <link href="//mrbeast.store/cdn/shop/t/310/assets/tailwind.css?v=153599691429073014181774552340" rel="stylesheet" type="text/css" media="all" />
+    
+  <div
+  id="custom-modal"
+  x-data="{ open: false, section: '' }"
+>
+  <!-- Button to open the modal -->
+  <button id="size-modal" @click="open = true; section = 'size'" class="tw-hidden"></button>
+
+  <!-- Modal -->
+  <div
+    x-show="open"
+    class="tw-fixed tw-inset-0 tw-z-[2147483641] tw-bg-mrb-black-50 tw-min-h-screen tw-transition-opacity tw-delay-500 tw-duration-300 tw-ease-in-out"
+    :class="open ? 'tw-opacity-100' : 'tw-opacity-0'"
+    style="display: none;"
+  >
+    <div
+      id="modal-data"
+      class="md:tw-w-8/12 tw-w-10/12 tw-bg-white tw-absolute tw-left-1/2 tw-top-1/2 tw--translate-x-1/2 tw--translate-y-1/2"
+      :class="section === 'size' ? 'tw-py-8 tw-pl-8 pr-4' : 'tw-p-8'"
+    >
+      <div @click.away="open = false">
+        
+          <div x-show="section === 'size'">
+            
+    <div
+      
+        class="tw-max-h-[80vh] tw-overflow-y-auto tw-overflow-x-hidden tw-pr-4"
+      
+      role="dialog"
+      aria-label="Size guide"
+    >
+      <div class="tw-p-8">
+        <div id="header">
+          <div class="tw-flex tw-flex-row tw-items-center tw-gap-4 tw-mb-8">
+            <h3 class="tw-font-transducer-extended md:tw-text-h3 tw-text-mobile-h3 tw-font-normal tw-h-8 tw-text-black">
+              FIND MY SIZE
+            </h3>
+            
+            
+          </div>
+        </div>
+        <div id="data">
+          <div class="main--data">
+            <div
+              id="table--container"
+              
+            >
+              <style data-shopify>
+                .default-size-grid {
+                  grid-template-columns: repeat(9, 1fr);
+                }
+              </style>
+              <div class="default_size-guide tw-overflow-auto tw-flex md:tw-flex-col tw-flex-row"><div class="default-size-grid md:tw-grid tw-flex tw-flex-col tw-w-fit tw-bg-mrb-blue tw-text-white tw-font-transducer tw-text-body-small">
+                  <div class="md:tw-w-52 tw-w-32 tw-p-2 md:tw-h-fit tw-h-20">&nbsp;</div>
+                  <div class="tw-p-2 md:tw-min-w-32 tw-min-w-fit">XXS/Y12</div>
+                  <div class="tw-p-2 md:tw-min-w-32 tw-min-w-fit">XS/Y14</div>
+                  <div class="tw-p-2 md:tw-min-w-32 tw-min-w-fit">SM</div>
+                  <div class="tw-p-2 md:tw-min-w-32 tw-min-w-fit">M</div>
+                  <div class="tw-p-2 md:tw-min-w-32 tw-min-w-fit">L</div>
+                  <div class="tw-p-2 md:tw-min-w-32 tw-min-w-fit">XL</div>
+                  <div class="tw-p-2 md:tw-min-w-32 tw-min-w-fit">XXL</div>
+                  <div class="tw-p-2 md:tw-min-w-32 tw-min-w-fit">XXXL</div>
+                </div><div class="default-size-grid md:tw-grid tw-flex tw-flex-col tw-w-fit tw-text-body-small tw-border-b tw-border-solid tw-border-mrb-black-50 hover:tw-bg-mrb-black-10">
+                  <div class="md:tw-w-52 tw-w-fit tw-p-2 md:tw-text-left tw-text-center md:tw-px-0 tw-px-2 md:tw-h-fit tw-h-20 tw-flex tw-items-end tw-font-transducer">
+                    Shoulders
+                  </div>
+                  <div class="tw-p-2 md:tw-min-w-32 tw-min-w-fit">17.5"</div>
+                  <div class="tw-p-2 md:tw-min-w-32 tw-min-w-fit">17.9"</div>
+                  <div class="tw-p-2 md:tw-min-w-32 tw-min-w-fit">18.3"</div>
+                  <div class="tw-p-2 md:tw-min-w-32 tw-min-w-fit">18.7"</div>
+                  <div class="tw-p-2 md:tw-min-w-32 tw-min-w-fit">19"</div>
+                  <div class="tw-p-2 md:tw-min-w-32 tw-min-w-fit">19.4"</div>
+                  <div class="tw-p-2 md:tw-min-w-32 tw-min-w-fit">19.8"</div>
+                  <div class="tw-p-2 md:tw-min-w-32 tw-min-w-fit">20.2"</div>
+                </div><div class="default-size-grid md:tw-grid tw-flex tw-flex-col tw-w-fit tw-text-body-small tw-border-b tw-border-solid tw-border-mrb-black-50 hover:tw-bg-mrb-black-10">
+                  <div class="md:tw-w-52 tw-w-fit tw-p-2 md:tw-text-left tw-text-center md:tw-px-0 tw-px-2 md:tw-h-fit tw-h-20 tw-flex tw-items-end tw-font-transducer">
+                    Arms
+                  </div>
+                  <div class="tw-p-2 md:tw-min-w-32 tw-min-w-fit">33.8"</div>
+                  <div class="tw-p-2 md:tw-min-w-32 tw-min-w-fit">34.4"</div>
+                  <div class="tw-p-2 md:tw-min-w-32 tw-min-w-fit">35"</div>
+                  <div class="tw-p-2 md:tw-min-w-32 tw-min-w-fit">35.6"</div>
+                  <div class="tw-p-2 md:tw-min-w-32 tw-min-w-fit">36.2"</div>
+                  <div class="tw-p-2 md:tw-min-w-32 tw-min-w-fit">36.8"</div>
+                  <div class="tw-p-2 md:tw-min-w-32 tw-min-w-fit">37.4"</div>
+                  <div class="tw-p-2 md:tw-min-w-32 tw-min-w-fit">37.9"</div>
+                </div><div class="default-size-grid md:tw-grid tw-flex tw-flex-col tw-w-fit tw-text-body-small tw-border-b tw-border-solid tw-border-mrb-black-50 hover:tw-bg-mrb-black-10">
+                  <div class="md:tw-w-52 tw-w-fit tw-p-2 md:tw-text-left tw-text-center md:tw-px-0 tw-px-2 md:tw-h-fit tw-h-20 tw-flex tw-items-end tw-font-transducer">
+                    Chest
+                  </div>
+                  <div class="tw-p-2 md:tw-min-w-32 tw-min-w-fit">35.6"</div>
+                  <div class="tw-p-2 md:tw-min-w-32 tw-min-w-fit">37.2"</div>
+                  <div class="tw-p-2 md:tw-min-w-32 tw-min-w-fit">38.7"</div>
+                  <div class="tw-p-2 md:tw-min-w-32 tw-min-w-fit">40.3"</div>
+                  <div class="tw-p-2 md:tw-min-w-32 tw-min-w-fit">41.9"</div>
+                  <div class="tw-p-2 md:tw-min-w-32 tw-min-w-fit">43.5"</div>
+                  <div class="tw-p-2 md:tw-min-w-32 tw-min-w-fit">45"</div>
+                  <div class="tw-p-2 md:tw-min-w-32 tw-min-w-fit">46.6"</div>
+                </div><div class="default-size-grid md:tw-grid tw-flex tw-flex-col tw-w-fit tw-text-body-small tw-border-b tw-border-solid tw-border-mrb-black-50 hover:tw-bg-mrb-black-10">
+                  <div class="md:tw-w-52 tw-w-fit tw-p-2 md:tw-text-left tw-text-center md:tw-px-0 tw-px-2 md:tw-h-fit tw-h-20 tw-flex tw-items-end tw-font-transducer">
+                    Hips
+                  </div>
+                  <div class="tw-p-2 md:tw-min-w-32 tw-min-w-fit">35.8"</div>
+                  <div class="tw-p-2 md:tw-min-w-32 tw-min-w-fit">37.4"</div>
+                  <div class="tw-p-2 md:tw-min-w-32 tw-min-w-fit">38.9"</div>
+                  <div class="tw-p-2 md:tw-min-w-32 tw-min-w-fit">40.5"</div>
+                  <div class="tw-p-2 md:tw-min-w-32 tw-min-w-fit">42.1"</div>
+                  <div class="tw-p-2 md:tw-min-w-32 tw-min-w-fit">43.7"</div>
+                  <div class="tw-p-2 md:tw-min-w-32 tw-min-w-fit">45.2"</div>
+                  <div class="tw-p-2 md:tw-min-w-32 tw-min-w-fit">46.8"</div>
+                </div><div class="default-size-grid md:tw-grid tw-flex tw-flex-col tw-w-fit tw-text-body-small tw-border-b tw-border-solid tw-border-mrb-black-50 hover:tw-bg-mrb-black-10">
+                  <div class="md:tw-w-52 tw-w-fit tw-p-2 md:tw-text-left tw-text-center md:tw-px-0 tw-px-2 md:tw-h-fit tw-h-20 tw-flex tw-items-end tw-font-transducer">
+                    Inseam
+                  </div>
+                  <div class="tw-p-2 md:tw-min-w-32 tw-min-w-fit">30"</div>
+                  <div class="tw-p-2 md:tw-min-w-32 tw-min-w-fit">30.5"</div>
+                  <div class="tw-p-2 md:tw-min-w-32 tw-min-w-fit">31"</div>
+                  <div class="tw-p-2 md:tw-min-w-32 tw-min-w-fit">31.5"</div>
+                  <div class="tw-p-2 md:tw-min-w-32 tw-min-w-fit">32"</div>
+                  <div class="tw-p-2 md:tw-min-w-32 tw-min-w-fit">32.5"</div>
+                  <div class="tw-p-2 md:tw-min-w-32 tw-min-w-fit">33"</div>
+                  <div class="tw-p-2 md:tw-min-w-32 tw-min-w-fit">33.5"</div>
+                </div>
+              </div>
+              <p class="tw-text-black tw-text-xs tw-mt-4 tw-mb-4">* All measurements are in inches.</p>
+            </div>
+            
+            <div
+              id="disclaimer"
+              class="tw-mb-8 tw-mt-2"
+            >
+              <p class="tw-text-xs tw-text-black">
+                Actual garment measurements above refer to the width with garment lying flat.
+              </p>
+              <p class="tw-text-xs tw-text-black">
+                Double the garment measurement for Chest/Waist/Bottom to find full circumference
+              </p>
+            </div>
+            
+              <h4 class="tw-font-transducer md:tw-text-h4 tw-text-mobile-h4 tw-font-normal tw-text-black tw-mb-4 tw-mt-8">
+                HOW TO MEASURE YOUR SIZE?
+              </h4>
+              <p class="tw-text-body-small tw-text-black">
+                In order to select the correct clothing size, we recommend you take the following measurements using a
+                soft tape measure. If necessary, ask someone else to help.
+              </p>
+              <img
+                src="//cdn.shopify.com/s/files/1/0016/1975/5059/files/MRBEAST_SizeGuide.svg?v=1688410205"
+                class="tw-mx-auto md:tw-w-8/12 tw-w-full tw-my-8"
+                alt="How to measure your size?"
+                loading="lazy"
+                width="100%"
+                height="auto"
+              >
+            
+          </div>
+          
+            <div class="secondary--data">
+              <div class="data">
+                <h4 class="tw-font-transducer md:tw-text-h4 tw-text-mobile-h4 tw-font-normal tw-text-black tw-mb-4 tw-mt-8">
+                  1. Shoulder Width
+                </h4>
+                <p class="tw-text-body-small tw-text-black">
+                  Pass the tape measure straight across from the tip of one shoulder to the other, just above your
+                  shoulder blades.
+                </p>
+              </div>
+              <div class="data">
+                <h4 class="tw-font-transducer md:tw-text-h4 tw-text-mobile-h4 tw-font-normal tw-text-black tw-mb-4 tw-mt-8">
+                  2. Chest
+                </h4>
+                <p class="tw-text-body-small tw-text-black">
+                  Pass the tape measure across your back, under your arms and over your breastbone at its widest point,
+                  taking care to keep the tape measure horizontal. It should sit snugly against your body, but should
+                  not be pulled too tight.
+                </p>
+              </div>
+              <div class="data">
+                <h4 class="tw-font-transducer md:tw-text-h4 tw-text-mobile-h4 tw-font-normal tw-text-black tw-mb-4 tw-mt-8">
+                  3. Waist
+                </h4>
+                <p class="tw-text-body-small tw-text-black">
+                  Pass the tape measure around your natural waistline, at the narrowest point of your waist. The tape
+                  measure should sit snugly against your body, but should not be pulled too tight.
+                </p>
+              </div>
+              <div class="data">
+                <h4 class="tw-font-transducer md:tw-text-h4 tw-text-mobile-h4 tw-font-normal tw-text-black tw-mb-4 tw-mt-8">
+                  4. Sleeve length
+                </h4>
+                <p class="tw-text-body-small tw-text-black">
+                  Keeping your arm straight by your side, measure from the tip of your shoulder to the base of your
+                  thumb.
+                </p>
+              </div>
+              <div class="data">
+                <h4 class="tw-font-transducer md:tw-text-h4 tw-text-mobile-h4 tw-font-normal tw-text-black tw-mb-4 tw-mt-8">
+                  5. Inseam length
+                </h4>
+                <p class="tw-text-body-small tw-text-black">
+                  Keeping your legs straight, measure from the ankle to your uppermost part of your thigh.
+                </p>
+              </div>
+            </div>
+          
+        </div>
+      </div>
+    </div>
+
+
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+  
+  <script
+    data-target-id="bp-0b10de2c-66e6-402f-80c0-7031a8c54fbe"
+    async
+    type="module"
+    src="https://cdn.elements.amazon/elements/amazon-delivery-card/v1.0/web-component.js"
+  ></script>
+  
+  <link href="//mrbeast.store/cdn/shop/t/310/assets/flickity.min.css?v=12404722746677358661750877783" rel="stylesheet" type="text/css" media="all" />
+  <style data-shopify>
+    .product-carousel .carousel-cell {
+      border: 1px solid #fff;
+      border-bottom: 0;
+      border-top: 0;
+    }
+  </style>
+  <script src="//mrbeast.store/cdn/shop/t/310/assets/flickity.pkgd.min.js?v=114460508543641870001750877783" defer></script>
+  <script>
+    // Store Flickity instances globally for access from other scripts
+    window.productFlickityInstances = [];
+
+    // Flickity Init | Product slider
+    document.addEventListener('DOMContentLoaded', function () {
+      const productCarousel = document.querySelectorAll('.product-carousel') || null;
+      productCarousel.forEach(function (productCarousel) {
+        // Store flickity instance for later use
+        let flkty = null;
+
+        const productFlickity = {
+          on: {
+            ready: function () {
+              let productImage = document.querySelectorAll('.product-carousel .tw-opacity-0');
+              productImage.forEach(function (productImage) {
+                productImage.classList.remove('tw-opacity-0');
+              });
+              carouselHeight();
+
+              // Force multiple reflows for iOS (critical for image visibility)
+              const carousel = this;
+              setTimeout(() => {
+                carousel.resize();
+                carousel.reloadCells();
+              }, 50);
+              setTimeout(() => {
+                carousel.resize();
+                carousel.reloadCells();
+              }, 150);
+              setTimeout(() => {
+                carousel.resize();
+              }, 300);
+            },
+            change: function (index) {
+              carouselActive(index);
+            },
+          },
+          cellAlign: 'right',
+          contain: true,
+          draggable: true,
+          dragThreshold: 10,
+          imagesLoaded: true,
+          lazyLoad: 2,
+          pageDots: true, // This needs to be true for the imageDotNav() function
+          prevNextButtons: false,
+          setGallerySize: true,
+          wrapAround: true,
+        };
+
+        if (productCarousel != null) {
+          flkty = new Flickity(productCarousel, productFlickity);
+          // Store instance globally
+          window.productFlickityInstances.push(flkty);
+        }
+      });
+    });
+
+    // Global function to resize all Flickity instances
+    window.resizeAllProductCarousels = function () {
+      window.productFlickityInstances.forEach(function (flkty) {
+        if (flkty && typeof flkty.resize === 'function') {
+          flkty.resize();
+          flkty.reloadCells();
+        }
+      });
+      // Force repaint
+      document.body.offsetHeight;
+    };
+    window.addEventListener('resize', (event) => {
+      carouselHeight();
+    });
+    // Carousel Height
+    function carouselHeight() {
+      // get .carousel-cell height
+      let carouselCell = document.querySelector('#carousel-cell1');
+      let carouselCellHeight = carouselCell.offsetHeight;
+      // set .product-carousel-nav height
+      let productCarouselNav = document.querySelectorAll('.product-carousel-nav');
+      productCarouselNav.forEach(function (carouselNav) {
+        carouselNav.style.maxHeight = carouselCellHeight + 'px';
+      });
+    }
+    // Carousel Nav Active State
+    function carouselActive(index) {
+      let mediaGalleries = document.querySelectorAll('media-gallery');
+
+      mediaGalleries.forEach(function (mediaGallery) {
+        let carouselNav = mediaGallery.querySelectorAll('.product-carousel-nav a');
+
+        carouselNav.forEach(function (carouselNav) {
+          if (carouselNav.classList.contains('tw-border-black')) {
+            carouselNav.classList.remove('tw-border-black');
+            carouselNav.classList.add('tw-border-transparent');
+          }
+        });
+        carouselNav[index].classList.remove('tw-border-transparent');
+        carouselNav[index].classList.add('tw-border-black');
+      });
+    }
+  </script>
+
+
+
+
+  
+  <!-- Microsoft Clarity Script -->
+  <script type="text/javascript">
+    // prettier-ignore
+    (function(c,l,a,r,i,t,y){
+        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+    })(window, document, "clarity", "script", "ogir99pakg");
+  </script>
+  <!-- TikTok Pixel Code Start -->
+  <script>
+    // prettier-ignore
+    !function (w, d, t) {
+    w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie","holdConsent","revokeConsent","grantConsent"],ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(t){for(
+  var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e},ttq.load=function(e,n){var r="https://analytics.tiktok.com/i18n/pixel/events.js",o=n&&n.partner;ttq._i=ttq._i||{},ttq._i[e]=[],ttq._i[e]._u=r,ttq._t=ttq._t||{},ttq._t[e]=+new Date,ttq._o=ttq._o||{},ttq._o[e]=n||{};n=document.createElement("script")
+  ;n.type="text/javascript",n.async=!0,n.src=r+"?sdkid="+e+"&lib="+t;e=document.getElementsByTagName("script")[0];e.parentNode.insertBefore(n,e)};
+    ttq.load('D4THM23C77UFBBBO8AMG');
+    ttq.page();
+  }(window, document, 'ttq');
+  </script>
+  <!-- TikTok Pixel Code End -->
+  
+  <!-- Amazon Ad Tag if/or script -->
+  <script>
+    // prettier-ignore
+    !(function (w, d, s, t, a) {
+      if (w.amzn) return;
+      w.amzn = a = function () {
+        w.amzn.q.push([arguments, new Date().getTime()]);
+      };
+      a.q = [];
+      a.version = '0.0';
+      s = d.createElement('script');
+      s.src = 'https://c.amazon-adsystem.com/aat/amzn.js';
+      s.id = 'amzn-pixel';
+      s.async = true;
+      t = d.getElementsByTagName('script')[0];
+      t.parentNode.insertBefore(s, t);
+    })(window, document);
+    amzn('setRegion', 'NA');
+    amzn('addTag', 'e7f427d9-2615-4256-a868-5df45a9bb763');
+    amzn('trackEvent', 'PageView');
+  </script>
+  <!-- Post Pilot script -->
+  <script type="text/javascript">
+    // prettier-ignore
+    var script = document.createElement('script');
+    script.src = 'https://xp2023-pix.s3.amazonaws.com/px_NfjHF.js';
+    document.getElementsByTagName('head')[0].appendChild(script);
+  </script>
+
+
+
+    <script src="https://cdn.chord.co/analytics-liquid-identifiers/v1/analytics-liquid-identifiers.min.js" defer="defer"></script>
+  <!-- BEGIN app block: shopify://apps/judge-me-reviews/blocks/judgeme_core/61ccd3b1-a9f2-4160-9fe9-4fec8413e5d8 --><!-- Start of Judge.me Core -->
+
+
+
+
+
+
+
+<link rel="dns-prefetch" href="https://cdnwidget.judge.me">
+<link rel="dns-prefetch" href="https://cdn.judge.me">
+<link rel="dns-prefetch" href="https://cdn1.judge.me">
+<link rel="dns-prefetch" href="https://api.judge.me">
+
+<script data-cfasync='false' class='jdgm-settings-script'>window.jdgmSettings={"pagination":5,"disable_web_reviews":true,"badge_no_review_text":"No reviews","badge_n_reviews_text":"{{ n }} review/reviews","badge_star_color":"#00BCE7","hide_badge_preview_if_no_reviews":true,"badge_hide_text":false,"enforce_center_preview_badge":false,"widget_title":"REVIEWS","widget_open_form_text":"Write a review","widget_close_form_text":"Cancel review","widget_refresh_page_text":"Refresh page","widget_summary_text":"Based on {{ number_of_reviews }} review/reviews","widget_no_review_text":"Be the first to write a review","widget_name_field_text":"Display name","widget_verified_name_field_text":"Verified Name (public)","widget_name_placeholder_text":"Display name","widget_required_field_error_text":"This field is required.","widget_email_field_text":"Email address","widget_verified_email_field_text":"Verified Email (private, can not be edited)","widget_email_placeholder_text":"Your email address","widget_email_field_error_text":"Please enter a valid email address.","widget_rating_field_text":"Rating","widget_review_title_field_text":"Review Title","widget_review_title_placeholder_text":"Give your review a title","widget_review_body_field_text":"Review content","widget_review_body_placeholder_text":"Start writing here...","widget_pictures_field_text":"Picture/Video (optional)","widget_submit_review_text":"Submit Review","widget_submit_verified_review_text":"Submit Verified Review","widget_submit_success_msg_with_auto_publish":"Thank you! Please refresh the page in a few moments to see your review. You can remove or edit your review by logging into \u003ca href='https://judge.me/login' target='_blank' rel='nofollow noopener'\u003eJudge.me\u003c/a\u003e","widget_submit_success_msg_no_auto_publish":"Thank you! Your review will be published as soon as it is approved by the shop admin. You can remove or edit your review by logging into \u003ca href='https://judge.me/login' target='_blank' rel='nofollow noopener'\u003eJudge.me\u003c/a\u003e","widget_show_default_reviews_out_of_total_text":"Showing {{ n_reviews_shown }} out of {{ n_reviews }} reviews.","widget_show_all_link_text":"Show all","widget_show_less_link_text":"Show less","widget_author_said_text":"{{ reviewer_name }} said:","widget_days_text":"{{ n }} days ago","widget_weeks_text":"{{ n }} week/weeks ago","widget_months_text":"{{ n }} month/months ago","widget_years_text":"{{ n }} year/years ago","widget_yesterday_text":"Yesterday","widget_today_text":"Today","widget_replied_text":"\u003e\u003e {{ shop_name }} replied:","widget_read_more_text":"Read more","widget_reviewer_name_as_initial":"first_name_only","widget_rating_filter_color":"","widget_rating_filter_see_all_text":"See all reviews","widget_sorting_most_recent_text":"Most Recent","widget_sorting_highest_rating_text":"Highest Rating","widget_sorting_lowest_rating_text":"Lowest Rating","widget_sorting_with_pictures_text":"Only Pictures","widget_sorting_most_helpful_text":"Most Helpful","widget_open_question_form_text":"Ask a question","widget_reviews_subtab_text":"Reviews","widget_questions_subtab_text":"Questions","widget_question_label_text":"Question","widget_answer_label_text":"Answer","widget_question_placeholder_text":"Write your question here","widget_submit_question_text":"Submit Question","widget_question_submit_success_text":"Thank you for your question! We will notify you once it gets answered.","widget_star_color":"#00BCE7","verified_badge_text":"Verified","verified_badge_bg_color":"","verified_badge_text_color":"","verified_badge_placement":"left-of-reviewer-name","widget_review_max_height":"","widget_hide_border":true,"widget_social_share":false,"widget_thumb":true,"widget_review_location_show":false,"widget_location_format":"country_iso_code","all_reviews_include_out_of_store_products":true,"all_reviews_out_of_store_text":"(out of store)","all_reviews_pagination":100,"all_reviews_product_name_prefix_text":"about","enable_review_pictures":true,"enable_question_anwser":false,"widget_theme":"","review_date_format":"mm/dd/yyyy","default_sort_method":"most-recent","widget_product_reviews_subtab_text":"Product Reviews","widget_shop_reviews_subtab_text":"Shop Reviews","widget_other_products_reviews_text":"Reviews for other products","widget_store_reviews_subtab_text":"Store reviews","widget_no_store_reviews_text":"This store hasn't received any reviews yet","widget_web_restriction_product_reviews_text":"This product hasn't received any reviews yet","widget_no_items_text":"No items found","widget_show_more_text":"Show more","widget_write_a_store_review_text":"Write a Store Review","widget_other_languages_heading":"Reviews in Other Languages","widget_translate_review_text":"Translate review to {{ language }}","widget_translating_review_text":"Translating...","widget_show_original_translation_text":"Show original ({{ language }})","widget_translate_review_failed_text":"Review couldn't be translated.","widget_translate_review_retry_text":"Retry","widget_translate_review_try_again_later_text":"Try again later","show_product_url_for_grouped_product":false,"widget_sorting_pictures_first_text":"Pictures First","show_pictures_on_all_rev_page_mobile":false,"show_pictures_on_all_rev_page_desktop":false,"floating_tab_hide_mobile_install_preference":false,"floating_tab_button_name":"★ View Our Reviews","floating_tab_title":"Let customers speak for us","floating_tab_button_color":"#ffffff","floating_tab_button_background_color":"#ff00ec","floating_tab_url":"","floating_tab_url_enabled":false,"floating_tab_tab_style":"stars","all_reviews_text_badge_text":"Customers rate us {{ shop.metafields.judgeme.all_reviews_rating | round: 1 }}/5 based on {{ shop.metafields.judgeme.all_reviews_count }} reviews.","all_reviews_text_badge_text_branded_style":"{{ shop.metafields.judgeme.all_reviews_rating | round: 1 }} out of 5 stars based on {{ shop.metafields.judgeme.all_reviews_count }} reviews","is_all_reviews_text_badge_a_link":false,"show_stars_for_all_reviews_text_badge":false,"all_reviews_text_badge_url":"","all_reviews_text_style":"text","all_reviews_text_color_style":"judgeme_brand_color","all_reviews_text_color":"#108474","all_reviews_text_show_jm_brand":true,"featured_carousel_show_header":false,"featured_carousel_title":"Let customers speak for us","testimonials_carousel_title":"Customers are saying","videos_carousel_title":"Real customer stories","cards_carousel_title":"Customers are saying","featured_carousel_count_text":"from {{ n }} reviews","featured_carousel_add_link_to_all_reviews_page":true,"featured_carousel_url":"","featured_carousel_show_images":false,"featured_carousel_autoslide_interval":5,"featured_carousel_arrows_on_the_sides":false,"featured_carousel_height":300,"featured_carousel_width":100,"featured_carousel_image_size":0,"featured_carousel_image_height":250,"featured_carousel_arrow_color":"#eeeeee","verified_count_badge_style":"branded","verified_count_badge_orientation":"horizontal","verified_count_badge_color_style":"judgeme_brand_color","verified_count_badge_color":"#108474","is_verified_count_badge_a_link":true,"verified_count_badge_url":"","verified_count_badge_show_jm_brand":true,"widget_rating_preset_default":0,"widget_first_sub_tab":"product-reviews","widget_show_histogram":true,"widget_histogram_use_custom_color":false,"widget_pagination_use_custom_color":false,"widget_star_use_custom_color":false,"widget_verified_badge_use_custom_color":false,"widget_write_review_use_custom_color":false,"picture_reminder_submit_button":"Upload Pictures","enable_review_videos":true,"mute_video_by_default":true,"widget_sorting_videos_first_text":"Videos First","widget_review_pending_text":"Pending","featured_carousel_items_for_large_screen":5,"social_share_options_order":"Facebook,Twitter","remove_microdata_snippet":true,"disable_json_ld":false,"enable_json_ld_products":false,"preview_badge_show_question_text":false,"preview_badge_no_question_text":"No questions","preview_badge_n_question_text":"{{ number_of_questions }} question/questions","qa_badge_show_icon":true,"qa_badge_icon_color":"#00c7ff","qa_badge_position":"same-row","remove_judgeme_branding":true,"widget_add_search_bar":false,"widget_search_bar_placeholder":"Search","widget_sorting_verified_only_text":"Verified only","featured_carousel_theme":"card","featured_carousel_show_rating":true,"featured_carousel_show_title":false,"featured_carousel_show_body":true,"featured_carousel_show_date":false,"featured_carousel_show_reviewer":true,"featured_carousel_show_product":false,"featured_carousel_header_background_color":"#108474","featured_carousel_header_text_color":"#ffffff","featured_carousel_name_product_separator":"reviewed","featured_carousel_full_star_background":"#e74683","featured_carousel_empty_star_background":"#dadada","featured_carousel_vertical_theme_background":"#f9fafb","featured_carousel_verified_badge_enable":true,"featured_carousel_verified_badge_color":"#e74683","featured_carousel_border_style":"round","featured_carousel_review_line_length_limit":3,"featured_carousel_more_reviews_button_text":"Read more reviews","featured_carousel_view_product_button_text":"View product","all_reviews_page_load_reviews_on":"scroll","all_reviews_page_load_more_text":"Load More Reviews","disable_fb_tab_reviews":false,"enable_ajax_cdn_cache":false,"widget_public_name_text":"displayed publicly like","default_reviewer_name":"John Smith","default_reviewer_name_has_non_latin":true,"widget_reviewer_anonymous":"Anonymous","medals_widget_title":"Judge.me Review Medals","medals_widget_background_color":"#f9fafb","medals_widget_position":"footer_all_pages","medals_widget_border_color":"#f9fafb","medals_widget_verified_text_position":"left","medals_widget_use_monochromatic_version":false,"medals_widget_elements_color":"#108474","show_reviewer_avatar":false,"widget_invalid_yt_video_url_error_text":"Not a YouTube video URL","widget_max_length_field_error_text":"Please enter no more than {0} characters.","widget_show_country_flag":false,"widget_show_collected_via_shop_app":true,"widget_verified_by_shop_badge_style":"light","widget_verified_by_shop_text":"Verified by Shop","widget_show_photo_gallery":true,"widget_load_with_code_splitting":true,"widget_ugc_install_preference":false,"widget_ugc_title":"Made by us, Shared by you","widget_ugc_subtitle":"Tag us to see your picture featured in our page","widget_ugc_arrows_color":"#ffffff","widget_ugc_primary_button_text":"Buy Now","widget_ugc_primary_button_background_color":"#108474","widget_ugc_primary_button_text_color":"#ffffff","widget_ugc_primary_button_border_width":"0","widget_ugc_primary_button_border_style":"none","widget_ugc_primary_button_border_color":"#00ffff","widget_ugc_primary_button_border_radius":"25","widget_ugc_secondary_button_text":"Load More","widget_ugc_secondary_button_background_color":"#ffffff","widget_ugc_secondary_button_text_color":"#00ffff","widget_ugc_secondary_button_border_width":"2","widget_ugc_secondary_button_border_style":"solid","widget_ugc_secondary_button_border_color":"#00ffff","widget_ugc_secondary_button_border_radius":"25","widget_ugc_reviews_button_text":"View Reviews","widget_ugc_reviews_button_background_color":"#ffffff","widget_ugc_reviews_button_text_color":"#00ffff","widget_ugc_reviews_button_border_width":"2","widget_ugc_reviews_button_border_style":"solid","widget_ugc_reviews_button_border_color":"#00ffff","widget_ugc_reviews_button_border_radius":"25","widget_ugc_reviews_button_link_to":"store-product-page","widget_ugc_show_post_date":true,"widget_ugc_max_width":"800","widget_rating_metafield_value_type":true,"widget_primary_color":"#000000","widget_enable_secondary_color":false,"widget_secondary_color":"#edf5f5","widget_summary_average_rating_text":"{{ average_rating }} out of 5","widget_media_grid_title":"Customer photos \u0026 videos","widget_media_grid_see_more_text":"See more","widget_round_style":true,"widget_show_product_medals":false,"widget_verified_by_judgeme_text":"Verified by Judge.me","widget_show_store_medals":true,"widget_verified_by_judgeme_text_in_store_medals":"Verified by Judge.me","widget_media_field_exceed_quantity_message":"Sorry, we can only accept {{ max_media }} for one review.","widget_media_field_exceed_limit_message":"{{ file_name }} is too large, please select a {{ media_type }} less than {{ size_limit }}MB.","widget_review_submitted_text":"Review Submitted!","widget_question_submitted_text":"Question Submitted!","widget_close_form_text_question":"Cancel","widget_write_your_answer_here_text":"Write your answer here","widget_enabled_branded_link":true,"widget_show_collected_by_judgeme":false,"widget_reviewer_name_color":"","widget_write_review_text_color":"","widget_write_review_bg_color":"","widget_collected_by_judgeme_text":"collected by Judge.me","widget_pagination_type":"load_more","widget_load_more_text":"Load More","widget_load_more_color":"#108474","widget_full_review_text":"Full Review","widget_read_more_reviews_text":"Read More Reviews","widget_read_questions_text":"Read Questions","widget_questions_and_answers_text":"Questions \u0026 Answers","widget_verified_by_text":"Verified by","widget_verified_text":"Verified","widget_number_of_reviews_text":"{{ number_of_reviews }} reviews","widget_back_button_text":"Back","widget_next_button_text":"Next","widget_custom_forms_filter_button":"Filters","custom_forms_style":"horizontal","widget_show_review_information":false,"how_reviews_are_collected":"How reviews are collected?","widget_show_review_keywords":false,"widget_gdpr_statement":"How we use your data: We'll only contact you about the review you left, and only if necessary. By submitting your review, you agree to Judge.me's \u003ca href='https://judge.me/terms' target='_blank' rel='nofollow noopener'\u003eterms\u003c/a\u003e, \u003ca href='https://judge.me/privacy' target='_blank' rel='nofollow noopener'\u003eprivacy\u003c/a\u003e and \u003ca href='https://judge.me/content-policy' target='_blank' rel='nofollow noopener'\u003econtent\u003c/a\u003e policies.","widget_multilingual_sorting_enabled":false,"widget_translate_review_content_enabled":false,"widget_translate_review_content_method":"manual","popup_widget_review_selection":"automatically_with_pictures","popup_widget_round_border_style":true,"popup_widget_show_title":true,"popup_widget_show_body":true,"popup_widget_show_reviewer":false,"popup_widget_show_product":true,"popup_widget_show_pictures":true,"popup_widget_use_review_picture":true,"popup_widget_show_on_home_page":true,"popup_widget_show_on_product_page":true,"popup_widget_show_on_collection_page":true,"popup_widget_show_on_cart_page":true,"popup_widget_position":"bottom_left","popup_widget_first_review_delay":5,"popup_widget_duration":5,"popup_widget_interval":5,"popup_widget_review_count":5,"popup_widget_hide_on_mobile":true,"review_snippet_widget_round_border_style":true,"review_snippet_widget_card_color":"#FFFFFF","review_snippet_widget_slider_arrows_background_color":"#FFFFFF","review_snippet_widget_slider_arrows_color":"#000000","review_snippet_widget_star_color":"#108474","show_product_variant":true,"all_reviews_product_variant_label_text":"Variant: ","widget_show_verified_branding":true,"widget_ai_summary_title":"Customers say","widget_ai_summary_disclaimer":"AI-powered review summary based on recent customer reviews","widget_show_ai_summary":false,"widget_show_ai_summary_bg":false,"widget_show_review_title_input":true,"redirect_reviewers_invited_via_email":"review_widget","request_store_review_after_product_review":false,"request_review_other_products_in_order":false,"review_form_color_scheme":"default","review_form_corner_style":"square","review_form_star_color":{},"review_form_text_color":"#333333","review_form_background_color":"#ffffff","review_form_field_background_color":"#fafafa","review_form_button_color":{},"review_form_button_text_color":"#ffffff","review_form_modal_overlay_color":"#000000","review_content_screen_title_text":"How would you rate this product?","review_content_introduction_text":"We would love it if you would share a bit about your experience.","store_review_form_title_text":"How would you rate this store?","store_review_form_introduction_text":"We would love it if you would share a bit about your experience.","show_review_guidance_text":true,"one_star_review_guidance_text":"Poor","five_star_review_guidance_text":"Great","customer_information_screen_title_text":"About you","customer_information_introduction_text":"Please tell us more about you.","custom_questions_screen_title_text":"Your experience in more detail","custom_questions_introduction_text":"Here are a few questions to help us understand more about your experience.","review_submitted_screen_title_text":"Thanks for your review!","review_submitted_screen_thank_you_text":"We are processing it and it will appear on the store soon.","review_submitted_screen_email_verification_text":"Please confirm your email by clicking the link we just sent you. This helps us keep reviews authentic.","review_submitted_request_store_review_text":"Would you like to share your experience of shopping with us?","review_submitted_review_other_products_text":"Would you like to review these products?","store_review_screen_title_text":"Would you like to share your experience of shopping with us?","store_review_introduction_text":"We value your feedback and use it to improve. Please share any thoughts or suggestions you have.","reviewer_media_screen_title_picture_text":"Share a picture","reviewer_media_introduction_picture_text":"Upload a photo to support your review.","reviewer_media_screen_title_video_text":"Share a video","reviewer_media_introduction_video_text":"Upload a video to support your review.","reviewer_media_screen_title_picture_or_video_text":"Share a picture or video","reviewer_media_introduction_picture_or_video_text":"Upload a photo or video to support your review.","reviewer_media_youtube_url_text":"Paste your Youtube URL here","advanced_settings_next_step_button_text":"Next","advanced_settings_close_review_button_text":"Close","modal_write_review_flow":false,"write_review_flow_required_text":"Required","write_review_flow_privacy_message_text":"We respect your privacy.","write_review_flow_anonymous_text":"Post review as anonymous","write_review_flow_visibility_text":"This won't be visible to other customers.","write_review_flow_multiple_selection_help_text":"Select as many as you like","write_review_flow_single_selection_help_text":"Select one option","write_review_flow_required_field_error_text":"This field is required","write_review_flow_invalid_email_error_text":"Please enter a valid email address","write_review_flow_max_length_error_text":"Max. {{ max_length }} characters.","write_review_flow_media_upload_text":"\u003cb\u003eClick to upload\u003c/b\u003e or drag and drop","write_review_flow_gdpr_statement":"We'll only contact you about your review if necessary. By submitting your review, you agree to our \u003ca href='https://judge.me/terms' target='_blank' rel='nofollow noopener'\u003eterms and conditions\u003c/a\u003e and \u003ca href='https://judge.me/privacy' target='_blank' rel='nofollow noopener'\u003eprivacy policy\u003c/a\u003e.","rating_only_reviews_enabled":false,"show_negative_reviews_help_screen":false,"new_review_flow_help_screen_rating_threshold":3,"negative_review_resolution_screen_title_text":"Tell us more","negative_review_resolution_text":"Your experience matters to us. If there were issues with your purchase, we're here to help. Feel free to reach out to us, we'd love the opportunity to make things right.","negative_review_resolution_button_text":"Contact us","negative_review_resolution_proceed_with_review_text":"Leave a review","negative_review_resolution_subject":"Issue with purchase from {{ shop_name }}.{{ order_name }}","preview_badge_collection_page_install_status":false,"widget_review_custom_css":"","preview_badge_custom_css":"","preview_badge_stars_count":"5-stars","featured_carousel_custom_css":"","floating_tab_custom_css":"","all_reviews_widget_custom_css":"","medals_widget_custom_css":"","verified_badge_custom_css":"","all_reviews_text_custom_css":"","transparency_badges_collected_via_store_invite":false,"transparency_badges_from_another_provider":false,"transparency_badges_collected_from_store_visitor":false,"transparency_badges_collected_by_verified_review_provider":false,"transparency_badges_earned_reward":false,"transparency_badges_collected_via_store_invite_text":"Review collected via store invitation","transparency_badges_from_another_provider_text":"Review collected from another provider","transparency_badges_collected_from_store_visitor_text":"Review collected from a store visitor","transparency_badges_written_in_google_text":"Review written in Google","transparency_badges_written_in_etsy_text":"Review written in Etsy","transparency_badges_written_in_shop_app_text":"Review written in Shop App","transparency_badges_earned_reward_text":"Review earned a reward for future purchase","product_review_widget_per_page":10,"widget_store_review_label_text":"Review about the store","checkout_comment_extension_title_on_product_page":"Customer Comments","checkout_comment_extension_num_latest_comment_show":3,"checkout_comment_extension_format":"name_and_timestamp","checkout_comment_customer_name":"last_initial","checkout_comment_comment_notification":true,"preview_badge_collection_page_install_preference":false,"preview_badge_home_page_install_preference":false,"preview_badge_product_page_install_preference":false,"review_widget_install_preference":"","review_carousel_install_preference":false,"floating_reviews_tab_install_preference":"none","verified_reviews_count_badge_install_preference":false,"all_reviews_text_install_preference":false,"review_widget_best_location":false,"judgeme_medals_install_preference":false,"review_widget_revamp_enabled":false,"review_widget_qna_enabled":false,"review_widget_header_theme":"minimal","review_widget_widget_title_enabled":true,"review_widget_header_text_size":"medium","review_widget_header_text_weight":"regular","review_widget_average_rating_style":"compact","review_widget_bar_chart_enabled":true,"review_widget_bar_chart_type":"numbers","review_widget_bar_chart_style":"standard","review_widget_expanded_media_gallery_enabled":false,"review_widget_reviews_section_theme":"standard","review_widget_image_style":"thumbnails","review_widget_review_image_ratio":"square","review_widget_stars_size":"medium","review_widget_verified_badge":"standard_text","review_widget_review_title_text_size":"medium","review_widget_review_text_size":"medium","review_widget_review_text_length":"medium","review_widget_number_of_columns_desktop":3,"review_widget_carousel_transition_speed":5,"review_widget_custom_questions_answers_display":"always","review_widget_button_text_color":"#FFFFFF","review_widget_text_color":"#000000","review_widget_lighter_text_color":"#7B7B7B","review_widget_corner_styling":"soft","review_widget_review_word_singular":"review","review_widget_review_word_plural":"reviews","review_widget_voting_label":"Helpful?","review_widget_shop_reply_label":"Reply from {{ shop_name }}:","review_widget_filters_title":"Filters","qna_widget_question_word_singular":"Question","qna_widget_question_word_plural":"Questions","qna_widget_answer_reply_label":"Answer from {{ answerer_name }}:","qna_content_screen_title_text":"Ask a question about this product","qna_widget_question_required_field_error_text":"Please enter your question.","qna_widget_flow_gdpr_statement":"We'll only contact you about your question if necessary. By submitting your question, you agree to our \u003ca href='https://judge.me/terms' target='_blank' rel='nofollow noopener'\u003eterms and conditions\u003c/a\u003e and \u003ca href='https://judge.me/privacy' target='_blank' rel='nofollow noopener'\u003eprivacy policy\u003c/a\u003e.","qna_widget_question_submitted_text":"Thanks for your question!","qna_widget_close_form_text_question":"Close","qna_widget_question_submit_success_text":"We’ll notify you by email when your question is answered.","all_reviews_widget_v2025_enabled":false,"all_reviews_widget_v2025_header_theme":"default","all_reviews_widget_v2025_widget_title_enabled":true,"all_reviews_widget_v2025_header_text_size":"medium","all_reviews_widget_v2025_header_text_weight":"regular","all_reviews_widget_v2025_average_rating_style":"compact","all_reviews_widget_v2025_bar_chart_enabled":true,"all_reviews_widget_v2025_bar_chart_type":"numbers","all_reviews_widget_v2025_bar_chart_style":"standard","all_reviews_widget_v2025_expanded_media_gallery_enabled":false,"all_reviews_widget_v2025_show_store_medals":true,"all_reviews_widget_v2025_show_photo_gallery":true,"all_reviews_widget_v2025_show_review_keywords":false,"all_reviews_widget_v2025_show_ai_summary":false,"all_reviews_widget_v2025_show_ai_summary_bg":false,"all_reviews_widget_v2025_add_search_bar":false,"all_reviews_widget_v2025_default_sort_method":"most-recent","all_reviews_widget_v2025_reviews_per_page":10,"all_reviews_widget_v2025_reviews_section_theme":"default","all_reviews_widget_v2025_image_style":"thumbnails","all_reviews_widget_v2025_review_image_ratio":"square","all_reviews_widget_v2025_stars_size":"medium","all_reviews_widget_v2025_verified_badge":"bold_badge","all_reviews_widget_v2025_review_title_text_size":"medium","all_reviews_widget_v2025_review_text_size":"medium","all_reviews_widget_v2025_review_text_length":"medium","all_reviews_widget_v2025_number_of_columns_desktop":3,"all_reviews_widget_v2025_carousel_transition_speed":5,"all_reviews_widget_v2025_custom_questions_answers_display":"always","all_reviews_widget_v2025_show_product_variant":false,"all_reviews_widget_v2025_show_reviewer_avatar":true,"all_reviews_widget_v2025_reviewer_name_as_initial":"","all_reviews_widget_v2025_review_location_show":false,"all_reviews_widget_v2025_location_format":"","all_reviews_widget_v2025_show_country_flag":false,"all_reviews_widget_v2025_verified_by_shop_badge_style":"light","all_reviews_widget_v2025_social_share":false,"all_reviews_widget_v2025_social_share_options_order":"Facebook,Twitter,LinkedIn,Pinterest","all_reviews_widget_v2025_pagination_type":"standard","all_reviews_widget_v2025_button_text_color":"#FFFFFF","all_reviews_widget_v2025_text_color":"#000000","all_reviews_widget_v2025_lighter_text_color":"#7B7B7B","all_reviews_widget_v2025_corner_styling":"soft","all_reviews_widget_v2025_title":"Customer reviews","all_reviews_widget_v2025_ai_summary_title":"Customers say about this store","all_reviews_widget_v2025_no_review_text":"Be the first to write a review","platform":"shopify","branding_url":"https://app.judge.me/reviews/stores/mrbeast.store","branding_text":"Powered by Judge.me","locale":"en","reply_name":"MrBeast.store","widget_version":"3.0","footer":true,"autopublish":false,"review_dates":false,"enable_custom_form":true,"shop_use_review_site":true,"shop_locale":"en","enable_multi_locales_translations":false,"show_review_title_input":true,"review_verification_email_status":"always","can_be_branded":false,"reply_name_text":"MrBeast.store"};</script> <style class='jdgm-settings-style'>.jdgm-xx{left:0}:root{--jdgm-primary-color: #000;--jdgm-secondary-color: rgba(0,0,0,0.1);--jdgm-star-color: #00BCE7;--jdgm-write-review-text-color: white;--jdgm-write-review-bg-color: #000000;--jdgm-paginate-color: #000;--jdgm-border-radius: 10;--jdgm-reviewer-name-color: #000000}.jdgm-histogram__bar-content{background-color:#000}.jdgm-rev[data-verified-buyer=true] .jdgm-rev__icon.jdgm-rev__icon:after,.jdgm-rev__buyer-badge.jdgm-rev__buyer-badge{color:white;background-color:#000}.jdgm-review-widget--small .jdgm-gallery.jdgm-gallery .jdgm-gallery__thumbnail-link:nth-child(8) .jdgm-gallery__thumbnail-wrapper.jdgm-gallery__thumbnail-wrapper:before{content:"See more"}@media only screen and (min-width: 768px){.jdgm-gallery.jdgm-gallery .jdgm-gallery__thumbnail-link:nth-child(8) .jdgm-gallery__thumbnail-wrapper.jdgm-gallery__thumbnail-wrapper:before{content:"See more"}}.jdgm-rev__thumb-btn{color:#000}.jdgm-rev__thumb-btn:hover{opacity:0.8}.jdgm-rev__thumb-btn:not([disabled]):hover,.jdgm-rev__thumb-btn:hover,.jdgm-rev__thumb-btn:active,.jdgm-rev__thumb-btn:visited{color:#000}.jdgm-preview-badge .jdgm-star.jdgm-star{color:#00BCE7}.jdgm-widget .jdgm-write-rev-link{display:none}.jdgm-widget .jdgm-rev-widg[data-number-of-reviews='0']{display:none}.jdgm-prev-badge[data-average-rating='0.00']{display:none !important}.jdgm-rev .jdgm-rev__timestamp,.jdgm-quest .jdgm-rev__timestamp,.jdgm-carousel-item__timestamp{display:none !important}.jdgm-rev .jdgm-rev__icon{display:none !important}.jdgm-widget.jdgm-all-reviews-widget,.jdgm-widget .jdgm-rev-widg{border:none;padding:0}.jdgm-author-fullname{display:none !important}.jdgm-author-all-initials{display:none !important}.jdgm-author-last-initial{display:none !important}.jdgm-rev-widg__title{visibility:hidden}.jdgm-rev-widg__summary-text{visibility:hidden}.jdgm-prev-badge__text{visibility:hidden}.jdgm-rev__prod-link-prefix:before{content:'about'}.jdgm-rev__variant-label:before{content:'Variant: '}.jdgm-rev__out-of-store-text:before{content:'(out of store)'}@media only screen and (min-width: 768px){.jdgm-rev__pics .jdgm-rev_all-rev-page-picture-separator,.jdgm-rev__pics .jdgm-rev__product-picture{display:none}}@media only screen and (max-width: 768px){.jdgm-rev__pics .jdgm-rev_all-rev-page-picture-separator,.jdgm-rev__pics .jdgm-rev__product-picture{display:none}}.jdgm-preview-badge[data-template="product"]{display:none !important}.jdgm-preview-badge[data-template="collection"]{display:none !important}.jdgm-preview-badge[data-template="index"]{display:none !important}.jdgm-review-widget[data-from-snippet="true"]{display:none !important}.jdgm-verified-count-badget[data-from-snippet="true"]{display:none !important}.jdgm-carousel-wrapper[data-from-snippet="true"]{display:none !important}.jdgm-all-reviews-text[data-from-snippet="true"]{display:none !important}.jdgm-medals-section[data-from-snippet="true"]{display:none !important}.jdgm-ugc-media-wrapper[data-from-snippet="true"]{display:none !important}.jdgm-revs-tab-btn,.jdgm-revs-tab-btn:not([disabled]):hover,.jdgm-revs-tab-btn:focus{background-color:#ff00ec}.jdgm-revs-tab-btn,.jdgm-revs-tab-btn:not([disabled]):hover{color:#ffffff}.jdgm-rev__transparency-badge[data-badge-type="review_collected_via_store_invitation"]{display:none !important}.jdgm-rev__transparency-badge[data-badge-type="review_collected_from_another_provider"]{display:none !important}.jdgm-rev__transparency-badge[data-badge-type="review_collected_from_store_visitor"]{display:none !important}.jdgm-rev__transparency-badge[data-badge-type="review_written_in_etsy"]{display:none !important}.jdgm-rev__transparency-badge[data-badge-type="review_written_in_google_business"]{display:none !important}.jdgm-rev__transparency-badge[data-badge-type="review_written_in_shop_app"]{display:none !important}.jdgm-rev__transparency-badge[data-badge-type="review_earned_for_future_purchase"]{display:none !important}.jdgm-review-snippet-widget .jdgm-rev-snippet-widget__cards-container .jdgm-rev-snippet-card{border-radius:8px;background:#fff}.jdgm-review-snippet-widget .jdgm-rev-snippet-widget__cards-container .jdgm-rev-snippet-card__rev-rating .jdgm-star{color:#108474}.jdgm-review-snippet-widget .jdgm-rev-snippet-widget__prev-btn,.jdgm-review-snippet-widget .jdgm-rev-snippet-widget__next-btn{border-radius:50%;background:#fff}.jdgm-review-snippet-widget .jdgm-rev-snippet-widget__prev-btn>svg,.jdgm-review-snippet-widget .jdgm-rev-snippet-widget__next-btn>svg{fill:#000}.jdgm-full-rev-modal.rev-snippet-widget .jm-mfp-container .jm-mfp-content,.jdgm-full-rev-modal.rev-snippet-widget .jm-mfp-container .jdgm-full-rev__icon,.jdgm-full-rev-modal.rev-snippet-widget .jm-mfp-container .jdgm-full-rev__pic-img,.jdgm-full-rev-modal.rev-snippet-widget .jm-mfp-container .jdgm-full-rev__reply{border-radius:8px}.jdgm-full-rev-modal.rev-snippet-widget .jm-mfp-container .jdgm-full-rev[data-verified-buyer="true"] .jdgm-full-rev__icon::after{border-radius:8px}.jdgm-full-rev-modal.rev-snippet-widget .jm-mfp-container .jdgm-full-rev .jdgm-rev__buyer-badge{border-radius:calc( 8px / 2 )}.jdgm-full-rev-modal.rev-snippet-widget .jm-mfp-container .jdgm-full-rev .jdgm-full-rev__replier::before{content:'MrBeast.store'}.jdgm-full-rev-modal.rev-snippet-widget .jm-mfp-container .jdgm-full-rev .jdgm-full-rev__product-button{border-radius:calc( 8px * 6 )}
+</style> <style class='jdgm-settings-style'></style>
+
+  
+  
+  
+  <style class='jdgm-miracle-styles'>
+  @-webkit-keyframes jdgm-spin{0%{-webkit-transform:rotate(0deg);-ms-transform:rotate(0deg);transform:rotate(0deg)}100%{-webkit-transform:rotate(359deg);-ms-transform:rotate(359deg);transform:rotate(359deg)}}@keyframes jdgm-spin{0%{-webkit-transform:rotate(0deg);-ms-transform:rotate(0deg);transform:rotate(0deg)}100%{-webkit-transform:rotate(359deg);-ms-transform:rotate(359deg);transform:rotate(359deg)}}@font-face{font-family:'JudgemeStar';src:url("data:application/x-font-woff;charset=utf-8;base64,d09GRgABAAAAAAScAA0AAAAABrAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABGRlRNAAAEgAAAABoAAAAcbyQ+3kdERUYAAARgAAAAHgAAACAAMwAGT1MvMgAAAZgAAABGAAAAVi+vS9xjbWFwAAAB8AAAAEAAAAFKwBMjvmdhc3AAAARYAAAACAAAAAj//wADZ2x5ZgAAAkAAAAEJAAABdH33LXtoZWFkAAABMAAAAC0AAAA2BroQKWhoZWEAAAFgAAAAHAAAACQD5QHQaG10eAAAAeAAAAAPAAAAFAYAAABsb2NhAAACMAAAAA4AAAAOAO4AeG1heHAAAAF8AAAAHAAAACAASgAvbmFtZQAAA0wAAADeAAABkorWfVZwb3N0AAAELAAAACkAAABEp3ubLXgBY2BkYADhPPP4OfH8Nl8ZuJkYQODS2fRrCPr/aSYGxq1ALgcDWBoAO60LkwAAAHgBY2BkYGDc+v80gx4TAwgASaAICmABAFB+Arl4AWNgZGBgYGPQYWBiAAIwyQgWc2AAAwAHVQB6eAFjYGRiYJzAwMrAwejDmMbAwOAOpb8ySDK0MDAwMbByMsCBAAMCBKS5pjA4PGB4wMR44P8BBj3GrQymQGFGkBwAjtgK/gAAeAFjYoAAEA1jAwAAZAAHAHgB3crBCcAwDEPRZydkih567CDdf4ZskmLwFBV8xBfCaC4BXkOUmx4sU0h2ngNb9V0vQCxaRKIAevT7fGWuBrEAAAAAAAAAAAA0AHgAugAAeAF9z79Kw1AUx/FzTm7un6QmJtwmQ5Bg1abgEGr/BAqlU6Gju+Cgg1MkQ/sA7Vj7BOnmO/gUvo2Lo14NqIO6/IazfD8HEODtmQCfoANwNsyp2/GJt3WKQrd1NLiYYWx2PBqOsmJMEOznPOTzfSCrhAtbbLdmeFLJV9eKd63WLrZcIcuaEVdssWCKM6pLCfTVOYbz/0pNSMSZKLIZpvh78sAUH6PlMrreTCabP9r+Z/puPZ2ur/RqpQHgh+MIegCnXeM4MRAPjYN//5tj4ZtTjkFqEdmeMShlEJ7tVAly2TAkx6R68Fl4E/aVvn8JqHFQ4JS1434gXKcuL31dDhzs3YbsEOAd/IU88gAAAHgBfY4xTgMxEEVfkk0AgRCioKFxQYd2ZRtpixxgRU2RfhU5q5VWseQ4JdfgAJyBlmNwAM7ABRhZQ0ORwp7nr+eZAa54YwYg9zm3ynPOeFRe8MCrciXOh/KSS76UV5L/iDmrLiS5AeU519wrL3jmSbkS5115yR2fyivJv9kx0ZMZ2RLZw27q87iNQi8EBo5FSPIMw3HqBboi5lKTGAGDp8FKXWP+t9TU01Lj5His1Ba6uM9dTEMwvrFmbf5GC/q2drW3ruXUhhsCiQOjznFlCzYhHUZp4xp76vsvQh89CQAAeAFjYGJABowM6IANLMrEyMTIzMjCXpyRWJBqZshWXJJYBKOMAFHFBucAAAAAAAAB//8AAngBY2BkYGDgA2IJBhBgAvKZGViBJAuYxwAABJsAOgAAeAFjYGBgZACCk535hiD60tn0azAaAEqpB6wAAA==") format("woff");font-weight:normal;font-style:normal}.jdgm-star{font-family:'JudgemeStar';display:inline !important;text-decoration:none !important;padding:0 4px 0 0 !important;margin:0 !important;font-weight:bold;opacity:1;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}.jdgm-star:hover{opacity:1}.jdgm-star:last-of-type{padding:0 !important}.jdgm-star.jdgm--on:before{content:"\e000"}.jdgm-star.jdgm--off:before{content:"\e001"}.jdgm-star.jdgm--half:before{content:"\e002"}.jdgm-widget *{margin:0;line-height:1.4;-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box;-webkit-overflow-scrolling:touch}.jdgm-hidden{display:none !important;visibility:hidden !important}.jdgm-temp-hidden{display:none}.jdgm-spinner{width:40px;height:40px;margin:auto;border-radius:50%;border-top:2px solid #eee;border-right:2px solid #eee;border-bottom:2px solid #eee;border-left:2px solid #ccc;-webkit-animation:jdgm-spin 0.8s infinite linear;animation:jdgm-spin 0.8s infinite linear}.jdgm-spinner:empty{display:block}.jdgm-prev-badge{display:block !important}
+
+</style>
+<style class='jdgm-miracle-styles'>
+  @font-face{font-family:'JudgemeStar';src:url("data:application/x-font-woff;charset=utf-8;base64,d09GRgABAAAAAAScAA0AAAAABrAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABGRlRNAAAEgAAAABoAAAAcbyQ+3kdERUYAAARgAAAAHgAAACAAMwAGT1MvMgAAAZgAAABGAAAAVi+vS9xjbWFwAAAB8AAAAEAAAAFKwBMjvmdhc3AAAARYAAAACAAAAAj//wADZ2x5ZgAAAkAAAAEJAAABdH33LXtoZWFkAAABMAAAAC0AAAA2BroQKWhoZWEAAAFgAAAAHAAAACQD5QHQaG10eAAAAeAAAAAPAAAAFAYAAABsb2NhAAACMAAAAA4AAAAOAO4AeG1heHAAAAF8AAAAHAAAACAASgAvbmFtZQAAA0wAAADeAAABkorWfVZwb3N0AAAELAAAACkAAABEp3ubLXgBY2BkYADhPPP4OfH8Nl8ZuJkYQODS2fRrCPr/aSYGxq1ALgcDWBoAO60LkwAAAHgBY2BkYGDc+v80gx4TAwgASaAICmABAFB+Arl4AWNgZGBgYGPQYWBiAAIwyQgWc2AAAwAHVQB6eAFjYGRiYJzAwMrAwejDmMbAwOAOpb8ySDK0MDAwMbByMsCBAAMCBKS5pjA4PGB4wMR44P8BBj3GrQymQGFGkBwAjtgK/gAAeAFjYoAAEA1jAwAAZAAHAHgB3crBCcAwDEPRZydkih567CDdf4ZskmLwFBV8xBfCaC4BXkOUmx4sU0h2ngNb9V0vQCxaRKIAevT7fGWuBrEAAAAAAAAAAAA0AHgAugAAeAF9z79Kw1AUx/FzTm7un6QmJtwmQ5Bg1abgEGr/BAqlU6Gju+Cgg1MkQ/sA7Vj7BOnmO/gUvo2Lo14NqIO6/IazfD8HEODtmQCfoANwNsyp2/GJt3WKQrd1NLiYYWx2PBqOsmJMEOznPOTzfSCrhAtbbLdmeFLJV9eKd63WLrZcIcuaEVdssWCKM6pLCfTVOYbz/0pNSMSZKLIZpvh78sAUH6PlMrreTCabP9r+Z/puPZ2ur/RqpQHgh+MIegCnXeM4MRAPjYN//5tj4ZtTjkFqEdmeMShlEJ7tVAly2TAkx6R68Fl4E/aVvn8JqHFQ4JS1434gXKcuL31dDhzs3YbsEOAd/IU88gAAAHgBfY4xTgMxEEVfkk0AgRCioKFxQYd2ZRtpixxgRU2RfhU5q5VWseQ4JdfgAJyBlmNwAM7ABRhZQ0ORwp7nr+eZAa54YwYg9zm3ynPOeFRe8MCrciXOh/KSS76UV5L/iDmrLiS5AeU519wrL3jmSbkS5115yR2fyivJv9kx0ZMZ2RLZw27q87iNQi8EBo5FSPIMw3HqBboi5lKTGAGDp8FKXWP+t9TU01Lj5His1Ba6uM9dTEMwvrFmbf5GC/q2drW3ruXUhhsCiQOjznFlCzYhHUZp4xp76vsvQh89CQAAeAFjYGJABowM6IANLMrEyMTIzMjCXpyRWJBqZshWXJJYBKOMAFHFBucAAAAAAAAB//8AAngBY2BkYGDgA2IJBhBgAvKZGViBJAuYxwAABJsAOgAAeAFjYGBgZACCk535hiD60tn0azAaAEqpB6wAAA==") format("woff");font-weight:normal;font-style:normal}
+
+</style>
+
+
+  
+  
+   
+
+
+<script data-cfasync='false' class='jdgm-script'>
+!function(e){window.jdgm=window.jdgm||{},jdgm.CDN_HOST="https://cdnwidget.judge.me/",jdgm.CDN_HOST_ALT="https://cdn2.judge.me/cdn/widget_frontend/",jdgm.API_HOST="https://api.judge.me/",jdgm.CDN_BASE_URL="https://cdn.shopify.com/extensions/019d2ae4-726b-71cd-9303-3d49a4edded9/judgeme-422/assets/",jdgm.CDN_API_HOST="https://cdn.judge.me/",
+jdgm.docReady=function(d){(e.attachEvent?"complete"===e.readyState:"loading"!==e.readyState)?
+setTimeout(d,0):e.addEventListener("DOMContentLoaded",d)},jdgm.loadCSS=function(d,t,o,a){
+!o&&jdgm.loadCSS.requestedUrls.indexOf(d)>=0||(jdgm.loadCSS.requestedUrls.push(d),
+(a=e.createElement("link")).rel="stylesheet",a.class="jdgm-stylesheet",a.media="nope!",
+a.href=d,a.onload=function(){this.media="all",t&&setTimeout(t)},e.body.appendChild(a))},
+jdgm.loadCSS.requestedUrls=[],jdgm.loadJS=function(e,d){var t=new XMLHttpRequest;
+t.onreadystatechange=function(){4===t.readyState&&(Function(t.response)(),d&&d(t.response))},
+t.open("GET",e),t.onerror=function(){if(e.indexOf(jdgm.CDN_HOST)===0&&jdgm.CDN_HOST_ALT!==jdgm.CDN_HOST){var f=e.replace(jdgm.CDN_HOST,jdgm.CDN_HOST_ALT);jdgm.loadJS(f,d)}},t.send()},jdgm.docReady((function(){(window.jdgmLoadCSS||e.querySelectorAll(
+".jdgm-widget, .jdgm-all-reviews-page").length>0)&&(jdgmSettings.widget_load_with_code_splitting?
+parseFloat(jdgmSettings.widget_version)>=3?jdgm.loadCSS(jdgm.CDN_HOST+"widget_v3/base.css"):
+jdgm.loadCSS(jdgm.CDN_HOST+"widget/base.css"):jdgm.loadCSS(jdgm.CDN_HOST+"shopify_v2.css")
+)}))}(document);
+</script>
+<noscript><link rel="stylesheet" type="text/css" media="all" href="https://cdnwidget.judge.me/shopify_v2.css"></noscript>
+
+<!-- BEGIN app snippet: theme_fix_tags --><script>
+  (function() {
+    var jdgmThemeFixes = null;
+    if (!jdgmThemeFixes) return;
+    var thisThemeFix = jdgmThemeFixes[Shopify.theme.id];
+    if (!thisThemeFix) return;
+
+    if (thisThemeFix.html) {
+      document.addEventListener("DOMContentLoaded", function() {
+        var htmlDiv = document.createElement('div');
+        htmlDiv.classList.add('jdgm-theme-fix-html');
+        htmlDiv.innerHTML = thisThemeFix.html;
+        document.body.append(htmlDiv);
+      });
+    };
+
+    if (thisThemeFix.css) {
+      var styleTag = document.createElement('style');
+      styleTag.classList.add('jdgm-theme-fix-style');
+      styleTag.innerHTML = thisThemeFix.css;
+      document.head.append(styleTag);
+    };
+
+    if (thisThemeFix.js) {
+      var scriptTag = document.createElement('script');
+      scriptTag.classList.add('jdgm-theme-fix-script');
+      scriptTag.innerHTML = thisThemeFix.js;
+      document.head.append(scriptTag);
+    };
+  })();
+</script>
+<!-- END app snippet -->
+<!-- End of Judge.me Core -->
+
+
+
+<!-- END app block --><!-- BEGIN app block: shopify://apps/microsoft-clarity/blocks/clarity_js/31c3d126-8116-4b4a-8ba1-baeda7c4aeea -->
+<script type="text/javascript">
+  (function (c, l, a, r, i, t, y) {
+    c[a] = c[a] || function () { (c[a].q = c[a].q || []).push(arguments); };
+    t = l.createElement(r); t.async = 1; t.src = "https://www.clarity.ms/tag/" + i + "?ref=shopify";
+    y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y);
+
+    c.Shopify.loadFeatures([{ name: "consent-tracking-api", version: "0.1" }], error => {
+      if (error) {
+        console.error("Error loading Shopify features:", error);
+        return;
+      }
+
+      c[a]('consentv2', {
+        ad_Storage: c.Shopify.customerPrivacy.marketingAllowed() ? "granted" : "denied",
+        analytics_Storage: c.Shopify.customerPrivacy.analyticsProcessingAllowed() ? "granted" : "denied",
+        source: 101,
+      });
+    });
+
+    l.addEventListener("visitorConsentCollected", function (e) {
+      c[a]('consentv2', {
+        ad_Storage: e.detail.marketingAllowed ? "granted" : "denied",
+        analytics_Storage: e.detail.analyticsAllowed ? "granted" : "denied",
+        source: 101,
+      });
+    });
+  })(window, document, "clarity", "script", "vq1qv96bvl");
+</script>
+
+
+
+<!-- END app block --><!-- BEGIN app block: shopify://apps/klaviyo-email-marketing-sms/blocks/klaviyo-onsite-embed/2632fe16-c075-4321-a88b-50b567f42507 -->
+
+
+
+
+
+
+
+
+
+
+
+
+  <script async src="https://static.klaviyo.com/onsite/js/MGBpyG/klaviyo.js?company_id=MGBpyG"></script>
+  <script>!function(){if(!window.klaviyo){window._klOnsite=window._klOnsite||[];try{window.klaviyo=new Proxy({},{get:function(n,i){return"push"===i?function(){var n;(n=window._klOnsite).push.apply(n,arguments)}:function(){for(var n=arguments.length,o=new Array(n),w=0;w<n;w++)o[w]=arguments[w];var t="function"==typeof o[o.length-1]?o.pop():void 0,e=new Promise((function(n){window._klOnsite.push([i].concat(o,[function(i){t&&t(i),n(i)}]))}));return e}}})}catch(n){window.klaviyo=window.klaviyo||[],window.klaviyo.push=function(){var n;(n=window._klOnsite).push.apply(n,arguments)}}}}();</script>
+
+  
+    <script id="viewed_product">
+      if (item == null) {
+        var _learnq = _learnq || [];
+
+        var MetafieldReviews = null
+        var MetafieldYotpoRating = null
+        var MetafieldYotpoCount = null
+        var MetafieldLooxRating = null
+        var MetafieldLooxCount = null
+        var okendoProduct = null
+        var okendoProductReviewCount = null
+        var okendoProductReviewAverageValue = null
+        try {
+          // The following fields are used for Customer Hub recently viewed in order to add reviews.
+          // This information is not part of __kla_viewed. Instead, it is part of __kla_viewed_reviewed_items
+          MetafieldReviews = {"rating":{"scale_min":"1.0","scale_max":"5.0","value":"4.77"},"rating_count":79};
+          MetafieldYotpoRating = "3.4"
+          MetafieldYotpoCount = "15"
+          MetafieldLooxRating = null
+          MetafieldLooxCount = null
+
+          okendoProduct = null
+          // If the okendo metafield is not legacy, it will error, which then requires the new json formatted data
+          if (okendoProduct && 'error' in okendoProduct) {
+            okendoProduct = null
+          }
+          okendoProductReviewCount = okendoProduct ? okendoProduct.reviewCount : null
+          okendoProductReviewAverageValue = okendoProduct ? okendoProduct.reviewAverageValue : null
+        } catch (error) {
+          console.error('Error in Klaviyo onsite reviews tracking:', error);
+        }
+
+        var item = {
+          Name: "MrBeast Particle Backpack - Black",
+          ProductID: 8160917848191,
+          Categories: ["ACCESSORIES","Back To School","BEST SELLERS","DIGITAL TRENDING DATA","School Supplies","SHOP ALL","Trending Products","XMLFEED"],
+          ImageURL: "https://mrbeast.store/cdn/shop/files/BackpackFront_Particle_BP_grande.jpg?v=1774290366",
+          URL: "https://mrbeast.store/products/mrbeast-particle-backpack-black-o-s",
+          Brand: "MrBeast.store",
+          Price: "$70.00",
+          Value: "70.00",
+          CompareAtPrice: "$0.00"
+        };
+        _learnq.push(['track', 'Viewed Product', item]);
+        _learnq.push(['trackViewedItem', {
+          Title: item.Name,
+          ItemId: item.ProductID,
+          Categories: item.Categories,
+          ImageUrl: item.ImageURL,
+          Url: item.URL,
+          Metadata: {
+            Brand: item.Brand,
+            Price: item.Price,
+            Value: item.Value,
+            CompareAtPrice: item.CompareAtPrice
+          },
+          metafields:{
+            reviews: MetafieldReviews,
+            yotpo:{
+              rating: MetafieldYotpoRating,
+              count: MetafieldYotpoCount,
+            },
+            loox:{
+              rating: MetafieldLooxRating,
+              count: MetafieldLooxCount,
+            },
+            okendo: {
+              rating: okendoProductReviewAverageValue,
+              count: okendoProductReviewCount,
+            }
+          }
+        }]);
+      }
+    </script>
+  
+
+
+
+
+  <script>
+    window.klaviyoReviewsProductDesignMode = false
+  </script>
+
+
+
+  <!-- BEGIN app snippet: customer-hub-data --><script>
+  if (!window.customerHub) {
+    window.customerHub = {};
+  }
+  window.customerHub.storefrontRoutes = {
+    login: "https://mrbeast.store/customer_authentication/redirect?locale=en&region_country=CA?return_url=%2F%23k-hub",
+    register: "/account/register?return_url=%2F%23k-hub",
+    logout: "/account/logout",
+    profile: "/account",
+    addresses: "/account/addresses",
+  };
+  
+  window.customerHub.userId = null;
+  
+  window.customerHub.storeDomain = "mr-beast-2.myshopify.com";
+
+  
+    window.customerHub.activeProduct = {
+      name: "MrBeast Particle Backpack - Black",
+      category: null,
+      imageUrl: "https://mrbeast.store/cdn/shop/files/BackpackFront_Particle_BP_grande.jpg?v=1774290366",
+      id: "8160917848191",
+      link: "https://mrbeast.store/products/mrbeast-particle-backpack-black-o-s",
+      variants: [
+        
+          {
+            id: "44560119267455",
+            
+            imageUrl: null,
+            
+            price: "7000",
+            currency: "USD",
+            availableForSale: true,
+            title: "Default Title",
+          },
+        
+      ],
+    };
+    window.customerHub.activeProduct.variants.forEach((variant) => {
+        
+        variant.price = `${variant.price.slice(0, -2)}.${variant.price.slice(-2)}`;
+    });
+  
+
+  
+    window.customerHub.storeLocale = {
+        currentLanguage: 'en',
+        currentCountry: 'CA',
+        availableLanguages: [
+          
+            {
+              iso_code: 'en',
+              endonym_name: 'English'
+            }
+          
+        ],
+        availableCountries: [
+          
+            {
+              iso_code: 'AL',
+              name: 'Albania',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'DZ',
+              name: 'Algeria',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'AO',
+              name: 'Angola',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'AI',
+              name: 'Anguilla',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'AG',
+              name: 'Antigua &amp; Barbuda',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'AR',
+              name: 'Argentina',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'AM',
+              name: 'Armenia',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'AW',
+              name: 'Aruba',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'AU',
+              name: 'Australia',
+              currency_code: 'AUD'
+            },
+          
+            {
+              iso_code: 'AZ',
+              name: 'Azerbaijan',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'BS',
+              name: 'Bahamas',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'BH',
+              name: 'Bahrain',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'BD',
+              name: 'Bangladesh',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'BB',
+              name: 'Barbados',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'BE',
+              name: 'Belgium',
+              currency_code: 'EUR'
+            },
+          
+            {
+              iso_code: 'BZ',
+              name: 'Belize',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'BJ',
+              name: 'Benin',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'BM',
+              name: 'Bermuda',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'BO',
+              name: 'Bolivia',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'BA',
+              name: 'Bosnia &amp; Herzegovina',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'BW',
+              name: 'Botswana',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'BR',
+              name: 'Brazil',
+              currency_code: 'BRL'
+            },
+          
+            {
+              iso_code: 'VG',
+              name: 'British Virgin Islands',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'BN',
+              name: 'Brunei',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'BG',
+              name: 'Bulgaria',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'BF',
+              name: 'Burkina Faso',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'BI',
+              name: 'Burundi',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'KH',
+              name: 'Cambodia',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'CM',
+              name: 'Cameroon',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'CA',
+              name: 'Canada',
+              currency_code: 'CAD'
+            },
+          
+            {
+              iso_code: 'CV',
+              name: 'Cape Verde',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'BQ',
+              name: 'Caribbean Netherlands',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'KY',
+              name: 'Cayman Islands',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'TD',
+              name: 'Chad',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'CN',
+              name: 'China',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'CO',
+              name: 'Colombia',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'KM',
+              name: 'Comoros',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'CK',
+              name: 'Cook Islands',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'CR',
+              name: 'Costa Rica',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'HR',
+              name: 'Croatia',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'CW',
+              name: 'Curaçao',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'CZ',
+              name: 'Czechia',
+              currency_code: 'CZK'
+            },
+          
+            {
+              iso_code: 'DK',
+              name: 'Denmark',
+              currency_code: 'DKK'
+            },
+          
+            {
+              iso_code: 'DJ',
+              name: 'Djibouti',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'DM',
+              name: 'Dominica',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'DO',
+              name: 'Dominican Republic',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'EC',
+              name: 'Ecuador',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'EG',
+              name: 'Egypt',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'SV',
+              name: 'El Salvador',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'GQ',
+              name: 'Equatorial Guinea',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'SZ',
+              name: 'Eswatini',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'ET',
+              name: 'Ethiopia',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'FK',
+              name: 'Falkland Islands',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'FO',
+              name: 'Faroe Islands',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'FJ',
+              name: 'Fiji',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'FR',
+              name: 'France',
+              currency_code: 'EUR'
+            },
+          
+            {
+              iso_code: 'PF',
+              name: 'French Polynesia',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'GA',
+              name: 'Gabon',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'GM',
+              name: 'Gambia',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'GE',
+              name: 'Georgia',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'DE',
+              name: 'Germany',
+              currency_code: 'EUR'
+            },
+          
+            {
+              iso_code: 'GH',
+              name: 'Ghana',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'GI',
+              name: 'Gibraltar',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'GL',
+              name: 'Greenland',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'GD',
+              name: 'Grenada',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'GT',
+              name: 'Guatemala',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'GG',
+              name: 'Guernsey',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'GN',
+              name: 'Guinea',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'GW',
+              name: 'Guinea-Bissau',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'GY',
+              name: 'Guyana',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'HT',
+              name: 'Haiti',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'HN',
+              name: 'Honduras',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'HK',
+              name: 'Hong Kong SAR',
+              currency_code: 'HKD'
+            },
+          
+            {
+              iso_code: 'HU',
+              name: 'Hungary',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'IS',
+              name: 'Iceland',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'IE',
+              name: 'Ireland',
+              currency_code: 'EUR'
+            },
+          
+            {
+              iso_code: 'IL',
+              name: 'Israel',
+              currency_code: 'ILS'
+            },
+          
+            {
+              iso_code: 'IT',
+              name: 'Italy',
+              currency_code: 'EUR'
+            },
+          
+            {
+              iso_code: 'JM',
+              name: 'Jamaica',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'JP',
+              name: 'Japan',
+              currency_code: 'JPY'
+            },
+          
+            {
+              iso_code: 'JE',
+              name: 'Jersey',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'JO',
+              name: 'Jordan',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'KE',
+              name: 'Kenya',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'KI',
+              name: 'Kiribati',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'KW',
+              name: 'Kuwait',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'KG',
+              name: 'Kyrgyzstan',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'LA',
+              name: 'Laos',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'LS',
+              name: 'Lesotho',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'LI',
+              name: 'Liechtenstein',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'MO',
+              name: 'Macao SAR',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'MG',
+              name: 'Madagascar',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'MW',
+              name: 'Malawi',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'MV',
+              name: 'Maldives',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'MR',
+              name: 'Mauritania',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'MU',
+              name: 'Mauritius',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'MX',
+              name: 'Mexico',
+              currency_code: 'MXN'
+            },
+          
+            {
+              iso_code: 'MD',
+              name: 'Moldova',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'MN',
+              name: 'Mongolia',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'MS',
+              name: 'Montserrat',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'MA',
+              name: 'Morocco',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'MZ',
+              name: 'Mozambique',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'NA',
+              name: 'Namibia',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'NR',
+              name: 'Nauru',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'NP',
+              name: 'Nepal',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'NL',
+              name: 'Netherlands',
+              currency_code: 'EUR'
+            },
+          
+            {
+              iso_code: 'NC',
+              name: 'New Caledonia',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'NZ',
+              name: 'New Zealand',
+              currency_code: 'NZD'
+            },
+          
+            {
+              iso_code: 'NI',
+              name: 'Nicaragua',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'NG',
+              name: 'Nigeria',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'NU',
+              name: 'Niue',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'MK',
+              name: 'North Macedonia',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'NO',
+              name: 'Norway',
+              currency_code: 'NOK'
+            },
+          
+            {
+              iso_code: 'OM',
+              name: 'Oman',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'PK',
+              name: 'Pakistan',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'PA',
+              name: 'Panama',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'PG',
+              name: 'Papua New Guinea',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'PY',
+              name: 'Paraguay',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'PE',
+              name: 'Peru',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'PL',
+              name: 'Poland',
+              currency_code: 'PLN'
+            },
+          
+            {
+              iso_code: 'QA',
+              name: 'Qatar',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'RO',
+              name: 'Romania',
+              currency_code: 'RON'
+            },
+          
+            {
+              iso_code: 'RW',
+              name: 'Rwanda',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'WS',
+              name: 'Samoa',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'ST',
+              name: 'São Tomé &amp; Príncipe',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'SA',
+              name: 'Saudi Arabia',
+              currency_code: 'SAR'
+            },
+          
+            {
+              iso_code: 'SN',
+              name: 'Senegal',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'RS',
+              name: 'Serbia',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'SC',
+              name: 'Seychelles',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'SL',
+              name: 'Sierra Leone',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'SB',
+              name: 'Solomon Islands',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'KR',
+              name: 'South Korea',
+              currency_code: 'KRW'
+            },
+          
+            {
+              iso_code: 'ES',
+              name: 'Spain',
+              currency_code: 'EUR'
+            },
+          
+            {
+              iso_code: 'LK',
+              name: 'Sri Lanka',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'KN',
+              name: 'St. Kitts &amp; Nevis',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'LC',
+              name: 'St. Lucia',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'VC',
+              name: 'St. Vincent &amp; Grenadines',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'SR',
+              name: 'Suriname',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'SE',
+              name: 'Sweden',
+              currency_code: 'SEK'
+            },
+          
+            {
+              iso_code: 'CH',
+              name: 'Switzerland',
+              currency_code: 'CHF'
+            },
+          
+            {
+              iso_code: 'TZ',
+              name: 'Tanzania',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'TL',
+              name: 'Timor-Leste',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'TG',
+              name: 'Togo',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'TO',
+              name: 'Tonga',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'TT',
+              name: 'Trinidad &amp; Tobago',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'TN',
+              name: 'Tunisia',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'TC',
+              name: 'Turks &amp; Caicos Islands',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'TV',
+              name: 'Tuvalu',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'UG',
+              name: 'Uganda',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'AE',
+              name: 'United Arab Emirates',
+              currency_code: 'AED'
+            },
+          
+            {
+              iso_code: 'GB',
+              name: 'United Kingdom',
+              currency_code: 'GBP'
+            },
+          
+            {
+              iso_code: 'US',
+              name: 'United States',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'UY',
+              name: 'Uruguay',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'UZ',
+              name: 'Uzbekistan',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'VU',
+              name: 'Vanuatu',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'VN',
+              name: 'Vietnam',
+              currency_code: 'USD'
+            },
+          
+            {
+              iso_code: 'ZM',
+              name: 'Zambia',
+              currency_code: 'USD'
+            }
+          
+        ]
+    };
+  
+</script>
+<!-- END app snippet -->
+
+
+
+
+
+
+
+<!-- END app block --><script src="https://cdn.shopify.com/extensions/019d2ae4-726b-71cd-9303-3d49a4edded9/judgeme-422/assets/loader.js" type="text/javascript" defer="defer"></script>
+<script src="https://cdn.shopify.com/extensions/019d0734-b9e0-7a06-995b-c09b35520ca4/axon-shop-integration-80/assets/app-embed.js" type="text/javascript" defer="defer"></script>
+<script src="https://cdn.shopify.com/extensions/019d2883-266c-7fef-930f-dca91066fde2/js-client-254/assets/pushowl-shopify.js" type="text/javascript" defer="defer"></script>
+<link href="https://monorail-edge.shopifysvc.com" rel="dns-prefetch">
+<script>(function(){if ("sendBeacon" in navigator && "performance" in window) {try {var session_token_from_headers = performance.getEntriesByType('navigation')[0].serverTiming.find(x => x.name == '_s').description;} catch {var session_token_from_headers = undefined;}var session_cookie_matches = document.cookie.match(/_shopify_s=([^;]*)/);var session_token_from_cookie = session_cookie_matches && session_cookie_matches.length === 2 ? session_cookie_matches[1] : "";var session_token = session_token_from_headers || session_token_from_cookie || "";function handle_abandonment_event(e) {var entries = performance.getEntries().filter(function(entry) {return /monorail-edge.shopifysvc.com/.test(entry.name);});if (!window.abandonment_tracked && entries.length === 0) {window.abandonment_tracked = true;var currentMs = Date.now();var navigation_start = performance.timing.navigationStart;var payload = {shop_id: 1619755059,url: window.location.href,navigation_start,duration: currentMs - navigation_start,session_token,page_type: "product"};window.navigator.sendBeacon("https://monorail-edge.shopifysvc.com/v1/produce", JSON.stringify({schema_id: "online_store_buyer_site_abandonment/1.1",payload: payload,metadata: {event_created_at_ms: currentMs,event_sent_at_ms: currentMs}}));}}window.addEventListener('pagehide', handle_abandonment_event);}}());</script>
+<script id="web-pixels-manager-setup">(function e(e,d,r,n,o){if(void 0===o&&(o={}),!Boolean(null===(a=null===(i=window.Shopify)||void 0===i?void 0:i.analytics)||void 0===a?void 0:a.replayQueue)){var i,a;window.Shopify=window.Shopify||{};var t=window.Shopify;t.analytics=t.analytics||{};var s=t.analytics;s.replayQueue=[],s.publish=function(e,d,r){return s.replayQueue.push([e,d,r]),!0};try{self.performance.mark("wpm:start")}catch(e){}var l=function(){var e={modern:/Edge?\/(1{2}[4-9]|1[2-9]\d|[2-9]\d{2}|\d{4,})\.\d+(\.\d+|)|Firefox\/(1{2}[4-9]|1[2-9]\d|[2-9]\d{2}|\d{4,})\.\d+(\.\d+|)|Chrom(ium|e)\/(9{2}|\d{3,})\.\d+(\.\d+|)|(Maci|X1{2}).+ Version\/(15\.\d+|(1[6-9]|[2-9]\d|\d{3,})\.\d+)([,.]\d+|)( \(\w+\)|)( Mobile\/\w+|) Safari\/|Chrome.+OPR\/(9{2}|\d{3,})\.\d+\.\d+|(CPU[ +]OS|iPhone[ +]OS|CPU[ +]iPhone|CPU IPhone OS|CPU iPad OS)[ +]+(15[._]\d+|(1[6-9]|[2-9]\d|\d{3,})[._]\d+)([._]\d+|)|Android:?[ /-](13[3-9]|1[4-9]\d|[2-9]\d{2}|\d{4,})(\.\d+|)(\.\d+|)|Android.+Firefox\/(13[5-9]|1[4-9]\d|[2-9]\d{2}|\d{4,})\.\d+(\.\d+|)|Android.+Chrom(ium|e)\/(13[3-9]|1[4-9]\d|[2-9]\d{2}|\d{4,})\.\d+(\.\d+|)|SamsungBrowser\/([2-9]\d|\d{3,})\.\d+/,legacy:/Edge?\/(1[6-9]|[2-9]\d|\d{3,})\.\d+(\.\d+|)|Firefox\/(5[4-9]|[6-9]\d|\d{3,})\.\d+(\.\d+|)|Chrom(ium|e)\/(5[1-9]|[6-9]\d|\d{3,})\.\d+(\.\d+|)([\d.]+$|.*Safari\/(?![\d.]+ Edge\/[\d.]+$))|(Maci|X1{2}).+ Version\/(10\.\d+|(1[1-9]|[2-9]\d|\d{3,})\.\d+)([,.]\d+|)( \(\w+\)|)( Mobile\/\w+|) Safari\/|Chrome.+OPR\/(3[89]|[4-9]\d|\d{3,})\.\d+\.\d+|(CPU[ +]OS|iPhone[ +]OS|CPU[ +]iPhone|CPU IPhone OS|CPU iPad OS)[ +]+(10[._]\d+|(1[1-9]|[2-9]\d|\d{3,})[._]\d+)([._]\d+|)|Android:?[ /-](13[3-9]|1[4-9]\d|[2-9]\d{2}|\d{4,})(\.\d+|)(\.\d+|)|Mobile Safari.+OPR\/([89]\d|\d{3,})\.\d+\.\d+|Android.+Firefox\/(13[5-9]|1[4-9]\d|[2-9]\d{2}|\d{4,})\.\d+(\.\d+|)|Android.+Chrom(ium|e)\/(13[3-9]|1[4-9]\d|[2-9]\d{2}|\d{4,})\.\d+(\.\d+|)|Android.+(UC? ?Browser|UCWEB|U3)[ /]?(15\.([5-9]|\d{2,})|(1[6-9]|[2-9]\d|\d{3,})\.\d+)\.\d+|SamsungBrowser\/(5\.\d+|([6-9]|\d{2,})\.\d+)|Android.+MQ{2}Browser\/(14(\.(9|\d{2,})|)|(1[5-9]|[2-9]\d|\d{3,})(\.\d+|))(\.\d+|)|K[Aa][Ii]OS\/(3\.\d+|([4-9]|\d{2,})\.\d+)(\.\d+|)/},d=e.modern,r=e.legacy,n=navigator.userAgent;return n.match(d)?"modern":n.match(r)?"legacy":"unknown"}(),u="modern"===l?"modern":"legacy",c=(null!=n?n:{modern:"",legacy:""})[u],f=function(e){return[e.baseUrl,"/wpm","/b",e.hashVersion,"modern"===e.buildTarget?"m":"l",".js"].join("")}({baseUrl:d,hashVersion:r,buildTarget:u}),m=function(e){var d=e.version,r=e.bundleTarget,n=e.surface,o=e.pageUrl,i=e.monorailEndpoint;return{emit:function(e){var a=e.status,t=e.errorMsg,s=(new Date).getTime(),l=JSON.stringify({metadata:{event_sent_at_ms:s},events:[{schema_id:"web_pixels_manager_load/3.1",payload:{version:d,bundle_target:r,page_url:o,status:a,surface:n,error_msg:t},metadata:{event_created_at_ms:s}}]});if(!i)return console&&console.warn&&console.warn("[Web Pixels Manager] No Monorail endpoint provided, skipping logging."),!1;try{return self.navigator.sendBeacon.bind(self.navigator)(i,l)}catch(e){}var u=new XMLHttpRequest;try{return u.open("POST",i,!0),u.setRequestHeader("Content-Type","text/plain"),u.send(l),!0}catch(e){return console&&console.warn&&console.warn("[Web Pixels Manager] Got an unhandled error while logging to Monorail."),!1}}}}({version:r,bundleTarget:l,surface:e.surface,pageUrl:self.location.href,monorailEndpoint:e.monorailEndpoint});try{o.browserTarget=l,function(e){var d=e.src,r=e.async,n=void 0===r||r,o=e.onload,i=e.onerror,a=e.sri,t=e.scriptDataAttributes,s=void 0===t?{}:t,l=document.createElement("script"),u=document.querySelector("head"),c=document.querySelector("body");if(l.async=n,l.src=d,a&&(l.integrity=a,l.crossOrigin="anonymous"),s)for(var f in s)if(Object.prototype.hasOwnProperty.call(s,f))try{l.dataset[f]=s[f]}catch(e){}if(o&&l.addEventListener("load",o),i&&l.addEventListener("error",i),u)u.appendChild(l);else{if(!c)throw new Error("Did not find a head or body element to append the script");c.appendChild(l)}}({src:f,async:!0,onload:function(){if(!function(){var e,d;return Boolean(null===(d=null===(e=window.Shopify)||void 0===e?void 0:e.analytics)||void 0===d?void 0:d.initialized)}()){var d=window.webPixelsManager.init(e)||void 0;if(d){var r=window.Shopify.analytics;r.replayQueue.forEach((function(e){var r=e[0],n=e[1],o=e[2];d.publishCustomEvent(r,n,o)})),r.replayQueue=[],r.publish=d.publishCustomEvent,r.visitor=d.visitor,r.initialized=!0}}},onerror:function(){return m.emit({status:"failed",errorMsg:"".concat(f," has failed to load")})},sri:function(e){var d=/^sha384-[A-Za-z0-9+/=]+$/;return"string"==typeof e&&d.test(e)}(c)?c:"",scriptDataAttributes:o}),m.emit({status:"loading"})}catch(e){m.emit({status:"failed",errorMsg:(null==e?void 0:e.message)||"Unknown error"})}}})({shopId: 1619755059,storefrontBaseUrl: "https://mrbeast.store",extensionsBaseUrl: "https://extensions.shopifycdn.com/cdn/shopifycloud/web-pixels-manager",monorailEndpoint: "https://monorail-edge.shopifysvc.com/unstable/produce_batch",surface: "storefront-renderer",enabledBetaFlags: ["2dca8a86","5476ea20","ed8389fc"],webPixelsConfigList: [{"id":"18874495","configuration":"{\"brandID\":\"24rk4xhbkgin\",\"trackingURL\":\"https:\/\/track.proxima.ai\/shopify\"}","eventPayloadVersion":"v1","runtimeContext":"STRICT","scriptVersion":"67ba09585928c12b2c372e2a8ce187e9","type":"APP","apiClientId":2756640769,"privacyPurposes":["ANALYTICS","MARKETING","SALE_OF_DATA"],"dataSharingAdjustments":{"protectedCustomerApprovalScopes":["read_customer_address","read_customer_email","read_customer_name","read_customer_personal_data","read_customer_phone"],"dataSharingControls":["share_all_events"]},"dataSharingState":"optimized","enabledFlags":["3b5414a6"]},{"id":"18841727","configuration":"{\"projectId\":\"vq1qv96bvl\"}","eventPayloadVersion":"v1","runtimeContext":"STRICT","scriptVersion":"3f95c569dcd8d256ed20e00a12567bee","type":"APP","apiClientId":240074326017,"privacyPurposes":[],"capabilities":["advanced_dom_events"],"dataSharingAdjustments":{"protectedCustomerApprovalScopes":["read_customer_personal_data"],"dataSharingControls":["share_all_events"]},"dataSharingState":"unrestricted","enabledFlags":["3b5414a6"]},{"id":"18710655","configuration":"{\"eventKey\":\"8ae151d3-fc75-4ae8-bb83-77dab841153e\",\"name\":\"mr-beast-2 - Axon Pixel\",\"storefrontToken\":\"1e619b000b5f94e969f59e69e453c2f0\"}","eventPayloadVersion":"v1","runtimeContext":"STRICT","scriptVersion":"3124cb91353b3ac2aeec90ad81e4040b","type":"APP","apiClientId":256560922625,"privacyPurposes":["ANALYTICS","MARKETING","SALE_OF_DATA"],"dataSharingAdjustments":{"protectedCustomerApprovalScopes":["read_customer_address","read_customer_email","read_customer_personal_data","read_customer_phone"],"dataSharingControls":["share_all_events"]},"dataSharingState":"optimized","enabledFlags":["3b5414a6"]},{"id":"18645119","configuration":"{\"accountID\":\"MGBpyG\",\"webPixelConfig\":\"eyJlbmFibGVBZGRlZFRvQ2FydEV2ZW50cyI6IHRydWV9\"}","eventPayloadVersion":"v1","runtimeContext":"STRICT","scriptVersion":"524f6c1ee37bacdca7657a665bdca589","type":"APP","apiClientId":123074,"privacyPurposes":["ANALYTICS","MARKETING"],"dataSharingAdjustments":{"protectedCustomerApprovalScopes":["read_customer_address","read_customer_email","read_customer_name","read_customer_personal_data","read_customer_phone"],"dataSharingControls":["share_all_events"]},"dataSharingState":"optimized","enabledFlags":["9a3ed68a","3b5414a6"]},{"id":"18546815","configuration":"{\"ti\":\"343211417\",\"endpoint\":\"https:\/\/bat.bing.com\/action\/0\"}","eventPayloadVersion":"v1","runtimeContext":"STRICT","scriptVersion":"5ee93563fe31b11d2d65e2f09a5229dc","type":"APP","apiClientId":2997493,"privacyPurposes":["ANALYTICS","MARKETING","SALE_OF_DATA"],"dataSharingAdjustments":{"protectedCustomerApprovalScopes":["read_customer_personal_data"],"dataSharingControls":["share_all_events"]},"dataSharingState":"optimized","enabledFlags":["3b5414a6"]},{"id":"18481279","configuration":"{\"config\":\"{\\\"google_tag_ids\\\":[\\\"G-1EWH7RFSKD\\\",\\\"AW-765997558\\\",\\\"GT-PBS8569J\\\",\\\"GT-P3FFPZKG\\\",\\\"GT-5NTCPR7G\\\",\\\"G-0L5ZW41G59\\\",\\\"GT-NNM9JCJ\\\",\\\"GT-KTBHRH6C\\\"],\\\"target_country\\\":\\\"US\\\",\\\"gtag_events\\\":[{\\\"type\\\":\\\"search\\\",\\\"action_label\\\":[\\\"G-1EWH7RFSKD\\\",\\\"AW-765997558\\\/kuViCN3tusgBEPbjoO0C\\\",\\\"MC-E811LCEPEH\\\",\\\"MC-4DT8JFWCHX\\\",\\\"G-0L5ZW41G59\\\",\\\"MC-CPQKXLGXSC\\\",\\\"MC-PX7EBN2CL3\\\"]},{\\\"type\\\":\\\"begin_checkout\\\",\\\"action_label\\\":[\\\"G-1EWH7RFSKD\\\",\\\"AW-765997558\\\/zA9cCNrtusgBEPbjoO0C\\\",\\\"MC-E811LCEPEH\\\",\\\"MC-4DT8JFWCHX\\\",\\\"G-0L5ZW41G59\\\",\\\"MC-CPQKXLGXSC\\\",\\\"MC-PX7EBN2CL3\\\"]},{\\\"type\\\":\\\"view_item\\\",\\\"action_label\\\":[\\\"G-1EWH7RFSKD\\\",\\\"AW-765997558\\\/rdP3CKzgusgBEPbjoO0C\\\",\\\"MC-3V8Y6JFCDS\\\",\\\"MC-E811LCEPEH\\\",\\\"MC-4DT8JFWCHX\\\",\\\"G-0L5ZW41G59\\\",\\\"MC-CPQKXLGXSC\\\",\\\"MC-PX7EBN2CL3\\\"]},{\\\"type\\\":\\\"purchase\\\",\\\"action_label\\\":[\\\"G-1EWH7RFSKD\\\",\\\"AW-765997558\\\/qriWCNr2g7MYEPbjoO0C\\\",\\\"MC-3V8Y6JFCDS\\\",\\\"MC-E811LCEPEH\\\",\\\"MC-4DT8JFWCHX\\\",\\\"G-0L5ZW41G59\\\",\\\"MC-CPQKXLGXSC\\\",\\\"MC-PX7EBN2CL3\\\"]},{\\\"type\\\":\\\"page_view\\\",\\\"action_label\\\":[\\\"G-1EWH7RFSKD\\\",\\\"AW-765997558\\\/E1azCK7fusgBEPbjoO0C\\\",\\\"MC-3V8Y6JFCDS\\\",\\\"MC-E811LCEPEH\\\",\\\"MC-4DT8JFWCHX\\\",\\\"G-0L5ZW41G59\\\",\\\"MC-CPQKXLGXSC\\\",\\\"MC-PX7EBN2CL3\\\"]},{\\\"type\\\":\\\"add_payment_info\\\",\\\"action_label\\\":[\\\"G-1EWH7RFSKD\\\",\\\"AW-765997558\\\/0BEkCODtusgBEPbjoO0C\\\",\\\"MC-E811LCEPEH\\\",\\\"MC-4DT8JFWCHX\\\",\\\"G-0L5ZW41G59\\\",\\\"MC-CPQKXLGXSC\\\",\\\"MC-PX7EBN2CL3\\\"]},{\\\"type\\\":\\\"add_to_cart\\\",\\\"action_label\\\":[\\\"G-1EWH7RFSKD\\\",\\\"AW-765997558\\\/TaBhCK_gusgBEPbjoO0C\\\",\\\"MC-E811LCEPEH\\\",\\\"MC-4DT8JFWCHX\\\",\\\"G-0L5ZW41G59\\\",\\\"MC-CPQKXLGXSC\\\",\\\"MC-PX7EBN2CL3\\\"]}],\\\"enable_monitoring_mode\\\":false}\"}","eventPayloadVersion":"v1","runtimeContext":"OPEN","scriptVersion":"ac521efa9cd6866459cd0b40264a3f38","type":"APP","apiClientId":1780363,"privacyPurposes":[],"dataSharingAdjustments":{"protectedCustomerApprovalScopes":["read_customer_address","read_customer_email","read_customer_name","read_customer_personal_data","read_customer_phone"],"dataSharingControls":["share_all_events"]},"dataSharingState":"optimized","enabledFlags":["9a3ed68a","3b5414a6"]},{"id":"18350207","configuration":"{\"webPixelName\":\"Judge.me\"}","eventPayloadVersion":"v1","runtimeContext":"STRICT","scriptVersion":"34ad157958823915625854214640f0bf","type":"APP","apiClientId":683015,"privacyPurposes":["ANALYTICS"],"dataSharingAdjustments":{"protectedCustomerApprovalScopes":["read_customer_email","read_customer_name","read_customer_personal_data","read_customer_phone"],"dataSharingControls":["share_all_events"]},"dataSharingState":"unrestricted","enabledFlags":["3b5414a6"]},{"id":"17760383","configuration":"{\"pixelCode\":\"CIK4EB3C77UB8AEBBL9G\"}","eventPayloadVersion":"v1","runtimeContext":"STRICT","scriptVersion":"22e92c2ad45662f435e4801458fb78cc","type":"APP","apiClientId":4383523,"privacyPurposes":["ANALYTICS","MARKETING","SALE_OF_DATA"],"dataSharingAdjustments":{"protectedCustomerApprovalScopes":["read_customer_address","read_customer_email","read_customer_name","read_customer_personal_data","read_customer_phone"],"dataSharingControls":["share_all_events"]},"dataSharingState":"optimized","enabledFlags":["3b5414a6"]},{"id":"17367167","configuration":"{\"pixel_id\":\"167890582868011\",\"pixel_type\":\"facebook_pixel\",\"metaapp_system_user_token\":\"-\"}","eventPayloadVersion":"v1","runtimeContext":"OPEN","scriptVersion":"ca16bc87fe92b6042fbaa3acc2fbdaa6","type":"APP","apiClientId":2329312,"privacyPurposes":["ANALYTICS","MARKETING","SALE_OF_DATA"],"dataSharingAdjustments":{"protectedCustomerApprovalScopes":["read_customer_address","read_customer_email","read_customer_name","read_customer_personal_data","read_customer_phone"],"dataSharingControls":["share_all_events"]},"dataSharingState":"optimized","enabledFlags":["9a3ed68a","3b5414a6"]},{"id":"17203327","configuration":"{\"tagID\":\"2612786697832\"}","eventPayloadVersion":"v1","runtimeContext":"STRICT","scriptVersion":"18031546ee651571ed29edbe71a3550b","type":"APP","apiClientId":3009811,"privacyPurposes":["ANALYTICS","MARKETING","SALE_OF_DATA"],"dataSharingAdjustments":{"protectedCustomerApprovalScopes":["read_customer_address","read_customer_email","read_customer_name","read_customer_personal_data","read_customer_phone"],"dataSharingControls":["share_all_events"]},"dataSharingState":"optimized","enabledFlags":["3b5414a6"]},{"id":"17170559","configuration":"{\"subdomain\":\"mr-beast-2\"}","eventPayloadVersion":"v1","runtimeContext":"STRICT","scriptVersion":"11ea11e7c95cac4beb5f725dae51a2b4","type":"APP","apiClientId":1615517,"privacyPurposes":["ANALYTICS","MARKETING","SALE_OF_DATA"],"dataSharingAdjustments":{"protectedCustomerApprovalScopes":["read_customer_address","read_customer_email","read_customer_name","read_customer_personal_data","read_customer_phone"],"dataSharingControls":["share_all_events"]},"dataSharingState":"optimized","enabledFlags":["9a3ed68a","3b5414a6"]},{"id":"17072255","configuration":"{\"myshopifyDomain\":\"mr-beast-2.myshopify.com\"}","eventPayloadVersion":"v1","runtimeContext":"STRICT","scriptVersion":"23b97d18e2aa74363140dc29c9284e87","type":"APP","apiClientId":2775569,"privacyPurposes":["ANALYTICS","MARKETING","SALE_OF_DATA"],"dataSharingAdjustments":{"protectedCustomerApprovalScopes":["read_customer_address","read_customer_email","read_customer_name","read_customer_phone","read_customer_personal_data"],"dataSharingControls":["share_all_events"]},"dataSharingState":"optimized","enabledFlags":["3b5414a6"]},{"id":"16875571","configuration":"{\"pixelId\":\"b64d97e5-0f1a-4246-bf5c-ca1271fe781b\"}","eventPayloadVersion":"v1","runtimeContext":"STRICT","scriptVersion":"c119f01612c13b62ab52809eb08154bb","type":"APP","apiClientId":2556259,"privacyPurposes":["ANALYTICS","MARKETING","SALE_OF_DATA"],"dataSharingAdjustments":{"protectedCustomerApprovalScopes":["read_customer_address","read_customer_email","read_customer_name","read_customer_personal_data","read_customer_phone"],"dataSharingControls":["share_all_events"]},"dataSharingState":"optimized","enabledFlags":["3b5414a6"]},{"id":"5210239","eventPayloadVersion":"1","runtimeContext":"LAX","scriptVersion":"2","type":"CUSTOM","privacyPurposes":["ANALYTICS","MARKETING","SALE_OF_DATA"],"name":"MS Clarity Pixel"},{"id":"5472383","eventPayloadVersion":"1","runtimeContext":"LAX","scriptVersion":"8","type":"CUSTOM","privacyPurposes":["ANALYTICS","MARKETING","SALE_OF_DATA"],"name":"Chord Analytics"},{"id":"5537919","eventPayloadVersion":"1","runtimeContext":"LAX","scriptVersion":"1","type":"CUSTOM","privacyPurposes":[],"name":"CUSTOM CSS"},{"id":"shopify-app-pixel","configuration":"{}","eventPayloadVersion":"v1","runtimeContext":"STRICT","scriptVersion":"0450","apiClientId":"shopify-pixel","type":"APP","privacyPurposes":["ANALYTICS","MARKETING"]},{"id":"shopify-custom-pixel","eventPayloadVersion":"v1","runtimeContext":"LAX","scriptVersion":"0450","apiClientId":"shopify-pixel","type":"CUSTOM","privacyPurposes":["ANALYTICS","MARKETING"]}],isMerchantRequest: false,initData: {"shop":{"name":"MrBeast.store","paymentSettings":{"currencyCode":"USD"},"myshopifyDomain":"mr-beast-2.myshopify.com","countryCode":"US","storefrontUrl":"https:\/\/mrbeast.store"},"customer":null,"cart":null,"checkout":null,"productVariants":[{"price":{"amount":70.0,"currencyCode":"CAD"},"product":{"title":"MrBeast Particle Backpack - Black","vendor":"MrBeast.store","id":"8160917848191","untranslatedTitle":"MrBeast Particle Backpack - Black","url":"\/products\/mrbeast-particle-backpack-black-o-s","type":"Backpack"},"id":"44560119267455","image":{"src":"\/\/mrbeast.store\/cdn\/shop\/files\/BackpackFront_Particle_BP.jpg?v=1774290366"},"sku":"MB0172-BLK","title":"Default Title","untranslatedTitle":"Default Title"}],"purchasingCompany":null},},"https://mrbeast.store/cdn","01689e1cw391fac49p9901ea95m3b388515",{"modern":"","legacy":""},{"shopId":"1619755059","storefrontBaseUrl":"https:\/\/mrbeast.store","extensionBaseUrl":"https:\/\/extensions.shopifycdn.com\/cdn\/shopifycloud\/web-pixels-manager","surface":"storefront-renderer","enabledBetaFlags":"[\"2dca8a86\", \"5476ea20\", \"ed8389fc\"]","isMerchantRequest":"false","hashVersion":"01689e1cw391fac49p9901ea95m3b388515","publish":"custom","events":"[[\"page_viewed\",{}],[\"product_viewed\",{\"productVariant\":{\"price\":{\"amount\":70.0,\"currencyCode\":\"CAD\"},\"product\":{\"title\":\"MrBeast Particle Backpack - Black\",\"vendor\":\"MrBeast.store\",\"id\":\"8160917848191\",\"untranslatedTitle\":\"MrBeast Particle Backpack - Black\",\"url\":\"\/products\/mrbeast-particle-backpack-black-o-s\",\"type\":\"Backpack\"},\"id\":\"44560119267455\",\"image\":{\"src\":\"\/\/mrbeast.store\/cdn\/shop\/files\/BackpackFront_Particle_BP.jpg?v=1774290366\"},\"sku\":\"MB0172-BLK\",\"title\":\"Default Title\",\"untranslatedTitle\":\"Default Title\"}}]]"});</script><script>
+  window.ShopifyAnalytics = window.ShopifyAnalytics || {};
+  window.ShopifyAnalytics.meta = window.ShopifyAnalytics.meta || {};
+  window.ShopifyAnalytics.meta.currency = 'CAD';
+  var meta = {"product":{"id":8160917848191,"gid":"gid:\/\/shopify\/Product\/8160917848191","vendor":"MrBeast.store","type":"Backpack","handle":"mrbeast-particle-backpack-black-o-s","variants":[{"id":44560119267455,"price":7000,"name":"MrBeast Particle Backpack - Black","public_title":null,"sku":"MB0172-BLK"}],"remote":false},"page":{"pageType":"product","resourceType":"product","resourceId":8160917848191,"requestId":"2f08d586-eed1-44a2-a2e3-61b5dbd19902-1774582144"}};
+  for (var attr in meta) {
+    window.ShopifyAnalytics.meta[attr] = meta[attr];
+  }
+</script>
+<script class="analytics">
+  (function () {
+    var customDocumentWrite = function(content) {
+      var jquery = null;
+
+      if (window.jQuery) {
+        jquery = window.jQuery;
+      } else if (window.Checkout && window.Checkout.$) {
+        jquery = window.Checkout.$;
+      }
+
+      if (jquery) {
+        jquery('body').append(content);
+      }
+    };
+
+    var hasLoggedConversion = function(token) {
+      if (token) {
+        return document.cookie.indexOf('loggedConversion=' + token) !== -1;
+      }
+      return false;
+    }
+
+    var setCookieIfConversion = function(token) {
+      if (token) {
+        var twoMonthsFromNow = new Date(Date.now());
+        twoMonthsFromNow.setMonth(twoMonthsFromNow.getMonth() + 2);
+
+        document.cookie = 'loggedConversion=' + token + '; expires=' + twoMonthsFromNow;
+      }
+    }
+
+    var trekkie = window.ShopifyAnalytics.lib = window.trekkie = window.trekkie || [];
+    if (trekkie.integrations) {
+      return;
+    }
+    trekkie.methods = [
+      'identify',
+      'page',
+      'ready',
+      'track',
+      'trackForm',
+      'trackLink'
+    ];
+    trekkie.factory = function(method) {
+      return function() {
+        var args = Array.prototype.slice.call(arguments);
+        args.unshift(method);
+        trekkie.push(args);
+        return trekkie;
+      };
+    };
+    for (var i = 0; i < trekkie.methods.length; i++) {
+      var key = trekkie.methods[i];
+      trekkie[key] = trekkie.factory(key);
+    }
+    trekkie.load = function(config) {
+      trekkie.config = config || {};
+      trekkie.config.initialDocumentCookie = document.cookie;
+      var first = document.getElementsByTagName('script')[0];
+      var script = document.createElement('script');
+      script.type = 'text/javascript';
+      script.onerror = function(e) {
+        var scriptFallback = document.createElement('script');
+        scriptFallback.type = 'text/javascript';
+        scriptFallback.onerror = function(error) {
+                var Monorail = {
+      produce: function produce(monorailDomain, schemaId, payload) {
+        var currentMs = new Date().getTime();
+        var event = {
+          schema_id: schemaId,
+          payload: payload,
+          metadata: {
+            event_created_at_ms: currentMs,
+            event_sent_at_ms: currentMs
+          }
+        };
+        return Monorail.sendRequest("https://" + monorailDomain + "/v1/produce", JSON.stringify(event));
+      },
+      sendRequest: function sendRequest(endpointUrl, payload) {
+        // Try the sendBeacon API
+        if (window && window.navigator && typeof window.navigator.sendBeacon === 'function' && typeof window.Blob === 'function' && !Monorail.isIos12()) {
+          var blobData = new window.Blob([payload], {
+            type: 'text/plain'
+          });
+
+          if (window.navigator.sendBeacon(endpointUrl, blobData)) {
+            return true;
+          } // sendBeacon was not successful
+
+        } // XHR beacon
+
+        var xhr = new XMLHttpRequest();
+
+        try {
+          xhr.open('POST', endpointUrl);
+          xhr.setRequestHeader('Content-Type', 'text/plain');
+          xhr.send(payload);
+        } catch (e) {
+          console.log(e);
+        }
+
+        return false;
+      },
+      isIos12: function isIos12() {
+        return window.navigator.userAgent.lastIndexOf('iPhone; CPU iPhone OS 12_') !== -1 || window.navigator.userAgent.lastIndexOf('iPad; CPU OS 12_') !== -1;
+      }
+    };
+    Monorail.produce('monorail-edge.shopifysvc.com',
+      'trekkie_storefront_load_errors/1.1',
+      {shop_id: 1619755059,
+      theme_id: 143375138943,
+      app_name: "storefront",
+      context_url: window.location.href,
+      source_url: "//mrbeast.store/cdn/s/trekkie.storefront.debbda03e9ac9faaa11b0ff77bcb79c971117f47.min.js"});
+
+        };
+        scriptFallback.async = true;
+        scriptFallback.src = '//mrbeast.store/cdn/s/trekkie.storefront.debbda03e9ac9faaa11b0ff77bcb79c971117f47.min.js';
+        first.parentNode.insertBefore(scriptFallback, first);
+      };
+      script.async = true;
+      script.src = '//mrbeast.store/cdn/s/trekkie.storefront.debbda03e9ac9faaa11b0ff77bcb79c971117f47.min.js';
+      first.parentNode.insertBefore(script, first);
+    };
+    trekkie.load(
+      {"Trekkie":{"appName":"storefront","development":false,"defaultAttributes":{"shopId":1619755059,"isMerchantRequest":null,"themeId":143375138943,"themeCityHash":"5923571121099885770","contentLanguage":"en","currency":"CAD"},"isServerSideCookieWritingEnabled":true,"monorailRegion":"shop_domain","enabledBetaFlags":["65f19447","b5387b81"]},"Session Attribution":{},"S2S":{"facebookCapiEnabled":true,"source":"trekkie-storefront-renderer","apiClientId":580111}}
+    );
+
+    var loaded = false;
+    trekkie.ready(function() {
+      if (loaded) return;
+      loaded = true;
+
+      window.ShopifyAnalytics.lib = window.trekkie;
+
+      var originalDocumentWrite = document.write;
+      document.write = customDocumentWrite;
+      try { window.ShopifyAnalytics.merchantGoogleAnalytics.call(this); } catch(error) {};
+      document.write = originalDocumentWrite;
+
+      window.ShopifyAnalytics.lib.page(null,{"pageType":"product","resourceType":"product","resourceId":8160917848191,"requestId":"2f08d586-eed1-44a2-a2e3-61b5dbd19902-1774582144","shopifyEmitted":true});
+
+      var match = window.location.pathname.match(/checkouts\/(.+)\/(thank_you|post_purchase)/)
+      var token = match? match[1]: undefined;
+      if (!hasLoggedConversion(token)) {
+        setCookieIfConversion(token);
+        window.ShopifyAnalytics.lib.track("Viewed Product",{"currency":"CAD","variantId":44560119267455,"productId":8160917848191,"productGid":"gid:\/\/shopify\/Product\/8160917848191","name":"MrBeast Particle Backpack - Black","price":"70.00","sku":"MB0172-BLK","brand":"MrBeast.store","variant":null,"category":"Backpack","nonInteraction":true,"remote":false},undefined,undefined,{"shopifyEmitted":true});
+      window.ShopifyAnalytics.lib.track("monorail:\/\/trekkie_storefront_viewed_product\/1.1",{"currency":"CAD","variantId":44560119267455,"productId":8160917848191,"productGid":"gid:\/\/shopify\/Product\/8160917848191","name":"MrBeast Particle Backpack - Black","price":"70.00","sku":"MB0172-BLK","brand":"MrBeast.store","variant":null,"category":"Backpack","nonInteraction":true,"remote":false,"referer":"https:\/\/mrbeast.store\/products\/mrbeast-particle-backpack-black-o-s"});
+      }
+    });
+
+
+        var eventsListenerScript = document.createElement('script');
+        eventsListenerScript.async = true;
+        eventsListenerScript.src = "//mrbeast.store/cdn/shopifycloud/storefront/assets/shop_events_listener-3da45d37.js";
+        document.getElementsByTagName('head')[0].appendChild(eventsListenerScript);
+
+})();</script>
+<script
+  defer
+  src="https://mrbeast.store/cdn/shopifycloud/perf-kit/shopify-perf-kit-3.3.0.min.js"
+  data-application="storefront-renderer"
+  data-shop-id="1619755059"
+  data-render-region="gcp-us-central1"
+  data-page-type="product"
+  data-theme-instance-id="143375138943"
+  data-theme-name="MrBeast Store"
+  data-theme-version="15.2.0"
+  data-monorail-region="shop_domain"
+  data-resource-timing-sampling-rate="10"
+  data-shs="true"
+  data-shs-beacon="true"
+  data-shs-export-with-fetch="true"
+  data-shs-logs-sample-rate="1"
+  data-shs-beacon-endpoint="https://mrbeast.store/api/collect"
+></script>
+<script>window.ShopifyAnalytics = window.ShopifyAnalytics || {};window.ShopifyAnalytics.performance = window.ShopifyAnalytics.performance || {};(function () {const LONG_FRAME_THRESHOLD = 50;const longAnimationFrames = [];let activeRafId = null;function collectLongFrames() {let previousTime = null;function rafMonitor(now) {if (activeRafId === null) {return;}const delta = now - previousTime;if (delta > LONG_FRAME_THRESHOLD) {longAnimationFrames.push({startTime: previousTime,endTime: now,});}previousTime = now;activeRafId = requestAnimationFrame(rafMonitor);}previousTime = performance.now();activeRafId = requestAnimationFrame(rafMonitor);}if (!PerformanceObserver.supportedEntryTypes.includes('long-animation-frame')) {collectLongFrames();const timeoutId = setTimeout(() => {cancelAnimationFrame(activeRafId);}, 10_000);window.ShopifyAnalytics.performance.getLongAnimationFrames = function(stopCollection = false) {if (stopCollection) {clearTimeout(timeoutId);cancelAnimationFrame(activeRafId);}return longAnimationFrames;};}})();</script></head>
 
   <body class="gradient">
     
@@ -9575,13 +12047,3 @@ document.addEventListener('rebuy:smartcart.ready', (event) => {
 
 </div></body>
 </html>
-
-
-"""
-#with open('C:\\SyncedFolder\\dev\\nextjs\\group1-competitor-intelligence\\src\\services\\python_rlm\\tests\\mrbeast_store.htm', 'r', encoding='UTF-8', errors='replace') as f:
-    #content = f.read()
-content = content.encode('ascii', 'ignore')
-content = content.decode("ascii")
-FinalAnswer = rlm.completion(Prompt + content).response
-print("The returned output is")
-print(FinalAnswer)
