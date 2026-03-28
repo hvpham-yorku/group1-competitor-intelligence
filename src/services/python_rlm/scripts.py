@@ -3,10 +3,14 @@ from bs4 import BeautifulSoup
 
 
 rlm = RLM(
-    backend="gemini",
-    backend_kwargs={"model_name": "gemini-3-flash-preview"},#, "base_url": "https://api.groq.com/openai/v1/", "max_budget": "50000"},
+    #backend="openai",
+    #backend_kwargs={"model_name": "gemini-3-flash-preview"},#, "base_url": "https://api.groq.com/openai/v1/", "max_budget": "50000"},
     #backend_kwargs={"model_name": "meta-llama/llama-4-scout-17b-16e-instruct","base_url": "https://api.groq.com/openai/v1/", "max_budget": "50000"},
-    
+    backend="openrouter",
+    backend_kwargs={"model_name": "xiaomi/mimo-v2-pro"},
+    #other_backends=["openrouter"],
+    #other_backend_kwargs=[{"model_name": "minimax/minimax-m2.7"}],
+    #xiaomi/mimo-v2-flash
     verbose=True,  # For printing to console with rich, disabled by default.
 )
 Prompt ="""
@@ -17,8 +21,7 @@ INSTRUCTIONS:
 1. Analyze the HTML to determine its structure and locate product and variant information.
 2. Extract the relevant fields, adapting to any irregularities or missing data in the site's markup.
 3. Map the extracted data to the exact keys and data types defined in the schema below.
-4. CONTEXT LIMIT: The total context window is strictly 128K tokens. If the HTML input is near this limit chunk the HTML so it can be extracted.
-5. Output ONLY valid JSON. Do not include markdown blocks (e.g., ```json), introductory text, or explanations. If no products are found, return an empty array [].
+4. Output ONLY valid JSON. If no products are found, return an empty array []. Assert the json is valid before returning it
 
 SCHEMA (TypeScript Interfaces):
 
@@ -71,10 +74,21 @@ HTML:
 """
 
 0
-with open('C:\\SyncedFolder\\dev\\nextjs\\group1-competitor-intelligence\\src\\services\\python_rlm\\tests\\mrbeast_store.htm', 'r', encoding='UTF-8', errors='replace') as f:
+with open('C:\\SyncedFolder\\dev\\nextjs\\group1-competitor-intelligence\\src\\services\\python_rlm\\tests\\test.html', 'r', encoding='UTF-8', errors='replace') as f:
   content = f.read()
   content = content.encode('ascii', 'ignore')
   content = content.decode("ascii")
+  Soup = BeautifulSoup(content, "html.parser")
+  # Find all <script> tags and remove them
+  for script_tag in Soup.find_all('script'):
+    script_tag.decompose()
+  for link_tag in Soup.find_all('link'):
+    link_tag.decompose()
+  
+  content = Soup.prettify()
+  print(content)
   FinalAnswer = rlm.completion(Prompt + content).response
+
+
   print("The returned output is")
   print(FinalAnswer)
