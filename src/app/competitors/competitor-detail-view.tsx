@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { RangeSlider } from "@mantine/core"
+import { Menu, RangeSlider } from "@mantine/core"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -11,7 +11,7 @@ import {
     AccordionItem,
     AccordionTrigger,
 } from "@/components/ui/accordion"
-import { ExternalLink, TrendingUp, Scale, ChartScatter, History, Sparkles } from "lucide-react"
+import { ExternalLink, TrendingUp, Scale, ChartScatter, History, MoreHorizontal, Sparkles } from "lucide-react"
 import { ProductGrid } from "@/components/ProductGrid"
 import {
     Area,
@@ -81,9 +81,21 @@ function CumulativeTooltip({
 export function CompetitorDetailView({
     site,
     onBack,
+    isTrackedStore = false,
+    isOwnedStore = false,
+    trackingBusy = false,
+    onToggleTrackedStore,
+    onSetOwnedStore,
+    onDeleteSite,
 }: {
     site: SiteSummary
     onBack: () => void
+    isTrackedStore?: boolean
+    isOwnedStore?: boolean
+    trackingBusy?: boolean
+    onToggleTrackedStore?: () => void
+    onSetOwnedStore?: () => void
+    onDeleteSite?: () => void
 }) {
     const [filterMode, setFilterMode] = React.useState<"range" | "band">("range")
     const [selectedPriceBand, setSelectedPriceBand] = React.useState<number | null>(null)
@@ -168,7 +180,7 @@ export function CompetitorDetailView({
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-4">
                 <div className="space-y-1">
                     <h2 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
                         {siteName}
@@ -180,7 +192,7 @@ export function CompetitorDetailView({
                         Last synced {site.latestRun?.created_at ? new Date(site.latestRun.created_at).toLocaleDateString() : "Never"}
                     </p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="ml-auto flex items-center gap-2">
                     <Button variant="outline" onClick={onBack}>
                         Back to list
                     </Button>
@@ -189,6 +201,37 @@ export function CompetitorDetailView({
                             Visit Store <ExternalLink className="h-4 w-4" />
                         </a>
                     </Button>
+                    {isOwnedStore ? <Badge>My Store</Badge> : null}
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={trackingBusy}
+                        onClick={onToggleTrackedStore}
+                    >
+                        {isTrackedStore ? "Untrack Store" : "Track Store"}
+                    </Button>
+                    <Menu position="bottom-end" shadow="md" width={220}>
+                        <Menu.Target>
+                            <Button variant="outline" size="icon" className="h-10 w-10 p-0">
+                                <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                        </Menu.Target>
+                        <Menu.Dropdown>
+                            <Menu.Item
+                                disabled={trackingBusy || isOwnedStore}
+                                onClick={onSetOwnedStore}
+                            >
+                                {isOwnedStore ? "Current My Store" : "Set As My Store"}
+                            </Menu.Item>
+                            <Menu.Item
+                                color="red"
+                                disabled={trackingBusy}
+                                onClick={onDeleteSite}
+                            >
+                                Delete Competitor
+                            </Menu.Item>
+                        </Menu.Dropdown>
+                    </Menu>
                 </div>
             </div>
 

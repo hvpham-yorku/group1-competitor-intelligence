@@ -17,6 +17,7 @@ import { IconDownload } from '@tabler/icons-react';
 import { Button } from "./ui/button"
 import { useSession } from "next-auth/react";
 import type { NormalizedProduct, NormalizedVariant } from "@/services/scraper/normalized-types";
+import { inferResourceType } from "@/services/scraper/request";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -32,6 +33,11 @@ type ProductRow = NormalizedProduct & {
 
 type TrackedProductSummary = {
     product_url: string;
+};
+
+type TrackedStoreSummary = {
+    store_domain: string;
+    is_owned_store: boolean;
 };
 
 type ExportRow = {
@@ -59,6 +65,28 @@ function formatDateTime(value?: string) {
     }
 
     return date.toLocaleString();
+}
+
+function normalizeStoreDomain(input?: string) {
+    const trimmed = (input || "").trim();
+    if (!trimmed) {
+        return "";
+    }
+
+    try {
+        const parsed = new URL(
+            trimmed.startsWith("http://") || trimmed.startsWith("https://")
+                ? trimmed
+                : `https://${trimmed}`
+        );
+        return parsed.hostname.toLowerCase();
+    } catch {
+        return trimmed
+            .replace(/^https?:\/\//i, "")
+            .replace(/\/+$/, "")
+            .split("/")[0]
+            .toLowerCase();
+    }
 }
 
 export const ProductGrid: FC<ProductGridProps> = ({ products, sourceUrl }) => {
@@ -89,15 +117,27 @@ export const ProductGrid: FC<ProductGridProps> = ({ products, sourceUrl }) => {
     const [columnFilters, setColumnFilters] = useState<MRT_ColumnFiltersState>([]);
     const [rowSelection, setRowSelection] = useState<MRT_RowSelectionState>({});
     const [trackedUrls, setTrackedUrls] = useState<Set<string>>(new Set());
+    const [trackedStoreDomains, setTrackedStoreDomains] = useState<Set<string>>(new Set());
+    const [ownedStoreDomains, setOwnedStoreDomains] = useState<Set<string>>(new Set());
     const [trackingSelected, setTrackingSelected] = useState(false);
     const hasCompetitorColumn = useMemo(
         () => products.some((product) => Boolean(product.competitor)),
         [products]
     );
+    const normalizedSourceDomain = useMemo(
+        () => normalizeStoreDomain(sourceUrl),
+        [sourceUrl]
+    );
+    const isStoreSource = useMemo(
+        () => (sourceUrl ? inferResourceType(sourceUrl) === "store" : false),
+        [sourceUrl]
+    );
 
     useEffect(() => {
         if (status !== "authenticated") {
             setTrackedUrls(new Set());
+            setTrackedStoreDomains(new Set());
+            setOwnedStoreDomains(new Set());
             return;
         }
 
@@ -113,15 +153,31 @@ export const ProductGrid: FC<ProductGridProps> = ({ products, sourceUrl }) => {
                     return;
                 }
 
-                const data = await response.json() as { products?: TrackedProductSummary[] };
+                const data = await response.json() as {
+                    products?: TrackedProductSummary[];
+                    stores?: TrackedStoreSummary[];
+                };
                 const next = new Set(
                     (data.products || [])
                         .map((product) => product.product_url)
                         .filter((url): url is string => typeof url === "string" && url.length > 0)
                 );
+                const nextStores = new Set(
+                    (data.stores || [])
+                        .map((store) => store.store_domain)
+                        .filter((domain): domain is string => typeof domain === "string" && domain.length > 0)
+                );
+                const nextOwnedStores = new Set(
+                    (data.stores || [])
+                        .filter((store) => store.is_owned_store)
+                        .map((store) => store.store_domain)
+                        .filter((domain): domain is string => typeof domain === "string" && domain.length > 0)
+                );
 
                 if (active) {
                     setTrackedUrls(next);
+                    setTrackedStoreDomains(nextStores);
+                    setOwnedStoreDomains(nextOwnedStores);
                 }
             } catch (error) {
                 console.error("Failed to load tracked products", error);
@@ -425,6 +481,60 @@ export const ProductGrid: FC<ProductGridProps> = ({ products, sourceUrl }) => {
         }
     };
 
+    const handleToggleTrackedStore = async (isOwnedStore = false) => {
+        if (!normalizedSourceDomain || status !== "authenticated") {
+            return;
+        }
+
+        const isTracked = trackedStoreDomains.has(normalizedSourceDomain);
+        const isOwned = ownedStoreDomains.has(normalizedSourceDomain);
+        const shouldDelete = isTracked && !isOwnedStore;
+
+        setTrackingSelected(true);
+
+        try {
+            const response = await fetch("/api/tracked_products", {
+                method: shouldDelete ? "DELETE" : "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    track_type: "store",
+                    store_url: normalizedSourceDomain,
+                    is_owned_store: isOwnedStore,
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to ${shouldDelete ? "untrack" : "track"} store`);
+            }
+
+            setTrackedStoreDomains((current) => {
+                const next = new Set(current);
+                if (shouldDelete) {
+                    next.delete(normalizedSourceDomain);
+                } else {
+                    next.add(normalizedSourceDomain);
+                }
+                return next;
+            });
+
+            if (isOwnedStore) {
+                setOwnedStoreDomains(new Set([normalizedSourceDomain]));
+            } else if (shouldDelete && isOwned) {
+                setOwnedStoreDomains((current) => {
+                    const next = new Set(current);
+                    next.delete(normalizedSourceDomain);
+                    return next;
+                });
+            }
+        } catch (error) {
+            console.error("Failed to toggle tracked store", error);
+        } finally {
+            setTrackingSelected(false);
+        }
+    };
+
     const table = useMantineReactTable({
         columns,
         data: enrichedProducts || [],
@@ -501,6 +611,17 @@ export const ProductGrid: FC<ProductGridProps> = ({ products, sourceUrl }) => {
                                             ? "Untrack Selected"
                                             : "Track Selected"}
                                 </Button>
+                                {normalizedSourceDomain && isStoreSource ? (
+                                    <Button
+                                        disabled={status !== "authenticated" || trackingSelected}
+                                        onClick={() => void handleToggleTrackedStore(false)}
+                                        variant="outline"
+                                    >
+                                        {trackedStoreDomains.has(normalizedSourceDomain)
+                                            ? "Untrack Store"
+                                            : "Track Store"}
+                                    </Button>
+                                ) : null}
                             </>
                         );
                     })()}
@@ -522,6 +643,20 @@ export const ProductGrid: FC<ProductGridProps> = ({ products, sourceUrl }) => {
                             </Button>
                         </Menu.Target>
                         <Menu.Dropdown>
+                            {normalizedSourceDomain && isStoreSource ? (
+                                <Menu.Item
+                                    disabled={
+                                        status !== "authenticated" ||
+                                        trackingSelected ||
+                                        ownedStoreDomains.has(normalizedSourceDomain)
+                                    }
+                                    onClick={() => void handleToggleTrackedStore(true)}
+                                >
+                                    {ownedStoreDomains.has(normalizedSourceDomain)
+                                        ? "Current My Store"
+                                        : "Set As My Store"}
+                                </Menu.Item>
+                            ) : null}
                             <Menu.Item
                                 disabled={
                                     status !== "authenticated" ||

@@ -617,7 +617,8 @@ export async function listScrapeSites(
     rawDomainsByNormalized.set(normalizedDomain, existing);
   }
 
-  const sites = await Promise.all(
+  const sites = (
+    await Promise.all(
     pagedDomains.map(async (domain) => {
       const rawDomains = rawDomainsByNormalized.get(domain) || [];
       const runsById = new Map<number, ScrapeRunSummary>();
@@ -672,7 +673,8 @@ export async function listScrapeSites(
         latestRun,
       };
     })
-  );
+    )
+  ).filter((site) => (site.latestRun?.products.length ?? 0) > 0);
 
   return {
     page,
