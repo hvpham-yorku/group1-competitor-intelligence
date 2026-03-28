@@ -16,25 +16,48 @@ export const UniversalStrategy: ScraperStrategy = {
     },
     scrape: async (req: ScraperRequest) => {
         const HtmlRequest = fetch(req.url);
-        const HtmlText = (await HtmlRequest).json();
-        console.log(HtmlText);
+        const HtmlPromise = (await HtmlRequest).text();
+        const HtmlText = await HtmlPromise; 
+        //console.log(HtmlText);
         const spawn = require("child_process").spawn;
-        const pythonProcess = spawn('python',["src\\services\\python_rlm\\scripts.py", HtmlText]);
-        const Output = new Promise<string>((resolve, reject)=>{
+        const pythonProcess = spawn('python',["src\\services\\python_rlm\\scripts.py"]);
+        pythonProcess.stdin.write(HtmlText);
+        pythonProcess.stdin.end();
+
+        let OutputText = "";
+        const Output = new Promise<JSON>((resolve, reject)=>{
+            let ErrorMessage = ""
             pythonProcess.stdout.on('data', (data : string) => {
-                console.log(data);
-                resolve(data);
+                OutputText += data.toString();
+                //console.log(data.toString());
+            });
+            pythonProcess.stderr.on('data', (data : string) => {
+                ErrorMessage += data.toString();
+                //console.log(data.toString());
+            });
+           pythonProcess.on('close', (code) => {
+            if (code !== 0) {
+                reject(new Error(`Python process exited with code ${code} Error ${ErrorMessage}`));
+                return;
+            }
+            try {
+                // Parse the JSON output from Python
+                const finalOutput = JSON.parse(OutputText);
+                resolve(finalOutput);
+            } catch (e) {
+                reject(new Error(`Failed to parse the child process JSON output: ${OutputText}`));
+            }
+    
             });
         });
-        const OutputText = await Output;
-        console.log(OutputText);
-        const Products = asRecordArray(OutputText);
+        const OutputJson = await Output;
+        //console.log(OutputJson);
+        const Products = OutputJson as unknown as NormalizedProduct[];
 
-        const normalized = Products.map((product) => JSON.parse(product as unknown as string) as NormalizedProduct);
-        console.log({normalized});
+        //console.log({Products});
         console.log('Universal strategy', req);
         return {
-            products: normalized,
+            products: Products,
             platform: 'universal',
             source_url: req.url
         };
