@@ -13,7 +13,9 @@ export default function AccountInfo() {
                     <h2 className="text-lg font-semibold">Profile</h2>
                     <div className="space-y-2">
                         <div className="flex items-center gap-4">
-                            <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center font-bold text-lg">U</div>
+                            <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center font-bold text-lg">
+                                {MySession?.user?.name?.split(' ').map(n => n[0].toUpperCase()).join('') ?? 'U'}
+                            </div>
                             <div>
                                 <div className="font-medium">{MySession?.user?.name}</div>
                                 <div className="text-sm text-muted-foreground">{MySession?.user?.email}</div>
