@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 import { Resend } from "resend";
 
-const resend = new Resend("re_9cfZ87DX_QCyfPr2h2uhLUp8awZZtP4nk");
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function sendNotificationEmail(Subject : string, Email : string, Content : ReactNode) {
    try {
