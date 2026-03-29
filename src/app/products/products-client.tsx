@@ -4,50 +4,69 @@ import * as React from "react"
 import { ProductGrid } from "@/components/ProductGrid"
 import { SearchBar } from "@/components/SearchBar"
 import { Loader2 } from "lucide-react"
+import type { ProductSearchResult } from "@/services/products/search-types"
+import type { NormalizedProduct } from "@/services/scraper/normalized-types"
+
+function mapSearchResultToProduct(result: ProductSearchResult): NormalizedProduct & { competitor: string } {
+    return {
+        source_product_id: result.source_product_id,
+        title: result.title,
+        vendor: result.vendor ?? undefined,
+        product_type: result.product_type ?? undefined,
+        product_url: result.product_url,
+        images: result.images,
+        last_updated_at: result.latest_observed_at ?? undefined,
+        variants: result.latest_price != null ? [
+            {
+                title: result.title,
+                price: String(result.latest_price),
+                available: result.latest_available ?? undefined,
+                inventory_quantity: result.latest_inventory_quantity ?? undefined,
+                product_url: result.product_url,
+                observed_at: result.latest_observed_at ?? undefined,
+            }
+        ] : [],
+        competitor: result.store_domain,
+    }
+}
 
 export function ProductsClient() {
     const [loading, setLoading] = React.useState(true)
-    const [products, setProducts] = React.useState<any[]>([])
+    const [products, setProducts] = React.useState<Array<NormalizedProduct & { competitor: string }>>([])
     const [query, setQuery] = React.useState("")
 
-    const fetchData = async () => {
+    const fetchData = React.useCallback(async (nextQuery: string) => {
         setLoading(true)
         try {
-            // Fetch all products using the sites endpoint
-            const res = await fetch("/api/scrapes/sites?pageSize=50")
-            const data = await res.json()
-
-            const allProducts: any[] = []
-
-            if (data.sites) {
-                data.sites.forEach((site: any) => {
-                    if (site.latestRun && site.latestRun.products) {
-                        site.latestRun.products.forEach((p: any) => {
-                            allProducts.push({
-                                ...p,
-                                competitor: site.url.replace(/^https?:\/\//, '').split('/')[0]
-                            })
-                        })
-                    }
-                })
+            const params = new URLSearchParams()
+            if (nextQuery.trim()) {
+                params.set("q", nextQuery.trim())
+                params.set("limit", "60")
+            } else {
+                params.set("limit", "24")
             }
 
-            setProducts(allProducts)
+            const res = await fetch(`/api/products/search?${params.toString()}`, { cache: "no-store" })
+            if (!res.ok) {
+                throw new Error("Failed to search products")
+            }
+
+            const data = await res.json() as ProductSearchResult[]
+            setProducts(data.map(mapSearchResultToProduct))
         } catch (error) {
             console.error("Failed to fetch products", error)
         } finally {
             setLoading(false)
         }
-    }
-
-    React.useEffect(() => {
-        fetchData()
     }, [])
 
-    const filteredProducts = products.filter(p =>
-        p.title?.toLowerCase().includes(query.toLowerCase()) ||
-        p.vendor?.toLowerCase().includes(query.toLowerCase())
-    )
+    React.useEffect(() => {
+        const timeoutId = window.setTimeout(() => {
+            void fetchData(query)
+        }, 250)
+
+        return () => window.clearTimeout(timeoutId)
+    }, [fetchData, query])
 
     return (
         <div className="flex flex-col gap-6">
@@ -61,7 +80,7 @@ export function ProductsClient() {
                     />
                 </div>
                 <div className="text-xs text-muted-foreground whitespace-nowrap">
-                    Aggregated from all active competitors
+                    {query.trim() ? "Live product search" : "Recent products across your stores"}
                 </div>
             </div>
 
@@ -72,7 +91,7 @@ export function ProductsClient() {
                 </div>
             ) : (
                 <ProductGrid
-                    products={filteredProducts}
+                    products={products}
                     showCompetitor={true}
                 />
             )}
