@@ -26,9 +26,11 @@ export function inferResourceType(url: string): 'product' | 'collection' | 'stor
             return 'product';
         }
 
+        /*
         if (path.includes('/collections/')) {
             return 'collection';
         }
+        */
 
         return 'store';
     } catch {

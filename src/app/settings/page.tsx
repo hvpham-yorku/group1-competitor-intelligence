@@ -1,3 +1,5 @@
+import { SettingsClient } from "./settings-client";
+
 export default function SettingsPage() {
     return (
         <div className="flex flex-col gap-4">
@@ -19,6 +21,8 @@ export default function SettingsPage() {
                         </div>
                     </div>
                 </div>
+
+                <SettingsClient />
             </div>
         </div>
     )

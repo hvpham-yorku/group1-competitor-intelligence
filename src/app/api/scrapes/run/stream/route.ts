@@ -7,6 +7,7 @@ import { ScraperEngine, ScraperExecutionError } from "@/services/scraper/engine"
 import { inferResourceType, ScraperRequest } from "@/services/scraper/request";
 import type { ScrapeProgress } from "@/services/scraper/strategies/interface";
 import { initializeScheduledScraping } from "@/services/scheduled_scraping/scheduled_scraping";
+import { sendNotificationEmail } from "@/services/email_alerts/email_alerts";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -33,7 +34,9 @@ export async function GET(request: Request) {
 
   const session = await getServerSession(authOptions);
   const userId = await getExistingUserIdFromSession(session);
-
+  const Email = session?.user?.email as string;
+  const ResponseEmail = await sendNotificationEmail("Testing the service", Email, "Wow it works");
+  console.log(ResponseEmail);
   const stream = new ReadableStream({
     start(controller) {
       const encoder = new TextEncoder();

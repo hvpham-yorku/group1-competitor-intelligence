@@ -6,8 +6,11 @@ import {
   getTrackedProduct,
   listTrackedProducts,
 } from "@/services/tracking/get-tracked-products";
+import { listTrackedStores } from "@/services/tracking/get-tracked-stores";
 import { trackProduct } from "@/services/tracking/track-product";
+import { trackStore } from "@/services/tracking/track-store";
 import { untrackProduct } from "@/services/tracking/untrack-product";
+import { untrackStore } from "@/services/tracking/untrack-store";
 import { initializeScheduledScraping } from "@/services/scheduled_scraping/scheduled_scraping";
 
 initializeScheduledScraping();
@@ -44,8 +47,12 @@ export async function GET(request: Request) {
     return NextResponse.json({ product: trackedProduct });
   }
 
-  const products = await listTrackedProducts({ userId });
-  return NextResponse.json({ products });
+  const [products, stores] = await Promise.all([
+    listTrackedProducts({ userId }),
+    listTrackedStores({ userId }),
+  ]);
+
+  return NextResponse.json({ products, stores });
 }
 
 export async function POST(request: Request) {
@@ -58,22 +65,39 @@ export async function POST(request: Request) {
 
   try {
     const requestBody = await request.json();
+    const trackType = requestBody?.track_type === "store" ? "store" : "product";
 
-    await trackProduct({
-      userId,
-      product_url: requestBody?.product_url,
-    });
+    if (trackType === "store") {
+      await trackStore({
+        userId,
+        store_url: requestBody?.store_url,
+        is_owned_store: requestBody?.is_owned_store === true,
+      });
+    } else {
+      await trackProduct({
+        userId,
+        product_url: requestBody?.product_url,
+      });
+    }
 
     return NextResponse.json({ message: "Added Alert" });
   } catch (error) {
     if (
       error instanceof Error &&
       (error.message === "Missing tracked product fields" ||
+        error.message === "Missing tracked store fields" ||
+        error.message === "Tracked store was not found in stores" ||
         error.message === "Tracked product was not found in source_products")
     ) {
       return NextResponse.json(
         { message: error.message },
-        { status: error.message === "Missing tracked product fields" ? 400 : 404 }
+        {
+          status:
+            error.message === "Missing tracked product fields" ||
+            error.message === "Missing tracked store fields"
+              ? 400
+              : 404,
+        }
       );
     }
 
@@ -92,20 +116,29 @@ export async function DELETE(request: Request) {
 
   try {
     const requestBody = await request.json();
+    const trackType = requestBody?.track_type === "store" ? "store" : "product";
 
-    await untrackProduct({
-      userId,
-      product_url: requestBody?.product_url,
-    });
+    if (trackType === "store") {
+      await untrackStore({
+        userId,
+        store_url: requestBody?.store_url,
+      });
+    } else {
+      await untrackProduct({
+        userId,
+        product_url: requestBody?.product_url,
+      });
+    }
 
     return NextResponse.json({ message: "Deleted Alert" });
   } catch (error) {
     if (
       error instanceof Error &&
-      error.message === "Missing tracked product fields"
+      (error.message === "Missing tracked product fields" ||
+        error.message === "Missing tracked store fields")
     ) {
       return NextResponse.json(
-        { message: "Missing tracked product fields" },
+        { message: error.message },
         { status: 400 }
       );
     }

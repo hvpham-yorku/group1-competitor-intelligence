@@ -42,3 +42,7 @@ next-env.d.ts
 *.sqlite
 *.sqlite3
 *.db
+
+#python
+venv/
+.env

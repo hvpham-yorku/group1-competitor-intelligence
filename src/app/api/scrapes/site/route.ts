@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../auth/[...nextauth]/route";
 import { getExistingUserIdFromSession } from "../../auth/auth-utils";
+import { deleteCompetitor } from "@/services/scrape-runs/delete-competitor";
 import { deleteSiteHistory } from "@/services/scrape-runs/delete-site-history";
 
 export async function DELETE(request: Request) {
@@ -24,11 +25,19 @@ export async function DELETE(request: Request) {
   const searchParams = urlObject.searchParams;
 
   const rawUrl = searchParams.get("url") || "";
+  const scope = searchParams.get("scope") || "history";
   try {
-    await deleteSiteHistory({
-      userId: currentUserId,
-      rawUrl,
-    });
+    if (scope === "all") {
+      await deleteCompetitor({
+        userId: currentUserId,
+        rawUrl,
+      });
+    } else {
+      await deleteSiteHistory({
+        userId: currentUserId,
+        rawUrl,
+      });
+    }
   } catch (error) {
     if (error instanceof Error && error.message === "Missing url") {
       return NextResponse.json(

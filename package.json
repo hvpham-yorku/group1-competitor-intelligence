@@ -16,6 +16,8 @@
     "@mantine/core": "^6.0.22",
     "@mantine/hooks": "^6.0.22",
     "@radix-ui/react-accordion": "^1.2.12",
+    "@react-email/components": "^1.0.10",
+    "@react-email/render": "^2.0.4",
     "@tabler/icons-react": "^3.36.1",
     "@tanstack/react-table": "^8.21.3",
     "bcrypt": "^6.0.0",
@@ -30,7 +32,9 @@
     "radix-ui": "^1.4.3",
     "react": "19.2.3",
     "react-dom": "19.2.3",
+    "react-email": "^5.2.10",
     "recharts": "^3.8.0",
+    "resend": "^6.9.4",
     "sqlite3": "^5.1.7",
     "tailwind-merge": "^3.4.0"
   },

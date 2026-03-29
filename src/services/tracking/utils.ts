@@ -27,6 +27,18 @@ export type TrackedProductSummary = {
   latest_scrape_run_id: number | null;
 };
 
+export type TrackedStoreSummary = {
+  tracked_id: number;
+  store_id: number;
+  store_domain: string;
+  store_platform: string | null;
+  tracked_at: string;
+  schedule_label: string;
+  latest_scrape_run_id: number | null;
+  latest_scraped_at: string | null;
+  is_owned_store: boolean;
+};
+
 export type TrackedProductHistoryPoint = ObservationHistoryPoint;
 
 export type TrackedProductDetail = {
@@ -46,6 +58,22 @@ export function normalizeTrackedProductInput(input: {
 
   if (!url) {
     throw new Error("Missing tracked product fields");
+  }
+
+  return {
+    url,
+  };
+}
+
+export function normalizeTrackedStoreInput(input: {
+  store_url?: unknown;
+}): {
+  url: string;
+} {
+  const url = cleanString(input.store_url);
+
+  if (!url) {
+    throw new Error("Missing tracked store fields");
   }
 
   return {
