@@ -31,7 +31,7 @@ export async function GET(request: Request) {
             "taxable": true,
             "featured_image": null,
             "available": true,
-            "price": "42.00",
+            "price": "20.00",
             "grams": 652,
             "compare_at_price": null,
             "position": 1,
