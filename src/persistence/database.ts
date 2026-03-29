@@ -365,6 +365,50 @@ SqliteDB.serialize(() => {
      WHERE is_owned_store = 1`
   );
 
+  // Embeddings for source products used by the matching workspace.
+  SqliteDB.run(
+    `CREATE TABLE IF NOT EXISTS product_embeddings(
+      source_product_id INTEGER PRIMARY KEY NOT NULL,
+      provider TEXT NOT NULL,
+      model TEXT NOT NULL,
+      dimensions INTEGER NOT NULL,
+      input_text TEXT NOT NULL,
+      embedding_json TEXT NOT NULL,
+      updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+      FOREIGN KEY(source_product_id) REFERENCES source_products(id) ON DELETE CASCADE
+    )`
+  );
+  SqliteDB.run(
+    `CREATE INDEX IF NOT EXISTS idx_product_embeddings_provider_model
+     ON product_embeddings(provider, model)`
+  );
+
+  // Per-user reviewed product matches between an owned store and a competitor store.
+  SqliteDB.run(
+    `CREATE TABLE IF NOT EXISTS product_matches(
+      id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+      user_id INTEGER NOT NULL,
+      owned_source_product_id INTEGER NOT NULL,
+      competitor_source_product_id INTEGER NOT NULL,
+      score REAL NOT NULL,
+      method TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'pending',
+      updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+      FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY(owned_source_product_id) REFERENCES source_products(id) ON DELETE CASCADE,
+      FOREIGN KEY(competitor_source_product_id) REFERENCES source_products(id) ON DELETE CASCADE,
+      UNIQUE(user_id, owned_source_product_id, competitor_source_product_id)
+    )`
+  );
+  SqliteDB.run(
+    `CREATE INDEX IF NOT EXISTS idx_product_matches_user_status
+     ON product_matches(user_id, status, updated_at)`
+  );
+  SqliteDB.run(
+    `CREATE INDEX IF NOT EXISTS idx_product_matches_competitor_product
+     ON product_matches(competitor_source_product_id)`
+  );
+
   // Future cross-vendor grouping layer.
   SqliteDB.run(
     `CREATE TABLE IF NOT EXISTS canonical_products(
