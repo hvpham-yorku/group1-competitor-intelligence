@@ -8,10 +8,10 @@
 // - Abdelrahman 
 "use client"
 
-import { useEffect, useMemo, useState, type FC } from "react"
-import { MantineReactTable, type MRT_ColumnDef, type MRT_ColumnFiltersState, type MRT_RowSelectionState, MRT_Row, useMantineReactTable } from "mantine-react-table"
+import { useEffect, useMemo, useState, type Dispatch, type FC, type SetStateAction } from "react"
+import { MantineReactTable, type MRT_ColumnDef, type MRT_ColumnFiltersState, type MRT_PaginationState, type MRT_RowSelectionState, MRT_Row, useMantineReactTable } from "mantine-react-table"
 import { MantineProvider, useMantineTheme, Box, Menu } from "@mantine/core"
-import { ChevronRight, ChevronDown, MoreHorizontal, ArrowUpRight } from "lucide-react"
+import { ChevronRight, ChevronDown, MoreHorizontal, ArrowUpRight, Loader2 } from "lucide-react"
 import { download, generateCsv, mkConfig } from "export-to-csv"
 import { IconDownload } from '@tabler/icons-react';
 import { Button } from "./ui/button"
@@ -25,6 +25,14 @@ interface ProductGridProps {
     products: ProductRow[];
     sourceUrl?: string;
     showCompetitor?: boolean;
+    enablePagination?: boolean;
+    enableColumnFilters?: boolean;
+    manualPagination?: boolean;
+    rowCount?: number;
+    pagination?: MRT_PaginationState;
+    onPaginationChange?: Dispatch<SetStateAction<MRT_PaginationState>>;
+    rowsPerPageOptions?: string[];
+    isFetching?: boolean;
 }
 
 type ProductRow = NormalizedProduct & {
@@ -89,7 +97,18 @@ function normalizeStoreDomain(input?: string) {
     }
 }
 
-export const ProductGrid: FC<ProductGridProps> = ({ products, sourceUrl }) => {
+export const ProductGrid: FC<ProductGridProps> = ({
+    products,
+    sourceUrl,
+    enablePagination = true,
+    enableColumnFilters = true,
+    manualPagination = false,
+    rowCount,
+    pagination,
+    onPaginationChange,
+    rowsPerPageOptions,
+    isFetching = false,
+}) => {
     const { status } = useSession();
     // Enrich products on the spot in the UI
     const enrichedProducts = useMemo(() => {
@@ -120,10 +139,13 @@ export const ProductGrid: FC<ProductGridProps> = ({ products, sourceUrl }) => {
     const [trackedStoreDomains, setTrackedStoreDomains] = useState<Set<string>>(new Set());
     const [ownedStoreDomains, setOwnedStoreDomains] = useState<Set<string>>(new Set());
     const [trackingSelected, setTrackingSelected] = useState(false);
+    const [internalPagination, setInternalPagination] = useState<MRT_PaginationState>({ pageIndex: 0, pageSize: 5 });
     const hasCompetitorColumn = useMemo(
         () => products.some((product) => Boolean(product.competitor)),
         [products]
     );
+    const effectivePagination = pagination ?? internalPagination;
+    const effectiveRowCount = manualPagination ? rowCount ?? enrichedProducts.length : enrichedProducts.length;
     const normalizedSourceDomain = useMemo(
         () => normalizeStoreDomain(sourceUrl),
         [sourceUrl]
@@ -757,25 +779,29 @@ export const ProductGrid: FC<ProductGridProps> = ({ products, sourceUrl }) => {
         enableHiding: true,
         enableFullScreenToggle: true,
         enableDensityToggle: false,
-        enableFilters: true,
-        enableColumnFilters: true,
+        enableFilters: enableColumnFilters,
+        enableColumnFilters,
         enableGlobalFilter: false,
         enableSorting: true,
-        enablePagination: true,
+        enablePagination,
+        manualPagination,
         enableStickyHeader: true,
         onColumnFiltersChange: setColumnFilters,
+        onPaginationChange: onPaginationChange ?? setInternalPagination,
         state: {
             columnFilters,
             rowSelection,
+            showProgressBars: isFetching,
+            ...(enablePagination ? { pagination: effectivePagination } : {}),
         },
+        rowCount: effectiveRowCount,
         mantineTableContainerProps: {
             sx: {
-                maxHeight: '72vh',
-                minHeight: '520px',
+                maxHeight: '60vh',
+                minHeight: '420px',
             },
         },
         initialState: {
-            pagination: { pageSize: 5, pageIndex: 0 },
             density: 'xs',
             columnVisibility: {
                 product_type: false,
@@ -830,10 +856,20 @@ export const ProductGrid: FC<ProductGridProps> = ({ products, sourceUrl }) => {
                 borderTop: '1px solid rgba(255, 255, 255, 0.05)',
             },
         },
+        mantinePaginationProps: {
+            rowsPerPageOptions: rowsPerPageOptions ?? ['5', '10', '20', '50'],
+            withEdges: true,
+        },
     });
     const globalTheme = useMantineTheme();
     return (
-        <div className="w-full mb-12">
+        <div className="relative w-full mb-12">
+            {isFetching ? (
+                <div className="pointer-events-none absolute right-3 top-3 z-20 flex items-center gap-2 rounded-md border border-white/10 bg-[#0C0C0D]/95 px-3 py-1.5 text-xs text-muted-foreground shadow-lg backdrop-blur">
+                    <Loader2 className="h-3.5 w-3.5 animate-spin text-white/70" />
+                    Updating...
+                </div>
+            ) : null}
             <MantineProvider theme={{ ...globalTheme, primaryColor: 'blue' }}>
                 <MantineReactTable table={table} />
             </MantineProvider>

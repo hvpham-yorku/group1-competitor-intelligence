@@ -15,3 +15,10 @@ export type ProductSearchResult = {
   latest_inventory_quantity: number | null;
   latest_observed_at: string | null;
 };
+
+export type ProductSearchPage = {
+  items: ProductSearchResult[];
+  page: number;
+  page_size: number;
+  total: number;
+};

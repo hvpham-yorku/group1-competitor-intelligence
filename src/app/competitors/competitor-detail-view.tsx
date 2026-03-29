@@ -180,7 +180,7 @@ export function CompetitorDetailView({
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between gap-4">
+            <div className="flex items-start justify-between gap-4">
                 <div className="space-y-1">
                     <h2 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
                         {siteName}
@@ -192,7 +192,7 @@ export function CompetitorDetailView({
                         Last synced {site.latestRun?.created_at ? new Date(site.latestRun.created_at).toLocaleDateString() : "Never"}
                     </p>
                 </div>
-                <div className="ml-auto flex items-center gap-2">
+                <div className="ml-auto flex items-center gap-2 self-start">
                     <Button variant="outline" onClick={onBack}>
                         Back to list
                     </Button>
@@ -205,6 +205,7 @@ export function CompetitorDetailView({
                     <Button
                         size="sm"
                         variant="outline"
+                        className="h-10"
                         disabled={trackingBusy}
                         onClick={onToggleTrackedStore}
                     >
@@ -212,7 +213,7 @@ export function CompetitorDetailView({
                     </Button>
                     <Menu position="bottom-end" shadow="md" width={220}>
                         <Menu.Target>
-                            <Button variant="outline" size="icon" className="h-10 w-10 p-0">
+                            <Button variant="outline" size="icon" className="h-10 w-10 self-center p-0">
                                 <MoreHorizontal className="h-4 w-4" />
                             </Button>
                         </Menu.Target>

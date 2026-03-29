@@ -17,13 +17,16 @@ export async function GET(request: Request) {
     const query = searchParams.get("q") ?? "";
     const storeDomain = searchParams.get("store") ?? undefined;
     const limitParam = searchParams.get("limit");
+    const pageParam = searchParams.get("page");
     const limit = limitParam ? Number.parseInt(limitParam, 10) : undefined;
+    const page = pageParam ? Number.parseInt(pageParam, 10) : undefined;
 
     const results = await searchProducts({
       userId,
       query,
       storeDomain,
       limit: Number.isFinite(limit) ? limit : undefined,
+      page: Number.isFinite(page) ? page : undefined,
     });
 
     return NextResponse.json(results);

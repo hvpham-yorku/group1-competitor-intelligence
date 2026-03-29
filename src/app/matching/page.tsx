@@ -13,7 +13,14 @@ export default async function MatchingPage() {
     redirect("/login");
   }
 
-  const workspace = await getMatchingWorkspace({ userId });
+  const workspace = await getMatchingWorkspace({
+    userId,
+    page: 1,
+    pageSize: 20,
+    includeSuggestions: false,
+    matchFilter: "all",
+    titleQuery: "",
+  });
 
   return <MatchingClient initialWorkspace={workspace} />;
 }

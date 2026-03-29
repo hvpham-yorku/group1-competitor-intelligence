@@ -1,5 +1,5 @@
-import { getAll } from "@/persistence/sqlite-helpers";
-import type { ProductSearchResult } from "@/services/products/search-types";
+import { getAll, getRow } from "@/persistence/sqlite-helpers";
+import type { ProductSearchPage, ProductSearchResult } from "@/services/products/search-types";
 
 type ProductSearchRow = {
   source_product_id: number;
@@ -49,8 +49,14 @@ function mapRow(row: ProductSearchRow): ProductSearchResult {
 
 function buildBaseQuery(filters: { hasQuery: boolean; hasStoreDomain: boolean }) {
   const whereClauses = [
-    "usr.user_id = ?",
-    "sr.resource_type = 'store'",
+    `EXISTS (
+      SELECT 1
+      FROM user_scrape_runs usr
+      INNER JOIN scrape_runs sr ON sr.id = usr.scrape_run_id
+      WHERE usr.user_id = ?
+        AND usr.store_id = s.id
+        AND sr.resource_type = 'store'
+    )`,
   ];
 
   if (filters.hasStoreDomain) {
@@ -106,9 +112,7 @@ function buildBaseQuery(filters: { hasQuery: boolean; hasStoreDomain: boolean })
         INNER JOIN product_observations po_latest ON po_latest.source_variant_id = sv_latest.id
         WHERE sv_latest.source_product_id = sp.id
       ) AS latest_observed_at
-    FROM user_scrape_runs usr
-    INNER JOIN scrape_runs sr ON sr.id = usr.scrape_run_id
-    INNER JOIN stores s ON s.id = usr.store_id
+    FROM stores s
     INNER JOIN source_products sp ON sp.store_id = s.id
     WHERE ${whereClauses.join("\n      AND ")}
     GROUP BY
@@ -127,17 +131,45 @@ export async function searchProductsForUser(input: {
   query: string;
   storeDomain?: string;
   limit?: number;
-}): Promise<ProductSearchResult[]> {
+  offset?: number;
+}): Promise<ProductSearchPage> {
   const normalizedQuery = input.query.trim();
   const hasStoreDomain = Boolean(input.storeDomain);
   const like = `%${normalizedQuery}%`;
   const limit = Math.max(1, Math.min(input.limit ?? 24, 100));
+  const offset = Math.max(0, input.offset ?? 0);
 
   const params: unknown[] = [input.userId];
   if (hasStoreDomain) {
     params.push(input.storeDomain);
   }
-  params.push(like, like, like, like, like, normalizedQuery, `${normalizedQuery}%`, limit);
+  params.push(like, like, like, like, like);
+
+  const totalRow = await getRow<{ total: number }>(
+    `SELECT COUNT(DISTINCT sp.id) AS total
+     FROM stores s
+     INNER JOIN source_products sp ON sp.store_id = s.id
+     WHERE EXISTS (
+         SELECT 1
+         FROM user_scrape_runs usr
+         INNER JOIN scrape_runs sr ON sr.id = usr.scrape_run_id
+         WHERE usr.user_id = ?
+           AND usr.store_id = s.id
+           AND sr.resource_type = 'store'
+       )` +
+      (hasStoreDomain ? "\n       AND s.domain = ?" : "") +
+      `
+       AND (
+         sp.title LIKE ?
+         OR COALESCE(sp.vendor, '') LIKE ?
+         OR COALESCE(sp.product_type, '') LIKE ?
+         OR sp.product_url LIKE ?
+         OR s.domain LIKE ?
+       )`,
+    params
+  );
+
+  params.push(normalizedQuery, `${normalizedQuery}%`, limit, offset);
 
   const rows = await getAll<ProductSearchRow>(
     `${buildBaseQuery({ hasQuery: true, hasStoreDomain })}
@@ -149,33 +181,62 @@ export async function searchProductsForUser(input: {
        END,
        latest_observed_at DESC,
        sp.title ASC
-     LIMIT ?`,
+     LIMIT ? OFFSET ?`,
     params
   );
 
-  return rows.map(mapRow);
+  return {
+    items: rows.map(mapRow),
+    page: Math.floor(offset / limit) + 1,
+    page_size: limit,
+    total: totalRow?.total ?? 0,
+  };
 }
 
 export async function listSampleProductsForUser(input: {
   userId: number;
   storeDomain?: string;
   limit?: number;
-}): Promise<ProductSearchResult[]> {
+  offset?: number;
+}): Promise<ProductSearchPage> {
   const hasStoreDomain = Boolean(input.storeDomain);
   const limit = Math.max(1, Math.min(input.limit ?? 12, 50));
+  const offset = Math.max(0, input.offset ?? 0);
 
   const params: unknown[] = [input.userId];
   if (hasStoreDomain) {
     params.push(input.storeDomain);
   }
-  params.push(limit);
+
+  const totalRow = await getRow<{ total: number }>(
+    `SELECT COUNT(DISTINCT sp.id) AS total
+     FROM stores s
+     INNER JOIN source_products sp ON sp.store_id = s.id
+     WHERE EXISTS (
+         SELECT 1
+         FROM user_scrape_runs usr
+         INNER JOIN scrape_runs sr ON sr.id = usr.scrape_run_id
+         WHERE usr.user_id = ?
+           AND usr.store_id = s.id
+           AND sr.resource_type = 'store'
+       )` +
+      (hasStoreDomain ? "\n       AND s.domain = ?" : ""),
+    params
+  );
+
+  params.push(limit, offset);
 
   const rows = await getAll<ProductSearchRow>(
     `${buildBaseQuery({ hasQuery: false, hasStoreDomain })}
      ORDER BY latest_observed_at DESC, sp.title ASC
-     LIMIT ?`,
+     LIMIT ? OFFSET ?`,
     params
   );
 
-  return rows.map(mapRow);
+  return {
+    items: rows.map(mapRow),
+    page: Math.floor(offset / limit) + 1,
+    page_size: limit,
+    total: totalRow?.total ?? 0,
+  };
 }

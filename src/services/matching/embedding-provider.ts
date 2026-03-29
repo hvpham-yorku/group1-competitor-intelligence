@@ -1,4 +1,4 @@
-type EmbeddingProviderName = "openai" | "local-test";
+type EmbeddingProviderName = "openrouter" | "openai" | "local-test";
 
 type EmbeddingResponse = {
   provider: EmbeddingProviderName;
@@ -32,7 +32,7 @@ function buildLocalTestEmbedding(text: string): number[] {
   return normalizeVector(vector);
 }
 
-async function buildOpenAiEmbedding(text: string): Promise<EmbeddingResponse> {
+async function requestOpenAiEmbeddings(texts: string[]): Promise<EmbeddingResponse[]> {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
     throw new Error("Missing OPENAI_API_KEY");
@@ -46,7 +46,7 @@ async function buildOpenAiEmbedding(text: string): Promise<EmbeddingResponse> {
       Authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      input: text,
+      input: texts,
       model,
     }),
   });
@@ -60,22 +60,69 @@ async function buildOpenAiEmbedding(text: string): Promise<EmbeddingResponse> {
     data?: Array<{ embedding?: number[] }>;
   };
 
-  const vector = payload.data?.[0]?.embedding;
-  if (!Array.isArray(vector) || vector.length === 0) {
-    throw new Error("OpenAI embeddings response did not include a vector");
+  const vectors = payload.data?.map((item) => item.embedding).filter(Array.isArray);
+  if (!vectors || vectors.length !== texts.length) {
+    throw new Error("OpenAI embeddings response did not include the expected vectors");
   }
 
-  return {
-    provider: "openai",
+  return vectors.map((vector) => ({
+    provider: "openai" as const,
     model,
     vector,
+  }));
+}
+
+async function requestOpenRouterEmbeddings(texts: string[]): Promise<EmbeddingResponse[]> {
+  const apiKey = process.env.OPENROUTER_API_KEY;
+  if (!apiKey) {
+    throw new Error("Missing OPENROUTER_API_KEY");
+  }
+
+  const model = process.env.OPENROUTER_EMBEDDING_MODEL || "qwen/qwen3-embedding-8b";
+  const response = await fetch("https://openrouter.ai/api/v1/embeddings", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      input: texts,
+      model,
+    }),
+  });
+
+  if (!response.ok) {
+    const body = await response.text();
+    throw new Error(`OpenRouter embeddings request failed: ${response.status} ${body}`);
+  }
+
+  const payload = (await response.json()) as {
+    data?: Array<{ embedding?: number[] }>;
   };
+
+  const vectors = payload.data?.map((item) => item.embedding).filter(Array.isArray);
+  if (!vectors || vectors.length !== texts.length) {
+    throw new Error("OpenRouter embeddings response did not include the expected vectors");
+  }
+
+  return vectors.map((vector) => ({
+    provider: "openrouter" as const,
+    model,
+    vector,
+  }));
 }
 
 export function getConfiguredEmbeddingProvider(): {
   provider: EmbeddingProviderName;
   model: string;
 } {
+  if (process.env.OPENROUTER_API_KEY) {
+    return {
+      provider: "openrouter",
+      model: process.env.OPENROUTER_EMBEDDING_MODEL || "qwen/qwen3-embedding-8b",
+    };
+  }
+
   if (process.env.OPENAI_API_KEY) {
     return {
       provider: "openai",
@@ -89,19 +136,31 @@ export function getConfiguredEmbeddingProvider(): {
   };
 }
 
-export async function generateEmbedding(text: string): Promise<EmbeddingResponse> {
-  const normalized = text.trim();
-  if (!normalized) {
-    throw new Error("Cannot generate an embedding for empty text");
+export async function generateEmbeddings(
+  texts: string[],
+  target: { provider: EmbeddingProviderName; model: string } = getConfiguredEmbeddingProvider()
+): Promise<EmbeddingResponse[]> {
+  const normalized = texts.map((text) => text.trim());
+  if (normalized.length === 0 || normalized.some((text) => !text)) {
+    throw new Error("Cannot generate embeddings for empty text");
   }
 
-  if (process.env.OPENAI_API_KEY) {
-    return buildOpenAiEmbedding(normalized);
+  if (target.provider === "openrouter") {
+    return requestOpenRouterEmbeddings(normalized);
   }
 
-  return {
-    provider: "local-test",
+  if (target.provider === "openai") {
+    return requestOpenAiEmbeddings(normalized);
+  }
+
+  return normalized.map((text) => ({
+    provider: "local-test" as const,
     model: `deterministic-${LOCAL_TEST_DIMENSIONS}d`,
-    vector: buildLocalTestEmbedding(normalized),
-  };
+    vector: buildLocalTestEmbedding(text),
+  }));
+}
+
+export async function generateEmbedding(text: string): Promise<EmbeddingResponse> {
+  const [result] = await generateEmbeddings([text]);
+  return result;
 }

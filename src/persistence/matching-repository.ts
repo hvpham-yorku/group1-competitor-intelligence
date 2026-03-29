@@ -39,6 +39,13 @@ type ProductMatchRow = {
   updated_at: string;
 };
 
+type StoreEmbeddingCoverageRow = {
+  provider: string;
+  model: string;
+  dimensions: number;
+  product_count: number;
+};
+
 function mapStoreRow(row: MatchStoreRow): MatchStoreSummary {
   return {
     store_domain: row.store_domain,
@@ -108,6 +115,32 @@ export async function getOwnedMatchingStore(userId: number): Promise<MatchStoreS
   return stores.find((store) => store.is_owned_store) ?? null;
 }
 
+export async function getStoreEmbeddingCoverage(input: {
+  userId: number;
+  storeDomain: string;
+}): Promise<StoreEmbeddingCoverageRow[]> {
+  return getAll<StoreEmbeddingCoverageRow>(
+    `SELECT
+       pe.provider,
+       pe.model,
+       pe.dimensions,
+       COUNT(*) AS product_count
+     FROM stores s
+     INNER JOIN source_products sp ON sp.store_id = s.id
+     INNER JOIN product_embeddings pe ON pe.source_product_id = sp.id
+     WHERE s.domain = ?
+       AND EXISTS (
+         SELECT 1
+         FROM user_scrape_runs usr
+         WHERE usr.user_id = ?
+           AND usr.store_id = s.id
+       )
+     GROUP BY pe.provider, pe.model, pe.dimensions
+     ORDER BY product_count DESC, pe.provider ASC, pe.model ASC`,
+    [input.storeDomain, input.userId]
+  );
+}
+
 export async function getMatchableProductsByStore(input: {
   userId: number;
   storeDomain: string;
@@ -141,13 +174,17 @@ export async function getMatchableProductsByStore(input: {
        pe.dimensions AS embedding_dimensions,
        pe.updated_at AS embedded_at,
        pe.embedding_json
-     FROM user_scrape_runs usr
-     INNER JOIN stores s ON s.id = usr.store_id
+     FROM stores s
      INNER JOIN source_products sp ON sp.store_id = s.id
      LEFT JOIN source_variants sv ON sv.source_product_id = sp.id
      LEFT JOIN product_embeddings pe ON pe.source_product_id = sp.id
-     WHERE usr.user_id = ?
-       AND s.domain = ?
+     WHERE s.domain = ?
+       AND EXISTS (
+         SELECT 1
+         FROM user_scrape_runs usr
+         WHERE usr.user_id = ?
+           AND usr.store_id = s.id
+       )
      GROUP BY
        sp.id,
        s.domain,
@@ -161,7 +198,209 @@ export async function getMatchableProductsByStore(input: {
       pe.dimensions,
       pe.updated_at
      ORDER BY sp.title ASC`,
-    [input.userId, input.storeDomain]
+    [input.storeDomain, input.userId]
+  );
+
+  return rows.map(mapProductRow);
+}
+
+export async function getTitleMatchCandidatesByStore(input: {
+  userId: number;
+  storeDomain: string;
+}): Promise<MatchableProduct[]> {
+  const rows = await getAll<MatchableProductRow>(
+    `SELECT
+       sp.id AS source_product_id,
+       s.domain AS store_domain,
+       sp.title,
+       sp.product_url,
+       sp.images_json,
+       sp.vendor,
+       sp.product_type,
+       NULL AS variant_titles_csv,
+       NULL AS latest_price,
+       NULL AS latest_observed_at,
+       NULL AS embedding_provider,
+       NULL AS embedding_model,
+       NULL AS embedding_dimensions,
+       NULL AS embedded_at,
+       NULL AS embedding_json
+     FROM stores s
+     INNER JOIN source_products sp ON sp.store_id = s.id
+     WHERE s.domain = ?
+       AND EXISTS (
+         SELECT 1
+         FROM user_scrape_runs usr
+         WHERE usr.user_id = ?
+           AND usr.store_id = s.id
+       )
+     ORDER BY sp.title ASC`,
+    [input.storeDomain, input.userId]
+  );
+
+  return rows.map(mapProductRow);
+}
+
+export async function getPagedMatchableProductsByStore(input: {
+  userId: number;
+  storeDomain: string;
+  limit: number;
+  offset: number;
+  titleQuery?: string;
+  competitorStoreDomain?: string;
+  matchFilter?: "all" | "matched" | "unmatched";
+}): Promise<{ products: MatchableProduct[]; total: number }> {
+  const titleQuery = input.titleQuery?.trim() ?? "";
+  const likeQuery = `%${titleQuery.toLowerCase()}%`;
+  const applyMatchFilter =
+    input.competitorStoreDomain && input.matchFilter && input.matchFilter !== "all";
+  const matchExistsSql = input.competitorStoreDomain
+    ? `EXISTS (
+         SELECT 1
+         FROM product_matches pm
+         INNER JOIN source_products competitor_sp ON competitor_sp.id = pm.competitor_source_product_id
+         INNER JOIN stores competitor_store ON competitor_store.id = competitor_sp.store_id
+         WHERE pm.user_id = ?
+           AND pm.owned_source_product_id = sp.id
+           AND pm.status = 'approved'
+           AND competitor_store.domain = ?
+       )`
+    : "0";
+
+  const whereClauses = [
+    `s.domain = ?`,
+    `EXISTS (
+       SELECT 1
+       FROM user_scrape_runs usr
+       WHERE usr.user_id = ?
+         AND usr.store_id = s.id
+     )`,
+    titleQuery ? `LOWER(sp.title) LIKE ?` : null,
+    applyMatchFilter
+      ? input.matchFilter === "matched"
+        ? matchExistsSql
+        : `NOT ${matchExistsSql}`
+      : null,
+  ].filter(Boolean);
+
+  const baseParams: unknown[] = [input.storeDomain, input.userId];
+  if (titleQuery) {
+    baseParams.push(likeQuery);
+  }
+  if (applyMatchFilter && input.competitorStoreDomain) {
+    baseParams.push(input.userId, input.competitorStoreDomain);
+  }
+
+  const totalRow = await getRow<{ total: number }>(
+    `SELECT COUNT(DISTINCT sp.id) AS total
+     FROM stores s
+     INNER JOIN source_products sp ON sp.store_id = s.id
+     WHERE ${whereClauses.join("\n       AND ")}`,
+    baseParams
+  );
+
+  const rows = await getAll<MatchableProductRow>(
+    `SELECT
+       sp.id AS source_product_id,
+       s.domain AS store_domain,
+       sp.title,
+       sp.product_url,
+       sp.images_json,
+       sp.vendor,
+       sp.product_type,
+       GROUP_CONCAT(DISTINCT COALESCE(sv.variant_title, '')) AS variant_titles_csv,
+       (
+         SELECT po_latest.price
+         FROM source_variants sv_latest
+         INNER JOIN product_observations po_latest ON po_latest.source_variant_id = sv_latest.id
+         WHERE sv_latest.source_product_id = sp.id
+         ORDER BY po_latest.observed_at DESC, po_latest.id DESC
+         LIMIT 1
+       ) AS latest_price,
+       (
+         SELECT MAX(po_latest.observed_at)
+         FROM source_variants sv_latest
+         INNER JOIN product_observations po_latest ON po_latest.source_variant_id = sv_latest.id
+         WHERE sv_latest.source_product_id = sp.id
+       ) AS latest_observed_at,
+       NULL AS embedding_provider,
+       NULL AS embedding_model,
+       NULL AS embedding_dimensions,
+       NULL AS embedded_at,
+       NULL AS embedding_json
+     FROM stores s
+     INNER JOIN source_products sp ON sp.store_id = s.id
+     LEFT JOIN source_variants sv ON sv.source_product_id = sp.id
+     WHERE ${whereClauses.join("\n       AND ")}
+     GROUP BY
+       sp.id,
+       s.domain,
+       sp.title,
+       sp.product_url,
+       sp.images_json,
+       sp.vendor,
+       sp.product_type
+     ORDER BY sp.title ASC
+     LIMIT ? OFFSET ?`,
+    [...baseParams, input.limit, input.offset]
+  );
+
+  return {
+    products: rows.map(mapProductRow),
+    total: totalRow?.total ?? 0,
+  };
+}
+
+export async function getMatchableProductsByIds(input: {
+  sourceProductIds: number[];
+}): Promise<MatchableProduct[]> {
+  if (input.sourceProductIds.length === 0) {
+    return [];
+  }
+
+  const placeholders = input.sourceProductIds.map(() => "?").join(", ");
+  const rows = await getAll<MatchableProductRow>(
+    `SELECT
+       sp.id AS source_product_id,
+       s.domain AS store_domain,
+       sp.title,
+       sp.product_url,
+       sp.images_json,
+       sp.vendor,
+       sp.product_type,
+       GROUP_CONCAT(DISTINCT COALESCE(sv.variant_title, '')) AS variant_titles_csv,
+       (
+         SELECT po_latest.price
+         FROM source_variants sv_latest
+         INNER JOIN product_observations po_latest ON po_latest.source_variant_id = sv_latest.id
+         WHERE sv_latest.source_product_id = sp.id
+         ORDER BY po_latest.observed_at DESC, po_latest.id DESC
+         LIMIT 1
+       ) AS latest_price,
+       (
+         SELECT MAX(po_latest.observed_at)
+         FROM source_variants sv_latest
+         INNER JOIN product_observations po_latest ON po_latest.source_variant_id = sv_latest.id
+         WHERE sv_latest.source_product_id = sp.id
+       ) AS latest_observed_at,
+       NULL AS embedding_provider,
+       NULL AS embedding_model,
+       NULL AS embedding_dimensions,
+       NULL AS embedded_at,
+       NULL AS embedding_json
+     FROM source_products sp
+     INNER JOIN stores s ON s.id = sp.store_id
+     LEFT JOIN source_variants sv ON sv.source_product_id = sp.id
+     WHERE sp.id IN (${placeholders})
+     GROUP BY
+       sp.id,
+       s.domain,
+       sp.title,
+       sp.product_url,
+       sp.images_json,
+       sp.vendor,
+       sp.product_type`,
+    input.sourceProductIds
   );
 
   return rows.map(mapProductRow);
@@ -170,44 +409,89 @@ export async function getMatchableProductsByStore(input: {
 export async function getEmbeddedProductsByStore(input: {
   userId: number;
   storeDomain: string;
+  provider?: string;
+  model?: string;
 }): Promise<Array<MatchableProduct & { embedding: number[] }>> {
-  const products = await getMatchableProductsByStore(input);
-  const rows = await getAll<{ source_product_id: number; embedding_json: string }>(
+  const rows = await getAll<MatchableProductRow>(
     `SELECT
        sp.id AS source_product_id,
+       s.domain AS store_domain,
+       sp.title,
+       sp.product_url,
+       sp.images_json,
+       sp.vendor,
+       sp.product_type,
+       GROUP_CONCAT(DISTINCT COALESCE(sv.variant_title, '')) AS variant_titles_csv,
+       (
+         SELECT po_latest.price
+         FROM source_variants sv_latest
+         INNER JOIN product_observations po_latest ON po_latest.source_variant_id = sv_latest.id
+         WHERE sv_latest.source_product_id = sp.id
+         ORDER BY po_latest.observed_at DESC, po_latest.id DESC
+         LIMIT 1
+       ) AS latest_price,
+       (
+         SELECT MAX(po_latest.observed_at)
+         FROM source_variants sv_latest
+         INNER JOIN product_observations po_latest ON po_latest.source_variant_id = sv_latest.id
+         WHERE sv_latest.source_product_id = sp.id
+       ) AS latest_observed_at,
+       pe.provider AS embedding_provider,
+       pe.model AS embedding_model,
+       pe.dimensions AS embedding_dimensions,
+       pe.updated_at AS embedded_at,
        pe.embedding_json
-     FROM tracked_stores ts
-     INNER JOIN stores s ON s.id = ts.store_id
+     FROM stores s
      INNER JOIN source_products sp ON sp.store_id = s.id
+     LEFT JOIN source_variants sv ON sv.source_product_id = sp.id
      INNER JOIN product_embeddings pe ON pe.source_product_id = sp.id
-     WHERE ts.user_id = ?
-       AND s.domain = ?`,
-    [input.userId, input.storeDomain]
+     WHERE s.domain = ?
+       AND EXISTS (
+         SELECT 1
+         FROM user_scrape_runs usr
+         WHERE usr.user_id = ?
+           AND usr.store_id = s.id
+       )` +
+      (input.provider ? "\n       AND pe.provider = ?" : "") +
+      (input.model ? "\n       AND pe.model = ?" : "") +
+      `
+     GROUP BY
+       sp.id,
+       s.domain,
+       sp.title,
+       sp.product_url,
+       sp.images_json,
+       sp.vendor,
+       sp.product_type,
+       pe.provider,
+       pe.model,
+       pe.dimensions,
+       pe.updated_at,
+       pe.embedding_json
+     ORDER BY sp.title ASC`,
+    [
+      input.storeDomain,
+      input.userId,
+      ...(input.provider ? [input.provider] : []),
+      ...(input.model ? [input.model] : []),
+    ]
   );
 
-  const embeddingsByProductId = new Map<number, number[]>();
-  for (const row of rows) {
-    try {
-      const parsed = JSON.parse(row.embedding_json) as number[];
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        embeddingsByProductId.set(row.source_product_id, parsed);
-      }
-    } catch {
-      continue;
-    }
-  }
+  return rows
+    .map((row) => {
+      try {
+        const parsed = JSON.parse(row.embedding_json ?? "null") as number[] | null;
+        if (!Array.isArray(parsed) || parsed.length === 0) {
+          return null;
+        }
 
-  return products
-    .map((product) => {
-      const embedding = embeddingsByProductId.get(product.source_product_id);
-      if (!embedding) {
+        return {
+          ...mapProductRow(row),
+          embedding: parsed,
+        };
+      } catch {
         return null;
       }
-
-      return {
-        ...product,
-        embedding,
-      };
     })
     .filter((product): product is MatchableProduct & { embedding: number[] } => product !== null);
 }
@@ -372,4 +656,39 @@ export async function listProductMatches(input: {
   );
 
   return rows;
+}
+
+export async function listProductMatchesForOwnedProducts(input: {
+  userId: number;
+  competitorStoreDomain: string;
+  ownedSourceProductIds: number[];
+  status?: "approved" | "rejected" | "pending";
+}): Promise<ProductMatchRow[]> {
+  if (input.ownedSourceProductIds.length === 0) {
+    return [];
+  }
+
+  const placeholders = input.ownedSourceProductIds.map(() => "?").join(", ");
+  return getAll<ProductMatchRow>(
+    `SELECT
+       pm.owned_source_product_id,
+       pm.competitor_source_product_id,
+       pm.score,
+       pm.method,
+       pm.status,
+       pm.updated_at
+     FROM product_matches pm
+     INNER JOIN source_products competitor_sp
+       ON competitor_sp.id = pm.competitor_source_product_id
+     INNER JOIN stores competitor_store
+       ON competitor_store.id = competitor_sp.store_id
+     WHERE pm.user_id = ?
+       AND competitor_store.domain = ?
+       AND pm.owned_source_product_id IN (${placeholders})
+       ${input.status ? "AND pm.status = ?" : ""}
+     ORDER BY pm.score DESC, pm.updated_at DESC`,
+    input.status
+      ? [input.userId, input.competitorStoreDomain, ...input.ownedSourceProductIds, input.status]
+      : [input.userId, input.competitorStoreDomain, ...input.ownedSourceProductIds]
+  );
 }

@@ -424,7 +424,7 @@ export function TrackingClient() {
       </div>
 
       <Card className="border-white/10 bg-white/[0.02]">
-        <CardHeader className="flex flex-col gap-4 border-b border-white/5 md:flex-row md:items-center md:justify-between">
+        <CardHeader className="flex flex-col gap-4 border-b border-white/5 md:flex-row md:items-start md:justify-between">
           <div>
             <CardTitle>Active tracking</CardTitle>
             <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
@@ -492,7 +492,7 @@ export function TrackingClient() {
                 value={activeTab === "products" ? productSortKey : storeSortKey}
               />
               <Button
-                className="h-9 px-4"
+                className="h-9 px-4 self-center"
                 onClick={() => setSortDescending((value) => !value)}
                 type="button"
                 variant="outline"
@@ -625,7 +625,7 @@ export function TrackingClient() {
                   value={storeUrl}
                   onChange={(event) => setStoreUrl(event.target.value)}
                 />
-                <div className="flex gap-2">
+                <div className="flex items-center gap-2">
                   <Button
                     className="h-10 px-4"
                     disabled={submittingStore || storeUrl.trim().length === 0}
