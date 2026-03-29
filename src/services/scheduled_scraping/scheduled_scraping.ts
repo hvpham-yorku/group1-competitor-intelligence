@@ -11,22 +11,14 @@ declare global {
   var __trackingSchedulerRunning: boolean | undefined;
 }
 
-async function scrapeTrackedProduct(target: Awaited<ReturnType<typeof getTrackedProductsForScheduling>>[number]) {
+
+async function scrapeTrackedItem(request: ScraperRequest, user_ids: number[] | undefined, url: string){
   const startedAt = new Date();
   const engine = ScraperEngine.getInstance();
-  const request = new ScraperRequest(target.product_url);
-  request.resourceType = "product";
-
-  console.log("[scheduled_tracking] scraping tracked product", {
-    source_product_id: target.source_product_id,
-    product_url: target.product_url,
-    tracked_users: target.user_ids.length,
-  });
-
   const result = await engine.execute(request);
   const savedRun = await saveScrapeRun({
-    userIds: target.user_ids,
-    rawUrl: target.product_url,
+    userIds: user_ids,
+    rawUrl: url,
     products: Array.isArray(result?.products) ? result.products : [],
     resourceType: "product",
   });
@@ -38,37 +30,31 @@ async function scrapeTrackedProduct(target: Awaited<ReturnType<typeof getTracked
     startedAt: startedAt.toISOString(),
     finishedAt: new Date().toISOString(),
   });
+
+}
+async function scrapeTrackedProduct(target: Awaited<ReturnType<typeof getTrackedProductsForScheduling>>[number]) {
+  const request = new ScraperRequest(target.product_url);
+  request.resourceType = "product";
+  console.log("[scheduled_tracking] scraping tracked product", {
+    source_product_id: target.source_product_id,
+    product_url: target.product_url,
+    tracked_users: target.user_ids.length,
+  });
+  scrapeTrackedItem(request, target.user_ids, target.product_url);
 }
 
 async function scrapeTrackedStore(
   target: Awaited<ReturnType<typeof getTrackedStoresForScheduling>>[number]
 ) {
-  const startedAt = new Date();
-  const engine = ScraperEngine.getInstance();
   const request = new ScraperRequest(target.store_domain);
   request.resourceType = "store";
-
   console.log("[scheduled_tracking] scraping tracked store", {
     store_id: target.store_id,
     store_domain: target.store_domain,
     tracked_users: target.user_ids.length,
   });
 
-  const result = await engine.execute(request);
-  const savedRun = await saveScrapeRun({
-    userIds: target.user_ids,
-    rawUrl: target.store_domain,
-    products: Array.isArray(result?.products) ? result.products : [],
-    resourceType: "store",
-  });
-
-  await insertTrackingRun({
-    scrapeRunId: savedRun.scrapeRunId,
-    triggerType: "scheduled",
-    status: "completed",
-    startedAt: startedAt.toISOString(),
-    finishedAt: new Date().toISOString(),
-  });
+ scrapeTrackedItem(request, target.user_ids, target.store_domain);
 }
 
 export async function runScheduledTrackingSweep() {

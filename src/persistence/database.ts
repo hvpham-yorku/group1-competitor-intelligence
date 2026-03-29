@@ -7,7 +7,7 @@ export const SqliteDB = new sqlite3.Database(
   sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE,
   (err) => {
     if (err) {
-      console.error("SQLite open error:", err.message);
+      console.error("SQLite open error:", err.message + " while opening " + SQLITE_DB_PATH);
       return;
     }
     console.log("Connected to the sqlite database.", { path: SQLITE_DB_PATH });
