@@ -552,7 +552,7 @@ export async function listScrapeSites(
 
   const searchFilter = query ? `AND s.domain LIKE ?` : "";
   const searchValues = query ? [`%${query}%`] : [];
-  const storeRunFilter = hasResourceType ? `AND sr.resource_type = 'store'` : "";
+  const storeRunFilter = "";
 
   const rawSiteRows = hasStoreId
     ? await getAll<{ url: string; last: string; latest_run_id: number }>(

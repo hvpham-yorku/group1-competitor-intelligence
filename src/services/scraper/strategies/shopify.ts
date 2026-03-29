@@ -4,6 +4,31 @@ import { getWithBrowserFallback } from '../clients';
 import { NormalizedProduct, NormalizedScrapeResult, NormalizedVariant } from '../normalized-types';
 import { asNumber, asRecord, asRecordArray, asString } from '../normalize-utils';
 
+async function sleep(ms: number) {
+    await new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function fetchWithRetry(url: string, attempts = 3): Promise<Response> {
+    let lastResponse: Response | null = null;
+
+    for (let attempt = 1; attempt <= attempts; attempt += 1) {
+        const response = await getWithBrowserFallback(url);
+        if (response.ok) {
+            return response;
+        }
+
+        lastResponse = response;
+        const isRetriable = response.status >= 500 || response.status === 429;
+        if (!isRetriable || attempt === attempts) {
+            return response;
+        }
+
+        await sleep(400 * attempt);
+    }
+
+    return lastResponse as Response;
+}
+
 function normalizeShopifyVariant(
     variant: Record<string, unknown>,
     productTitle: string,
@@ -97,7 +122,7 @@ export const ShopifyStrategy: ScraperStrategy = {
                 break;
             }    
         }
-        const response = await getWithBrowserFallback(endpoint);
+        const response = await fetchWithRetry(endpoint);
         if (response.ok) {
             return {
                 isMatch: true,
@@ -123,7 +148,7 @@ export const ShopifyStrategy: ScraperStrategy = {
             case "product":{
                 //console.log("Fetching product");
                 const url = `${req.url}.json`;
-                const response = await getWithBrowserFallback(url);
+                const response = await fetchWithRetry(url);
                 if (!response.ok) {
                     console.error(`Error fetching Shopify page`);
                     break;
@@ -151,7 +176,7 @@ export const ShopifyStrategy: ScraperStrategy = {
                         message: `Fetching products from page ${page}...`
                     });
                     const url = `${req.url}/products.json?page=${page}&limit=${limit}`;
-                    const response = await getWithBrowserFallback(url);
+                    const response = await fetchWithRetry(url);
 
                     if (!response.ok) {
                         console.error(`Error fetching Shopify page ${page}: ${response.statusText}`);

@@ -2,7 +2,8 @@ import { getProductDetail as getProductDetailRecord } from "@/persistence/produc
 import type { ProductDetail } from "@/services/products/utils";
 
 export async function getProductDetail(input: {
+  userId: number;
   sourceProductId: number;
 }): Promise<ProductDetail | null> {
-  return getProductDetailRecord(input.sourceProductId);
+  return getProductDetailRecord(input);
 }

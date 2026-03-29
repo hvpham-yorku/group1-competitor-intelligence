@@ -226,7 +226,7 @@ export function CompetitorsClient() {
                                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-lg font-bold text-primary">
                                     {siteName.charAt(0).toUpperCase()}
                                 </div>
-                                <div className="ml-auto flex items-center gap-2">
+                                <div className="ml-auto flex items-center gap-2 self-start">
                                     {isOwnedStore ? <Badge>My Store</Badge> : null}
                                     <Badge variant="secondary" className="font-mono text-xs">
                                         {platformLabel}
@@ -234,6 +234,7 @@ export function CompetitorsClient() {
                                     <Button
                                         size="sm"
                                         variant="outline"
+                                        className="h-8"
                                         disabled={isBusy}
                                         onClick={() => void updateTrackedStore(site, "toggle")}
                                     >
@@ -241,7 +242,7 @@ export function CompetitorsClient() {
                                     </Button>
                                     <Menu position="bottom-end" shadow="md" width={220}>
                                         <Menu.Target>
-                                            <Button className="h-8 w-8 p-0" size="sm" variant="outline">
+                                            <Button className="h-8 w-8 self-center p-0" size="sm" variant="outline">
                                                 <MoreHorizontal className="h-4 w-4" />
                                             </Button>
                                         </Menu.Target>

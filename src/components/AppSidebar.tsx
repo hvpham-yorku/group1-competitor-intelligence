@@ -11,6 +11,7 @@ import {
     User,
     Settings2,
     Activity,
+    GitCompareArrows,
 } from "lucide-react"
 
 import {
@@ -48,6 +49,11 @@ const applicationItems = [
         title: "Tracking",
         url: "/tracking",
         icon: Activity,
+    },
+    {
+        title: "Matching",
+        url: "/matching",
+        icon: GitCompareArrows,
     },
 ]
 
