@@ -1,5 +1,6 @@
 "use client";
 import { useSession } from "next-auth/react"
+import { AuthButton } from "@/components/AuthButton"
 
 export default function AccountInfo() {
     const {data: MySession, status} = useSession();
@@ -22,6 +23,9 @@ export default function AccountInfo() {
                             </div>
                         </div>
                     </div>
+                </div>
+                <div className="flex justify-center mt-4">
+                    <AuthButton />
                 </div>
             </div>
         </div>
