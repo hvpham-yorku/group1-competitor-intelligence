@@ -1,5 +1,4 @@
-import { NormalizedProduct } from "@/services/scraper/normalized-types";
-import { getAll, getRow } from "./sqlite-helpers";
+import { getAll } from "./sqlite-helpers";
 
 export async function getSourceProductTableIdByPlatformId(ProductId: string) : Promise<number | null> {
     const row = await getAll<{id : number}>(

@@ -90,7 +90,7 @@ export default function Form() {
           </button>
         </form>
         <div className="mt-4 text-center text-muted-foreground">
-          Don't have an account?{' '}
+          Don&apos;t have an account?{" "}
           <button
             onClick={() => Router.push("/register")}
             className="text-blue-400 hover:underline"

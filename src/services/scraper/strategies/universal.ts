@@ -1,7 +1,7 @@
 import { ScraperStrategy } from './interface';
 import { ScraperRequest } from '../request';
-import { asRecordArray } from '../normalize-utils';
 import { NormalizedProduct } from '../normalized-types';
+import { spawn } from "child_process";
 
 
 
@@ -19,7 +19,6 @@ export const UniversalStrategy: ScraperStrategy = {
         const HtmlPromise = (await HtmlRequest).text();
         const HtmlText = await HtmlPromise; 
         //console.log(HtmlText);
-        const spawn = require("child_process").spawn;
         const pythonProcess = spawn('python',["src\\services\\python_rlm\\scripts.py"]);
         pythonProcess.stdin.write(HtmlText);
         pythonProcess.stdin.end();
@@ -44,7 +43,7 @@ export const UniversalStrategy: ScraperStrategy = {
                 // Parse the JSON output from Python
                 const finalOutput = JSON.parse(OutputText);
                 resolve(finalOutput);
-            } catch (e) {
+            } catch {
                 reject(new Error(`Failed to parse the child process JSON output: ${OutputText}`));
             }
     

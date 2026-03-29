@@ -6,13 +6,14 @@ import { Trash2, X, ChevronDown, ChevronUp } from "lucide-react"
 import { SearchBar } from "@/components/SearchBar"
 import { Button } from "@/components/ui/button"
 import { useDebounce } from "@/hooks/use-debounce"
+import type { NormalizedProduct } from "@/services/scraper/normalized-types"
 
 type Run = { id: number; created_at: string }
 
 type Site = {
   url: string
   runs: Run[]
-  latestRun: { id: number; created_at: string; products: any[] } | null
+  latestRun: { id: number; created_at: string; products: NormalizedProduct[] } | null
 }
 
 function ConfirmPopup(props: {
@@ -80,7 +81,7 @@ export default function LogsClient() {
 
   // Track which specific run is expanded (not just site)
   const [expandedRunId, setExpandedRunId] = useState<number | null>(null)
-  const [productsByRunId, setProductsByRunId] = useState<Record<number, any[]>>({})
+  const [productsByRunId, setProductsByRunId] = useState<Record<number, NormalizedProduct[]>>({})
 
   // Track which sites have expanded run lists
   const [expandedSiteUrls, setExpandedSiteUrls] = useState<Set<string>>(new Set())
@@ -107,14 +108,17 @@ export default function LogsClient() {
         throw new Error("Failed to load logs")
       }
 
-      const data = await res.json()
+      const data = (await res.json()) as {
+        sites?: Site[]
+        totalPages?: number
+      }
       const nextSites: Site[] = data.sites || []
 
       setSites(nextSites)
       setTotalPages(data.totalPages || 1)
 
       // Cache latest products so expanding feels instant
-      const nextCache: Record<number, any[]> = {}
+      const nextCache: Record<number, NormalizedProduct[]> = {}
 
       for (const s of nextSites) {
         if (s.latestRun?.id) {
@@ -123,16 +127,15 @@ export default function LogsClient() {
       }
 
       setProductsByRunId((prev) => ({ ...nextCache, ...prev }))
-    } catch (e: any) {
-      setError(e?.message || "Failed to load logs")
+    } catch (error: unknown) {
+      setError(error instanceof Error ? error.message : "Failed to load logs")
     } finally {
       setLoading(false)
     }
   }
 
   useEffect(() => {
-    fetchSites(debouncedQuery, page)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    void fetchSites(debouncedQuery, page)
   }, [debouncedQuery, page])
 
   const ensureRunLoaded = async (runId: number) => {
@@ -368,7 +371,7 @@ export default function LogsClient() {
           description={
             <>
               This will delete <span className="font-semibold">{confirmSiteUrl}</span> and{" "}
-              <span className="font-semibold">all</span> of its saved scrape runs. This can't be undone.
+              <span className="font-semibold">all</span> of its saved scrape runs. This can&apos;t be undone.
             </>
           }
           confirmText="Delete website"
@@ -389,7 +392,7 @@ export default function LogsClient() {
         <ConfirmPopup
           open={confirmRunId !== null}
           title="Delete run?"
-          description="This will delete the selected historical scrape run. This can't be undone."
+          description="This will delete the selected historical scrape run. This can&apos;t be undone."
           confirmText="Delete run"
           onCancel={() => {
             setConfirmRunId(null)

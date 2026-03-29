@@ -7,12 +7,8 @@ import { ScraperEngine } from "@/services/scraper/engine";
 import { ScraperRequest } from "@/services/scraper/request";
 import {getSourceProductTableIdByPlatformId } from "@/persistence/product-source-repository";
 import { sendNotificationEmail } from "../email_alerts/email_alerts";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { JSX } from "react";
 import { getProductDetail } from "@/persistence/product-details-repository";
 import { findUserById } from "@/persistence/users-repository";
-import { User } from "lucide-react";
 
 declare global {
   var __trackingSchedulerInitialized: boolean | undefined;
@@ -31,14 +27,17 @@ async function scrapeTrackedItem(request: ScraperRequest, user_ids: number[] | u
   const result = await engine.execute(request);
   
 
-  let ChangedProducts : changed_products[] = [];
-  for(let Product of result?.products){
+  const ChangedProducts : changed_products[] = [];
+  for (const Product of result?.products ?? []) {
     
-    let SourceProductTableId = await getSourceProductTableIdByPlatformId(Product.id?.toString() as string);
-    let OldProductDetails = await getProductDetail(SourceProductTableId as unknown as number);
-    let OldPrice = OldProductDetails?.summary.latest_price as number;
-    let CurrentPriceString = Product?.price ?? Product.variants[0].price;
-    let CurrentPrice = Number(CurrentPriceString);
+    const SourceProductTableId = await getSourceProductTableIdByPlatformId(Product.id?.toString() as string);
+    const OldProductDetails =
+      SourceProductTableId != null && user_ids?.[0] != null
+        ? await getProductDetail({ userId: user_ids[0], sourceProductId: SourceProductTableId as unknown as number })
+        : null;
+    const OldPrice = OldProductDetails?.summary.latest_price as number | null;
+    const CurrentPriceString = Product?.price ?? Product.variants[0].price;
+    const CurrentPrice = Number(CurrentPriceString);
     if(OldPrice != null && OldPrice != CurrentPrice){
       ChangedProducts.push({Title: Product.title, OldPrice: OldPrice, NewPrice: CurrentPrice});
     }
@@ -54,8 +53,8 @@ async function scrapeTrackedItem(request: ScraperRequest, user_ids: number[] | u
     console.log("Products Changed");
     
     
-    let ProductComponents = ChangedProducts.map(Product => {
-      return (<div>
+    const ProductComponents = ChangedProducts.map(Product => {
+      return (<div key={Product.Title}>
         <p>
           Title: {Product.Title}, OldPrice: {Product.OldPrice}, NewPrice: {Product.NewPrice}
         </p>
@@ -69,12 +68,12 @@ async function scrapeTrackedItem(request: ScraperRequest, user_ids: number[] | u
       
         {ProductComponents}
       </div>);
-    for(let UserId of user_ids as number[]){
-      let UserInfo = await findUserById(UserId)
+    for(const UserId of user_ids as number[]){
+      const UserInfo = await findUserById(UserId)
       //console.log("\n\n");
       //console.log(UserInfo?.email);
       //console.log(ResponseComponent);
-      const ResponseEmail = await sendNotificationEmail("Price Change Alert", UserInfo?.email as string, ResponseComponent);
+      await sendNotificationEmail("Price Change Alert", UserInfo?.email as string, ResponseComponent);
       //console.log(ResponseEmail);
     }
 

@@ -229,7 +229,7 @@ export const ShopifyStrategy: ScraperStrategy = {
 
         return result;
     },
-    ScrapeParticularProduct: async(url: string, shop: string) => {
+    ScrapeParticularProduct: async() => {
         
         return "";
     }
