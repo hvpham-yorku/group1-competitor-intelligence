@@ -1066,11 +1066,6 @@ export function MatchingClient({ initialWorkspace }: { initialWorkspace: Matchin
                 />
                 <div className="text-xs text-muted-foreground">
                   {workspace.embedding_status
-                    ? `${workspace.embedding_status.provider}/${workspace.embedding_status.model}`
-                    : null}
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  {workspace.embedding_status
                     ? `${workspace.embedding_status.owned_store_domain}: ${workspace.embedding_status.owned_cached_embeddings}/${workspace.embedding_status.owned_total_products} cached, ${workspace.embedding_status.owned_missing_embeddings} missing`
                     : workspace.owned_store
                       ? `${workspace.owned_store.store_domain}: ${workspace.owned_store.product_count} products`
