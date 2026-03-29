@@ -41,3 +41,6 @@ Primary project docs are on the GitHub Wiki:
 - [Home](https://github.com/hvpham-yorku/group1-competitor-intelligence/wiki/Home)
 - [Architecture Sketch](https://github.com/hvpham-yorku/group1-competitor-intelligence/wiki/Architecture-Sketch)
 - [Development Setup](https://github.com/hvpham-yorku/group1-competitor-intelligence/wiki/Development-Setup)
+- [UML Diagram](https://github.com/hvpham-yorku/group1-competitor-intelligence/wiki/UML-Diagram)
+- [Iteration 2 (ITR2) Wiki Update](https://github.com/hvpham-yorku/group1-competitor-intelligence/wiki/Iteration-2-(ITR2)-Wiki-Update)
+- [Iteration 3 (ITR3) Wiki Update](https://github.com/hvpham-yorku/group1-competitor-intelligence/wiki/Iteration-3-(ITR3)-Wiki-Update)
