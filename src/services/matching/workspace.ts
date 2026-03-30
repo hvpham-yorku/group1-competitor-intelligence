@@ -48,6 +48,8 @@ function buildEmbeddingInput(product: MatchableProduct): string {
   const variantText = product.variant_titles.filter(Boolean).join(" | ");
   const measurementTokens = extractMeasurementTokens([product.title, variantText].filter(Boolean).join(" "));
 
+  // Pack the title, variants, and simple measurements into one stable text block so
+  // embeddings stay comparable across stores with slightly different naming styles.
   return [
     `title: ${product.title}`,
     product.vendor ? `vendor: ${product.vendor}` : null,
@@ -255,6 +257,8 @@ async function resolveActiveEmbeddingConfig(input: {
     competitorCoverage.map((entry) => [`${entry.provider}::${entry.model}`, entry])
   );
 
+  // Fall back to the best shared provider/model already cached across both stores so
+  // recommendation generation can reuse existing embeddings when possible.
   const bestShared = ownedCoverage
     .map((entry) => {
       const competitorEntry = competitorByKey.get(`${entry.provider}::${entry.model}`);
@@ -362,6 +366,8 @@ export async function getMatchingWorkspace(input: {
           competitorStore: selectedStore,
         })
       : null;
+  // The workspace payload is intentionally front-end ready: one request returns the
+  // selected stores, owned page, reviewed matches, title defaults, and embedding status.
   const ownedPage =
     ownedStore && selectedStore
       ? await getPagedMatchableProductsByStore({
@@ -562,6 +568,8 @@ export async function syncStoreEmbeddings(input: {
     return true;
   });
 
+  // Batch embedding requests aggressively enough for throughput, but keep provider-
+  // specific limits so the sync can run on OpenRouter, OpenAI, or local test backends.
   for (let index = 0; index < pendingProducts.length; index += batchSize) {
     const chunk = pendingProducts.slice(index, index + batchSize);
     const embeddingInputs = chunk.map((product) => buildEmbeddingInput(product));
@@ -729,6 +737,8 @@ export async function generateRecommendations(input: {
     duration_ms: buildSuggestionsMs,
     total_duration_ms: totalMs,
   });
+  // Cache grouped recommendations so the modal can paginate and revisit results without
+  // regenerating embeddings every time the user flips pages.
   setRecommendationCache({
     userId: input.userId,
     competitorStoreDomain: selectedStore.store_domain,

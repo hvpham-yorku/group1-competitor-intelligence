@@ -123,6 +123,8 @@ function PriceHistoryChart({
       pointMap.set(point.observed_at, existing);
     }
 
+    // Merge comparison series onto the same timestamp axis so the chart can overlay
+    // approved matches without needing a separate chart per product.
     for (const comparison of visibleComparisons) {
       const key = `match_${comparison.product.source_product_id}`;
       for (const point of comparison.history) {
@@ -163,6 +165,8 @@ function PriceHistoryChart({
       return ["auto", "auto"];
     }
 
+    // Keep the price chart relative to the visible values instead of forcing a zero
+    // baseline, which makes small price moves easier to read.
     const minValue = Math.min(...numericValues);
     const maxValue = Math.max(...numericValues);
 
@@ -441,6 +445,8 @@ export function ProductDetailView({
                               ? product.latest_price - summary.latest_price
                               : null;
 
+                          // Delta is shown relative to the current detail page product so
+                          // each matched row reads as a direct competitor comparison.
                           return (
                         <tr
                           key={product.source_product_id}

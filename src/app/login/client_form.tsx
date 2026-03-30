@@ -8,14 +8,15 @@ import { LayoutDashboard } from "lucide-react"
 export default function Form() {
   const Router = useRouter()
   
-  // 1. Add state for your success and error messages
+  // Keep the login feedback inline so failed and successful sign-ins are visible
+  // without leaving the page immediately.
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
 
   const HandleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     
-    // Reset states on every new submission
+    // Clear prior messages before attempting a new sign-in.
     setError(null)
     setSuccess(null)
     
@@ -28,13 +29,12 @@ export default function Form() {
     
     console.log({ Response })
     
-    // 2. Check the response and set the appropriate message
     if (Response?.error) {
       setError("Invalid email or password. Please try again.")
     } else {
       setSuccess("Login successful! Redirecting...")
       
-      // Adding a 1-second delay so the user can see the green success text
+      // Briefly surface the success state before the redirect takes over.
       setTimeout(() => {
         Router.push("/")
         Router.refresh()
@@ -54,8 +54,6 @@ export default function Form() {
         <h2 className="text-2xl font-semibold tracking-tight mb-6 text-center">
           Login to your account
         </h2>
-
-        {/* 3. Conditionally render the error or success boxes */}
         {error && (
           <div className="mb-4 p-3 rounded bg-red-500/10 border border-red-500 text-red-500 text-sm text-center">
             {error}

@@ -49,6 +49,8 @@ function mapRow(row: ProductSearchRow): ProductSearchResult {
 
 function buildBaseQuery(filters: { hasQuery: boolean; hasStoreDomain: boolean }) {
   const whereClauses = [
+    // Product search is limited to stores the user has actually scraped through the
+    // normal store-level flow so results stay within that user's dataset.
     `EXISTS (
       SELECT 1
       FROM user_scrape_runs usr
@@ -169,6 +171,8 @@ export async function searchProductsForUser(input: {
     params
   );
 
+  // Exact and prefix title matches are ranked ahead of the broader LIKE matches so
+  // manual product selection feels more predictable.
   params.push(normalizedQuery, `${normalizedQuery}%`, limit, offset);
 
   const rows = await getAll<ProductSearchRow>(
@@ -226,6 +230,8 @@ export async function listSampleProductsForUser(input: {
 
   params.push(limit, offset);
 
+  // The sample endpoint is used for lightweight pickers, so it defaults to recency
+  // instead of the heavier search ranking logic above.
   const rows = await getAll<ProductSearchRow>(
     `${buildBaseQuery({ hasQuery: false, hasStoreDomain })}
      ORDER BY latest_observed_at DESC, sp.title ASC

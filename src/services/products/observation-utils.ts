@@ -59,6 +59,8 @@ export function buildObservationHistory<T extends ObservationHistoryRow>(
 ): ObservationHistoryPoint[] {
   const snapshots = new Map<number, T[]>();
 
+  // Group rows by scrape run first so variant-level observations collapse into one
+  // snapshot per run before the UI renders history or deltas.
   for (const row of rows) {
     if (!row.scrape_run_id || !row.observed_at) {
       continue;
@@ -95,6 +97,8 @@ export function buildRecentEvents(
   history: ObservationHistoryPoint[],
   limit: number
 ): ObservationRecentEvent[] {
+  // Recent events compare each snapshot to the next older one in the already-sorted
+  // history array, which keeps delta calculation consistent across details and tracking.
   return history.slice(0, limit).map((point, index) => {
     const previous = history[index + 1];
     return {

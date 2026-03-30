@@ -113,6 +113,8 @@ function buildComparisonRows(workspace: MatchingWorkspace): ComparisonRow[] {
     titleSuggestedByOwnedId.set(suggestion.owned_product.source_product_id, suggestion);
   }
 
+  // Show one row per owned product, preferring an approved/reviewed match over a
+  // title suggestion so the table reflects the current saved decision first.
   return workspace.owned_products.map((ownedProduct) => {
     const reviewed = reviewedByOwnedId.get(ownedProduct.source_product_id);
     if (reviewed) {

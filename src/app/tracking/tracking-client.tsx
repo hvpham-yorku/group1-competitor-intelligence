@@ -200,6 +200,8 @@ export function TrackingClient() {
       ].some((value) => value.toLowerCase().includes(lowered));
     });
 
+    // Sorting stays client-side here because the tracking payload is already scoped to the
+    // current user and small enough for responsive in-browser filtering.
     next.sort((left, right) => {
       if (productSortKey === "title") {
         return sortDescending
@@ -264,6 +266,8 @@ export function TrackingClient() {
       (product) => product.price_delta != null && product.price_delta !== 0
     );
 
+    // These cards summarize only the currently loaded tracked dataset, not every scraped
+    // product in the system.
     return {
       totalProducts: products.length,
       totalStores: stores.length,

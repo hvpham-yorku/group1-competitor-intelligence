@@ -231,6 +231,8 @@ export async function getProductDetail(input: {
     matchedRowsByProductId.set(row.source_product_id, existing);
   }
 
+  // Keep the per-match history beside its summary so the details page can render both
+  // the table rows and the optional comparison lines from the same payload.
   const comparisonHistory = matchedProductRows.map((row) => {
     const matchedRows = matchedRowsByProductId.get(row.source_product_id) ?? [];
     const descendingHistory = buildObservationHistory(matchedRows);

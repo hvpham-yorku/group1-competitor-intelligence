@@ -33,6 +33,8 @@ async function scrapeTrackedItem(request: ScraperRequest, user_ids: number[] | u
       continue;
     }
 
+    // Load the comparison helpers lazily so scheduled-scrape tests do not open the DB
+    // unless we actually have enough product data to compare against history.
     const [{ getSourceProductTableIdByPlatformId }, { getProductDetail }] = await Promise.all([
       import("@/persistence/product-source-repository"),
       import("@/persistence/product-details-repository"),
@@ -59,7 +61,7 @@ async function scrapeTrackedItem(request: ScraperRequest, user_ids: number[] | u
   if(ChangedProducts.length != 0){
     console.log("Products Changed");
     
-    
+    // Build one email body that can be reused for every user tracking this item.
     const ProductComponents = ChangedProducts.map(Product => {
       return (<div key={Product.Title}>
         <p>
@@ -94,6 +96,8 @@ async function scrapeTrackedItem(request: ScraperRequest, user_ids: number[] | u
     resourceType: request.resourceType,
   });
 
+  // Scheduled runs reuse the normal scrape persistence flow, then attach a tracking-run
+  // record so the sweep can be audited separately from manual scrapes.
   await insertTrackingRun({
     scrapeRunId: savedRun.scrapeRunId,
     triggerType: "scheduled",
@@ -144,6 +148,8 @@ export async function runScheduledTrackingSweep() {
       getTrackedStoresForScheduling(),
     ]);
 
+    // Product and store targets are isolated so one bad scrape does not stop the rest
+    // of the daily sweep from being recorded.
     for (const target of productTargets) {
       if (!target.product_url || target.user_ids.length === 0) {
         continue;

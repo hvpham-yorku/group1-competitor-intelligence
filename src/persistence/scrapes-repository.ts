@@ -168,6 +168,8 @@ export async function createScrapeRun(
 ): Promise<number> {
   const scrapeRunColumns = await getTableColumns("scrape_runs");
 
+  // These branches keep the repository compatible with older local databases that may
+  // not yet have the newer scrape metadata columns.
   if (
     scrapeRunColumns.includes("store_id") &&
     scrapeRunColumns.includes("resource_type") &&
@@ -359,6 +361,8 @@ export async function findScrapeRunById(
 ): Promise<ScrapeRow | null> {
   const hasResourceType = await scrapeRunsHasResourceType();
   const hasStoreId = await userScrapeRunsHasStoreId();
+  // Prefer the direct store linkage when it exists; otherwise fall back to the older
+  // observation-based join so older DB snapshots still load correctly.
   const run = hasStoreId
     ? await getRow<{ id: number; url: string; created_at: string; resource_type?: "product" | "collection" | "store" }>(
         `SELECT sr.id, s.domain AS url, sr.started_at AS created_at${
@@ -623,6 +627,8 @@ export async function listScrapeSites(
       const rawDomains = rawDomainsByNormalized.get(domain) || [];
       const runsById = new Map<number, ScrapeRunSummary>();
 
+      // Multiple raw URLs can collapse to the same normalized domain, so collect all
+      // matching runs before building the site summary shown in history.
       for (const rawDomain of rawDomains) {
         const runs = hasStoreId
           ? await getAll<ScrapeRunSummary>(

@@ -76,6 +76,8 @@ export function normalizeTrackedProductInput(input: {
     throw new Error("Missing tracked product fields");
   }
 
+  // Keep the tracking input contract small here so the route and service layers can
+  // fail fast before doing repository lookups.
   return {
     url,
   };

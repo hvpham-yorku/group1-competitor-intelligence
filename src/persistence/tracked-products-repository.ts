@@ -205,6 +205,8 @@ export async function getTrackedProductSummaries(input: {
   const rows = await getTrackedObservationRows({ userId: input.userId });
   const grouped = new Map<number, ObservationRow[]>();
 
+  // The base query returns one row per observation/variant, so group by product before
+  // deriving tracked summaries.
   for (const row of rows) {
     const existing = grouped.get(row.source_product_id) || [];
     existing.push(row);
@@ -329,6 +331,8 @@ export async function getRecentDeltaEvents(input: {
     [input.userId]
   );
 
+  // This feed is built from scrape snapshots rather than raw observations so the delta
+  // rows line up with the prices users see in history and scrape-run views.
   return rows.map((row) => ({
     source_product_id: row.source_product_id,
     scrape_run_id: row.scrape_run_id,
