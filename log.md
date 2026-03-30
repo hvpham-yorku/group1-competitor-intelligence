@@ -287,3 +287,164 @@
 - `npm run test:integration`
 - Added integration DB isolation with a dedicated SQLite test file.
 - Updated architecture/UML documentation to match current module boundaries and flows.
+
+---
+
+## 5. Iteration 3 Log (Sprint 3)
+
+**Iteration Window:** Team to confirm: Iteration 3 window]  
+**Sprint:** SCRUM Sprint 3
+
+### 5.1 Meeting Minutes
+
+### Meeting 1: Iteration 3 Planning
+- **Date:** Sample: Friday, March 27, 2026
+- **Time:** Sample: 5:00 PM - 6:00 PM
+
+**Agenda**
+- Review carryover backlog after Iteration 2.
+- Confirm whether the next focus should be broader scraping support, alerting, or matching.
+- Reassign work for higher-value end-to-end stories.
+
+**Decisions Made**
+- Promote universal scraping support into active scope.
+- Prioritize user-facing workflows over additional low-level infrastructure.
+- Treat competitor matching and matched-product analysis as the main Iteration 3 differentiators.
+- Keep dynamic pricing integration and demand modelling in backlog.
+
+**Action Items**
+- Finalize task ownership for matching, tracking, alerts, and auth/account UX improvements.
+- Update planning docs to reflect the Iteration 3 shift.
+
+### Meeting 2: Mid-Iteration Technical Checkpoint
+- **Date:** Sample: Friday, March 27, 2026
+- **Time:** Sample: 5:00 PM - 6:00 PM
+
+**Agenda**
+- Review implementation status for matching and analysis workflows.
+- Review tracking + alerting flow with scheduled scrapes.
+- Review login/account UX issues affecting usability.
+
+**Decisions Made**
+- Approved-match persistence would be the source of truth for comparative analysis.
+- Product detail pages would become the main drill-down surface for matched analytics.
+- Analysis would be kept separate from the landing page to reduce UI confusion.
+- Tracking and alerting would continue to reuse the existing scrape persistence model.
+
+**Action Items**
+- Finish matched-product comparison UI and unmatch actions.
+- Stabilize registration/login feedback and session/logout UX.
+- Tighten settings and tracking views.
+
+### Meeting 3: Final Iteration 3 Review
+- **Date:** Sample: Friday, March 27, 2026
+- **Time:** Sample: 5:00 PM - 6:00 PM
+
+**Agenda**
+- Confirm completed Iteration 3 stories.
+- Review outstanding backlog items.
+- Verify unit/integration coverage and documentation updates.
+
+**Decisions Made**
+- Universal scraping, matching, comparative analytics, tracking workflows, and UX hardening counted as the major Iteration 3 outcomes.
+- Dynamic pricing integration and advanced pricing modelling remain future work.
+- The analysis page replaces a more generic overview direction for competitor comparison.
+
+**Action Items**
+- Finalize take-home assignment documentation.
+- Update logs and iteration planning notes.
+
+---
+
+### 5.2 Iteration 3 Stories and Story Points
+
+| Story ID / Name | Main Developer | Story Points | Iteration 3 Status |
+| --- | --- | ---: | --- |
+| Implement universal LLM + HTML-based scraping functionality | Abdelrahman Eissa | 5.0 | Completed |
+| Competitor Matching System | Yousif Al-dakoki | 6.0 | Completed |
+| Comparative Historical Analytics for Matched Products | Yousif Al-dakoki | 2.0 | Completed |
+| Added tracking backend to track products in the database | Abdelrahman Eissa | 2.0 | Completed |
+| Live alerts of product pricing and metadata changes | Abdelrahman Eissa | 4.5 | Partially Completed |
+| Email Alerts | Abdelrahman Eissa | 3.0 | Completed |
+| Update Login Component: Authentication UI Feedback & Routing Fix | sachin aingaran | Not estimated | Completed |
+| Account Page UI/UX Improvements | Varrshan Preshanthan | 1.0 | Completed |
+| Log Out Confirmation Pop Window | Varrshan Preshanthan | 1.0 | Completed |
+| Overview on competitor catalogues / matched analysis | Yousif Al-dakoki | 2.0 | Completed |
+| Pricing Engine Scaffolding | Yousif Al-dakoki | 3.0 | Completed |
+| Dynamic pricing integration with ecommerce services | Unassigned | 7.0 | Backlog |
+| Advanced pricing modelling: demand elasticity | Unassigned | 6.0 | Backlog |
+
+---
+
+### 5.3 Rationale and Plan Changes for Iteration 3
+
+- **From prior plan to current scope:**
+- Universal scraping was promoted because store support limited to Shopify/WooCommerce JSON was too restrictive for broader competitor coverage.
+- Matching and matched-product analytics were promoted because raw product history alone was not enough to support direct competitor comparison.
+- Tracking and alerting were expanded so the app could move from passive reporting into operational monitoring.
+- A generic overview direction was narrowed into a more focused matched-analysis surface after usability feedback.
+
+- **Key design decisions this iteration:**
+- Reused the existing normalized product/history model rather than introducing a separate analytics datastore.
+- Treated approved matches as the source of truth for comparative analysis.
+- Used product detail pages as the main comparison drill-down for matched products and historical overlays.
+- Kept alerting on top of scheduled scraping and tracked items instead of building a separate eventing subsystem.
+- Preserved user-scoped data access throughout matching, tracking, product details, and analysis flows.
+
+- **Known concerns / open issues:**
+- Dynamic pricing integration is still not implemented end-to-end.
+- Advanced demand modelling remains backlog work.
+- Some reporting and documentation fields below still require final confirmation from the team.
+
+---
+
+### 5.4 Task Assignments and Development Tasks per User Story (Iteration 3)
+
+| User Story | Main Developer | Development Tasks Completed |
+| --- | --- | --- |
+| Implement universal LLM + HTML-based scraping functionality | Abdelrahman Eissa | Added HTML/LLM scraping path, integrated it into scrape execution flow, persisted outputs through existing save pipeline |
+| Competitor Matching System | Yousif Al-dakoki | Built matching workflow, match approval/unmatch flow, matching table updates, loading state improvements |
+| Comparative Historical Analytics for Matched Products | Yousif Al-dakoki | Added matched-product table on details page, delta comparison, toggleable matched history overlays, dedicated analysis page |
+| Added tracking backend to track products in the database | Abdelrahman Eissa | Added tracking persistence, tracked product/store flows, recent delta surfaces, tracking API support |
+| Live alerts of product pricing and metadata changes / Email Alerts | Abdelrahman Eissa | Connected scheduled scrapes to email alert flow, compared old vs new tracked prices, handled alert dispatch paths |
+| Update Login Component: Authentication UI Feedback & Routing Fix | sachin aingaran | Added login feedback messaging, improved auth route behavior, tightened registration/login UX |
+| Account Page UI/UX Improvements / Add username to the database | Varrshan Preshanthan / Abdelrahman Eissa | Updated account display, username presentation, initials/avatar behavior, account detail polish |
+| Log Out Confirmation Pop Window | Varrshan Preshanthan | Added logout confirmation flow in auth/account UI |
+| Overview on competitor catalogues / matched analysis | Yousif Al-dakoki | Reframed overview into analysis page, added current gap sorting/filtering, unmatch action, comparison-focused table UX |
+| Pricing Engine Scaffolding | Yousif Al-dakoki | Added pricing engine scaffolding/interfaces needed for future pricing automation |
+
+---
+
+### 5.5 Planned vs Actual Time by Development Task (Iteration 3)
+
+> The values below are estimated planning and actual effort values based on the implemented Iteration 3 scope.
+
+| User Story | Development Task | Originally Allocated Time | Actual Time Spent |
+| --- | --- | ---: | ---: |
+| Implement universal LLM + HTML-based scraping functionality | Research and support HTML/LLM scraping path | 6 | 8 |
+| Implement universal LLM + HTML-based scraping functionality | Integrate persistence and scrape execution | 4 | 5 |
+| Competitor Matching System | Matching retrieval, approval, and unmatch flow | 6 | 8 |
+| Competitor Matching System | Matching page UI and loading-state work | 4 | 6 |
+| Comparative Historical Analytics for Matched Products | Matched table and delta comparison in product details | 2 | 3 |
+| Comparative Historical Analytics for Matched Products | History overlays and analysis page work | 2 | 4 |
+| Added tracking backend to track products in the database | Tracking persistence and API routes | 3 | 4 |
+| Added tracking backend to track products in the database | Recent delta views and tracking UI support | 2 | 3 |
+| Live alerts of product pricing and metadata changes / Email Alerts | Email alert dispatch on tracked price changes | 4 | 5 |
+| Update Login Component: Authentication UI Feedback & Routing Fix | Login/register feedback and routing fixes | 3 | 4 |
+| Account Page UI/UX Improvements / Add username to the database | Account page polish and username display | 2 | 2 |
+| Log Out Confirmation Pop Window | Confirmation modal and auth UX integration | 1 | 1.5 |
+| Overview on competitor catalogues / matched analysis | Analysis-page table, filters, actions, and polish | 4 | 6 |
+| Pricing Engine Scaffolding | Pricing interfaces and scaffolding support | 3 | 3 |
+
+---
+
+### 5.6 Iteration 3 Test / Release Notes
+
+- Matching, analysis, tracking, and product-detail flows were expanded and refined during Iteration 3.
+- Auth/account UX was tightened to reduce misleading navigation and improve session clarity.
+- Recent maintenance work also removed hidden scheduler initialization side effects from the tracked-products API route and tightened the registration error flow.
+- Final planned-vs-actual time accounting and meeting attendance still need to be filled in from the team's own records before submission.
+
+
+
+
