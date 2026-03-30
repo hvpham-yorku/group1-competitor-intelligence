@@ -33,6 +33,7 @@ import type {
   EmbeddingSyncResult,
   GenerateRecommendationsResult,
   MatchableProduct,
+  MatchStoreSummary,
   MatchingEmbeddingStatus,
   RecommendationPagePayload,
   RecommendationGroupPayload,

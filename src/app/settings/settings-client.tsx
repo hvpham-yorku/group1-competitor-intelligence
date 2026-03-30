@@ -4,6 +4,7 @@ import * as React from "react";
 import { CheckCircle2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select } from "@mantine/core";
 
 type TrackedStoreSummary = {
@@ -90,31 +91,64 @@ export function SettingsClient() {
   };
 
   const ownedStore = stores.find((store) => store.is_owned_store);
+  const selectedStoreRecord =
+    stores.find((store) => store.store_domain === selectedStore) ?? null;
 
   return (
-    <div className="space-y-4 rounded-xl border p-6">
-      <div className="space-y-1">
-        <h2 className="text-lg font-semibold">My Store</h2>
-        <p className="text-sm text-muted-foreground">
-          Choose which tracked store should be treated as your own store across the app.
-        </p>
+    <div className="space-y-6">
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card className="border-white/10 bg-white/[0.02]">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Current my store</CardTitle>
+          </CardHeader>
+          <CardContent className="text-base font-semibold">
+            {ownedStore?.store_domain ?? "Not set"}
+          </CardContent>
+        </Card>
+        <Card className="border-white/10 bg-white/[0.02]">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Tracked stores</CardTitle>
+          </CardHeader>
+          <CardContent className="text-base font-semibold">{stores.length}</CardContent>
+        </Card>
+        <Card className="border-white/10 bg-white/[0.02]">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Tracking schedule</CardTitle>
+          </CardHeader>
+          <CardContent className="text-base font-semibold">
+            {stores[0]?.schedule_label ?? "Daily at 01:00 UTC"}
+          </CardContent>
+        </Card>
       </div>
 
       {loading ? (
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <div className="flex items-center gap-2 rounded-xl border border-white/10 p-6 text-sm text-muted-foreground">
           <Loader2 className="h-4 w-4 animate-spin" />
           Loading tracked stores...
         </div>
       ) : stores.length === 0 ? (
-        <div className="text-sm text-muted-foreground">
+        <div className="rounded-xl border border-white/10 p-6 text-sm text-muted-foreground">
           No tracked stores yet. Track a store first from the playground, competitors page, or tracking page.
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-4 rounded-xl border border-white/10 p-6">
+          <div className="space-y-1">
+            <h2 className="text-lg font-semibold">My Store</h2>
+            <p className="text-sm text-muted-foreground">
+              Choose which tracked store should be treated as your main store across matching and analysis.
+            </p>
+          </div>
+
           <div className="flex flex-wrap items-center gap-2">
             <Badge variant="outline">Tracked stores: {stores.length}</Badge>
             {ownedStore ? <Badge>Current: {ownedStore.store_domain}</Badge> : null}
+            {selectedStoreRecord?.store_platform ? (
+              <Badge variant="outline" className="capitalize">
+                {selectedStoreRecord.store_platform}
+              </Badge>
+            ) : null}
           </div>
+
           <div className="flex flex-col gap-3 md:flex-row md:items-end">
             <div className="flex-1">
               <label className="mb-2 block text-sm text-muted-foreground">Store</label>

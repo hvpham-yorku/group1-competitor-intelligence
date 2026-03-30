@@ -6,6 +6,7 @@ import {
 import {
   parseImageUrl,
   TRACKING_SCHEDULE_LABEL,
+  type RecentDeltaEvent,
   type TrackedProductDetail,
   type TrackedProductSummary,
 } from "@/services/tracking/utils";
@@ -28,6 +29,8 @@ type ObservationRow = {
   available: number | null;
   observed_at: string | null;
 };
+
+export type TrackedObservationRow = ObservationRow;
 
 export type ScheduledTrackedProductTarget = {
   source_product_id: number;
@@ -110,6 +113,12 @@ async function getTrackedObservationRows(input: {
      ORDER BY tp.created_at DESC, sp.id ASC, po.observed_at DESC, sv.id ASC`,
     params
   );
+}
+
+export async function listTrackedObservationRows(input: {
+  userId: number;
+}): Promise<TrackedObservationRow[]> {
+  return getTrackedObservationRows(input);
 }
 
 export async function findSourceProductIdByUrl(
@@ -235,4 +244,107 @@ export async function getTrackedProductDetail(input: {
     history,
     recent_events: recentEvents,
   };
+}
+
+export async function getRecentDeltaEvents(input: {
+  userId: number;
+}): Promise<RecentDeltaEvent[]> {
+  const rows = await getAll<{
+    source_product_id: number;
+    title: string;
+    product_url: string;
+    vendor: string | null;
+    product_type: string | null;
+    store_domain: string;
+    store_platform: string | null;
+    images_json: string | null;
+    scrape_run_id: number | null;
+    latest_price: number | null;
+    previous_price: number | null;
+    latest_seen_at: string | null;
+  }>(
+    `WITH user_products AS (
+       SELECT DISTINCT sp.id AS source_product_id
+       FROM user_scrape_runs usr
+       INNER JOIN source_products sp ON sp.store_id = usr.store_id
+       WHERE usr.user_id = ?
+     ),
+     snapshots AS (
+       SELECT
+         sp.id AS source_product_id,
+         sp.title,
+         sp.product_url,
+         sp.vendor,
+         sp.product_type,
+         s.domain AS store_domain,
+         s.platform AS store_platform,
+         sp.images_json,
+         sr.id AS scrape_run_id,
+         MAX(po.observed_at) AS observed_at,
+         MIN(po.price) AS min_price
+       FROM user_products up
+       INNER JOIN source_products sp ON sp.id = up.source_product_id
+       INNER JOIN stores s ON s.id = sp.store_id
+       INNER JOIN source_variants sv ON sv.source_product_id = sp.id
+       INNER JOIN product_observations po ON po.source_variant_id = sv.id
+       INNER JOIN scrape_runs sr ON sr.id = po.scrape_run_id
+       WHERE po.observed_at IS NOT NULL AND po.price IS NOT NULL
+       GROUP BY
+         sp.id,
+         sp.title,
+         sp.product_url,
+         sp.vendor,
+         sp.product_type,
+         s.domain,
+         s.platform,
+         sp.images_json,
+         sr.id
+     ),
+     ranked AS (
+       SELECT
+         snapshots.*,
+         LEAD(min_price) OVER (
+           PARTITION BY source_product_id
+           ORDER BY observed_at DESC, scrape_run_id DESC
+         ) AS previous_price
+       FROM snapshots
+     )
+     SELECT
+       source_product_id,
+       title,
+       product_url,
+       vendor,
+       product_type,
+       store_domain,
+       store_platform,
+       images_json,
+       scrape_run_id,
+       min_price AS latest_price,
+       previous_price,
+       observed_at AS latest_seen_at
+     FROM ranked
+     WHERE previous_price IS NOT NULL
+       AND min_price != previous_price
+     ORDER BY observed_at DESC, scrape_run_id DESC`,
+    [input.userId]
+  );
+
+  return rows.map((row) => ({
+    source_product_id: row.source_product_id,
+    scrape_run_id: row.scrape_run_id,
+    title: row.title,
+    product_url: row.product_url,
+    vendor: row.vendor,
+    product_type: row.product_type,
+    store_domain: row.store_domain,
+    store_platform: row.store_platform,
+    image_url: parseImageUrl(row.images_json),
+    latest_price: row.latest_price,
+    previous_price: row.previous_price,
+    price_delta:
+      typeof row.latest_price === "number" && typeof row.previous_price === "number"
+        ? row.latest_price - row.previous_price
+        : null,
+    latest_seen_at: row.latest_seen_at,
+  }));
 }

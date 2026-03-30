@@ -39,6 +39,28 @@ type ProductMatchRow = {
   updated_at: string;
 };
 
+type ApprovedMatchedGapRow = {
+  owned_source_product_id: number;
+  owned_store_domain: string;
+  owned_title: string;
+  owned_product_url: string;
+  owned_images_json: string | null;
+  owned_vendor: string | null;
+  owned_product_type: string | null;
+  owned_latest_price: number | null;
+  competitor_source_product_id: number;
+  competitor_store_domain: string;
+  competitor_title: string;
+  competitor_product_url: string;
+  competitor_images_json: string | null;
+  competitor_vendor: string | null;
+  competitor_product_type: string | null;
+  competitor_latest_price: number | null;
+  score: number;
+  method: string;
+  updated_at: string;
+};
+
 type StoreEmbeddingCoverageRow = {
   provider: string;
   model: string;
@@ -690,5 +712,55 @@ export async function listProductMatchesForOwnedProducts(input: {
     input.status
       ? [input.userId, input.competitorStoreDomain, ...input.ownedSourceProductIds, input.status]
       : [input.userId, input.competitorStoreDomain, ...input.ownedSourceProductIds]
+  );
+}
+
+export async function listApprovedMatchedGapRows(input: {
+  userId: number;
+}): Promise<ApprovedMatchedGapRow[]> {
+  return getAll<ApprovedMatchedGapRow>(
+    `SELECT
+       pm.owned_source_product_id,
+       owned_store.domain AS owned_store_domain,
+       owned_sp.title AS owned_title,
+       owned_sp.product_url AS owned_product_url,
+       owned_sp.images_json AS owned_images_json,
+       owned_sp.vendor AS owned_vendor,
+       owned_sp.product_type AS owned_product_type,
+       (
+         SELECT po_latest.price
+         FROM source_variants sv_latest
+         INNER JOIN product_observations po_latest ON po_latest.source_variant_id = sv_latest.id
+         WHERE sv_latest.source_product_id = owned_sp.id
+         ORDER BY po_latest.observed_at DESC, po_latest.id DESC
+         LIMIT 1
+       ) AS owned_latest_price,
+       pm.competitor_source_product_id,
+       competitor_store.domain AS competitor_store_domain,
+       competitor_sp.title AS competitor_title,
+       competitor_sp.product_url AS competitor_product_url,
+       competitor_sp.images_json AS competitor_images_json,
+       competitor_sp.vendor AS competitor_vendor,
+       competitor_sp.product_type AS competitor_product_type,
+       (
+         SELECT po_latest.price
+         FROM source_variants sv_latest
+         INNER JOIN product_observations po_latest ON po_latest.source_variant_id = sv_latest.id
+         WHERE sv_latest.source_product_id = competitor_sp.id
+         ORDER BY po_latest.observed_at DESC, po_latest.id DESC
+         LIMIT 1
+       ) AS competitor_latest_price,
+       pm.score,
+       pm.method,
+       pm.updated_at
+     FROM product_matches pm
+     INNER JOIN source_products owned_sp ON owned_sp.id = pm.owned_source_product_id
+     INNER JOIN stores owned_store ON owned_store.id = owned_sp.store_id
+     INNER JOIN source_products competitor_sp ON competitor_sp.id = pm.competitor_source_product_id
+     INNER JOIN stores competitor_store ON competitor_store.id = competitor_sp.store_id
+     WHERE pm.user_id = ?
+       AND pm.status = 'approved'
+     ORDER BY pm.updated_at DESC`,
+    [input.userId]
   );
 }

@@ -224,7 +224,7 @@ export async function buildSuggestedMatches(input: {
 
     const candidatePool = annCandidates
       .map((candidate) => {
-        const competitorProduct = cachedIndex?.byId.get(candidate.id) ?? competitorById.get(candidate.id);
+        const competitorProduct = competitorById.get(candidate.id);
         if (!competitorProduct) {
           return null;
         }

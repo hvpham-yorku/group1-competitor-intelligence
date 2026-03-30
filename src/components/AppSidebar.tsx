@@ -4,7 +4,6 @@ import * as React from "react"
 import { usePathname } from "next/navigation"
 import {
     Search,
-    LayoutDashboard,
     Package,
     Users,
     FileText,
@@ -12,6 +11,7 @@ import {
     Settings2,
     Activity,
     GitCompareArrows,
+    ChartColumnIncreasing,
 } from "lucide-react"
 
 import {
@@ -55,6 +55,11 @@ const applicationItems = [
         url: "/matching",
         icon: GitCompareArrows,
     },
+    {
+        title: "Analysis",
+        url: "/analysis",
+        icon: ChartColumnIncreasing,
+    },
 ]
 
 const systemItems = [
@@ -83,7 +88,7 @@ export function AppSidebar() {
             <SidebarHeader className="border-b px-4 py-4">
                 <div className="flex items-center gap-2 font-bold text-xl uppercase tracking-tighter">
                     {/* <span className="group-data-[collapsible=icon]:hidden">CI-APP</span> */}
-                    <LayoutDashboard className="h-6 w-6 shrink-0" />
+                    <Search className="h-6 w-6 shrink-0" />
                     <span className="group-data-[collapsible=icon]:hidden truncate">CI-APP</span>
                 </div>
             </SidebarHeader>

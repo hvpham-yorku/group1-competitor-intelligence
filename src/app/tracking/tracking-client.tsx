@@ -26,6 +26,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import type {
+  RecentDeltaEvent,
   TrackedProductSummary,
   TrackedStoreSummary,
 } from "@/services/tracking/utils";
@@ -33,6 +34,7 @@ import type {
 type TrackingResponse = {
   products?: TrackedProductSummary[];
   stores?: TrackedStoreSummary[];
+  recent_deltas?: RecentDeltaEvent[];
   message?: string;
 };
 
@@ -119,6 +121,7 @@ function StatusBanner({
 }
 
 export function TrackingClient() {
+  const recentDeltaPageSize = 20;
   const [loading, setLoading] = React.useState(true);
   const [query, setQuery] = React.useState("");
   const [activeTab, setActiveTab] = React.useState<ActiveTab>("products");
@@ -127,9 +130,11 @@ export function TrackingClient() {
   const [sortDescending, setSortDescending] = React.useState(true);
   const [products, setProducts] = React.useState<TrackedProductSummary[]>([]);
   const [stores, setStores] = React.useState<TrackedStoreSummary[]>([]);
+  const [recentDeltas, setRecentDeltas] = React.useState<RecentDeltaEvent[]>([]);
   const [storeUrl, setStoreUrl] = React.useState("");
   const [submittingStore, setSubmittingStore] = React.useState(false);
   const [workingKey, setWorkingKey] = React.useState<string | null>(null);
+  const [recentDeltaPage, setRecentDeltaPage] = React.useState(1);
   const [notice, setNotice] = React.useState<{
     tone: "success" | "error";
     message: string;
@@ -150,10 +155,13 @@ export function TrackingClient() {
       const data = (await response.json()) as TrackingResponse;
       setProducts(Array.isArray(data.products) ? data.products : []);
       setStores(Array.isArray(data.stores) ? data.stores : []);
+      setRecentDeltas(Array.isArray(data.recent_deltas) ? data.recent_deltas : []);
+      setRecentDeltaPage(1);
     } catch (error) {
       console.error("Failed to load tracked products", error);
       setProducts([]);
       setStores([]);
+      setRecentDeltas([]);
       setNotice({
         tone: "error",
         message: "Failed to load tracking data.",
@@ -393,6 +401,17 @@ export function TrackingClient() {
     () => formatCountdown(nextScheduledRun, now),
     [nextScheduledRun, now]
   );
+  const totalRecentDeltaPages = Math.max(1, Math.ceil(recentDeltas.length / recentDeltaPageSize));
+  const pagedRecentDeltas = React.useMemo(() => {
+    const startIndex = (recentDeltaPage - 1) * recentDeltaPageSize;
+    return recentDeltas.slice(startIndex, startIndex + recentDeltaPageSize);
+  }, [recentDeltaPage, recentDeltas]);
+
+  React.useEffect(() => {
+    if (recentDeltaPage > totalRecentDeltaPages) {
+      setRecentDeltaPage(totalRecentDeltaPages);
+    }
+  }, [recentDeltaPage, totalRecentDeltaPages]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -451,7 +470,6 @@ export function TrackingClient() {
               </div>
               <Select
                 aria-label="Sort tracked items"
-                checkIconPosition="right"
                 className="min-w-[180px]"
                 data={(activeTab === "products" ? PRODUCT_SORT_OPTIONS : STORE_SORT_OPTIONS).map((option) => ({
                   value: option.key,
@@ -733,6 +751,123 @@ export function TrackingClient() {
               )}
             </TabsContent>
           </Tabs>
+        </CardContent>
+      </Card>
+
+      <Card className="border-white/10 bg-white/[0.02]">
+        <CardHeader>
+          <CardTitle>Recent deltas</CardTitle>
+          <CardDescription>Latest price changes across all tracked products.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="flex items-center justify-center py-12 text-muted-foreground">
+              <Loader2 className="mr-3 h-5 w-5 animate-spin" />
+              Loading recent deltas...
+            </div>
+          ) : recentDeltas.length === 0 ? (
+            <div className="py-12 text-center">
+              <p className="text-sm text-muted-foreground">No recent price changes yet.</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Product</TableHead>
+                    <TableHead>Store</TableHead>
+                    <TableHead>Previous</TableHead>
+                    <TableHead>Latest</TableHead>
+                    <TableHead>Delta</TableHead>
+                    <TableHead>Latest event</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {pagedRecentDeltas.map((product) => (
+                    <TableRow key={`delta:${product.source_product_id}:${product.scrape_run_id ?? product.latest_seen_at}`}>
+                      <TableCell>
+                        <Link
+                          href={`/products/${product.source_product_id}`}
+                          className="flex items-center gap-3 hover:opacity-90"
+                        >
+                          {product.image_url ? (
+                            <Image
+                              alt={product.title}
+                              className="h-10 w-10 rounded-md border border-white/10 object-cover"
+                              height={40}
+                              src={product.image_url}
+                              width={40}
+                            />
+                          ) : (
+                            <div className="flex h-10 w-10 items-center justify-center rounded-md border border-dashed border-white/10 text-[10px] text-muted-foreground">
+                              N/A
+                            </div>
+                          )}
+                          <div className="min-w-0">
+                            <div className="truncate font-medium">{product.title}</div>
+                            <div className="truncate text-xs text-muted-foreground">
+                              {product.vendor || "Unknown vendor"}
+                            </div>
+                          </div>
+                        </Link>
+                      </TableCell>
+                      <TableCell>{product.store_domain}</TableCell>
+                      <TableCell>{formatPrice(product.previous_price)}</TableCell>
+                      <TableCell>{formatPrice(product.latest_price)}</TableCell>
+                      <TableCell>
+                        <span
+                          className={
+                            typeof product.price_delta !== "number"
+                              ? "text-muted-foreground"
+                              : product.price_delta > 0
+                                ? "text-rose-400"
+                                : "text-emerald-400"
+                          }
+                        >
+                          {formatDelta(product.price_delta)}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {formatDate(product.latest_seen_at)}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+
+              <div className="flex items-center justify-between gap-4">
+                <div className="text-sm text-muted-foreground">
+                  Showing {(recentDeltaPage - 1) * recentDeltaPageSize + 1}-
+                  {Math.min(recentDeltaPage * recentDeltaPageSize, recentDeltas.length)} of {recentDeltas.length}
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={recentDeltaPage === 1}
+                    onClick={() => setRecentDeltaPage((current) => Math.max(1, current - 1))}
+                  >
+                    Previous
+                  </Button>
+                  <span className="text-sm text-muted-foreground">
+                    Page {recentDeltaPage} of {totalRecentDeltaPages}
+                  </span>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={recentDeltaPage === totalRecentDeltaPages}
+                    onClick={() =>
+                      setRecentDeltaPage((current) => Math.min(totalRecentDeltaPages, current + 1))
+                    }
+                  >
+                    Next
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

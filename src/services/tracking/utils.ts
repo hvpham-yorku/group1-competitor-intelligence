@@ -47,6 +47,22 @@ export type TrackedProductDetail = {
   recent_events: ObservationRecentEvent[];
 };
 
+export type RecentDeltaEvent = {
+  source_product_id: number;
+  scrape_run_id: number | null;
+  title: string;
+  product_url: string;
+  vendor: string | null;
+  product_type: string | null;
+  store_domain: string;
+  store_platform: string | null;
+  image_url: string | null;
+  latest_price: number | null;
+  previous_price: number | null;
+  price_delta: number | null;
+  latest_seen_at: string | null;
+};
+
 export const TRACKING_SCHEDULE_LABEL = "Daily at 01:00 UTC";
 
 export function normalizeTrackedProductInput(input: {

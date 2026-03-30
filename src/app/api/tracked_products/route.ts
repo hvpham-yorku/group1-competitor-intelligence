@@ -4,6 +4,7 @@ import { authOptions } from "../auth/[...nextauth]/route";
 import { getExistingUserIdFromSession } from "../auth/auth-utils";
 import {
   getTrackedProduct,
+  listRecentDeltaEvents,
   listTrackedProducts,
 } from "@/services/tracking/get-tracked-products";
 import { listTrackedStores } from "@/services/tracking/get-tracked-stores";
@@ -47,12 +48,13 @@ export async function GET(request: Request) {
     return NextResponse.json({ product: trackedProduct });
   }
 
-  const [products, stores] = await Promise.all([
+  const [products, stores, recentDeltas] = await Promise.all([
     listTrackedProducts({ userId }),
     listTrackedStores({ userId }),
+    listRecentDeltaEvents({ userId }),
   ]);
 
-  return NextResponse.json({ products, stores });
+  return NextResponse.json({ products, stores, recent_deltas: recentDeltas });
 }
 
 export async function POST(request: Request) {

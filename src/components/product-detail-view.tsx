@@ -142,6 +142,38 @@ function PriceHistoryChart({
   }, [points, visibleComparisons]);
 
   const primaryHasData = chartData.some((point) => typeof point.primaryPrice === "number");
+  const yDomain = React.useMemo<[number | "auto", number | "auto"]>(() => {
+    const numericValues: number[] = [];
+
+    for (const point of chartData) {
+      if (typeof point.primaryPrice === "number") {
+        numericValues.push(point.primaryPrice);
+      }
+
+      for (const comparison of visibleComparisons) {
+        const key = `match_${comparison.product.source_product_id}`;
+        const value = point[key];
+        if (typeof value === "number") {
+          numericValues.push(value);
+        }
+      }
+    }
+
+    if (numericValues.length === 0) {
+      return ["auto", "auto"];
+    }
+
+    const minValue = Math.min(...numericValues);
+    const maxValue = Math.max(...numericValues);
+
+    if (minValue === maxValue) {
+      const padding = Math.max(Math.abs(minValue) * 0.05, 1);
+      return [Math.max(0, minValue - padding), maxValue + padding];
+    }
+
+    const padding = Math.max((maxValue - minValue) * 0.08, 0.5);
+    return [Math.max(0, minValue - padding), maxValue + padding];
+  }, [chartData, visibleComparisons]);
 
   return (
     <div className="rounded-xl border border-white/10 bg-black/20 p-4">
@@ -196,6 +228,7 @@ function PriceHistoryChart({
                 tick={{ fill: "rgba(255,255,255,0.58)", fontSize: 12 }}
               />
               <YAxis
+                domain={yDomain}
                 stroke="rgba(255,255,255,0.4)"
                 tick={{ fill: "rgba(255,255,255,0.58)", fontSize: 12 }}
                 tickFormatter={(value: number) => `$${value.toFixed(0)}`}
@@ -209,9 +242,9 @@ function PriceHistoryChart({
                   color: "#fafafa",
                 }}
                 cursor={{ stroke: "rgba(96,165,250,0.35)", strokeWidth: 1 }}
-                formatter={(value: number, name: string) => [
-                  formatPrice(value),
-                  name === "Your product" ? name : String(name),
+                formatter={(value, name) => [
+                  formatPrice(typeof value === "number" ? value : Number(value ?? 0)),
+                  name === "Main product" ? String(name) : String(name),
                 ]}
                 labelFormatter={(_, payload) => {
                   const point = payload?.[0]?.payload;
@@ -222,7 +255,7 @@ function PriceHistoryChart({
               <Line
                 type="monotone"
                 dataKey="primaryPrice"
-                name="Your product"
+                name="Main product"
                 stroke="#60a5fa"
                 strokeWidth={3}
                 dot={{ r: 4, fill: "#93c5fd", strokeWidth: 0 }}

@@ -33,7 +33,7 @@ export async function saveScrapeRun(input: {
   const userIds = Array.from(
     new Set(
       [input.userId, ...(input.userIds || [])].filter(
-        (value): value is number => Number.isInteger(value) && value > 0
+        (value): value is number => typeof value === "number" && Number.isInteger(value) && value > 0
       )
     )
   );

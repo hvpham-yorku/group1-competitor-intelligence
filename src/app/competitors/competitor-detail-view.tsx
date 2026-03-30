@@ -324,9 +324,10 @@ export function CompetitorDetailView({
                                                             data={visibleScatterData}
                                                             fill="#f4f4f5"
                                                             onClick={(point) => {
-                                                                if (point && typeof point.band === "number") {
+                                                                const clickedPoint = point as unknown as PricePoint | undefined
+                                                                if (clickedPoint && typeof clickedPoint.band === "number") {
                                                                     setFilterMode("band")
-                                                                    setSelectedPriceBand((current) => (current === point.band ? null : point.band))
+                                                                    setSelectedPriceBand((current) => (current === clickedPoint.band ? null : clickedPoint.band))
                                                                 }
                                                             }}
                                                         />
@@ -444,7 +445,10 @@ export function CompetitorDetailView({
                                     <span className="ml-2 text-white">for zoom window {visibleMinPrice} - {visibleMaxPrice}</span>
                                 )}
                             </div>
-                            <ProductGrid products={filteredProducts} showCompetitor={false} />
+                            <ProductGrid
+                                products={filteredProducts as Parameters<typeof ProductGrid>[0]["products"]}
+                                showCompetitor={false}
+                            />
                         </CardContent>
                     </Card>
                 </div>

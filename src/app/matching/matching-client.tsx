@@ -19,7 +19,7 @@ import type {
   RecommendationGroupPayload,
   ProductMatchSuggestion,
 } from "@/services/matching/types";
-import type { ProductSearchPage } from "@/services/products/search-types";
+import type { ProductSearchPage, ProductSearchResult } from "@/services/products/search-types";
 import type { ProductMatchRecord } from "@/services/matching/types";
 
 type ComparisonRow = {
@@ -78,6 +78,25 @@ function mapRecommendationGroups(
       method: candidate.method,
     }))
   );
+}
+
+function mapSearchResultToMatchableProduct(result: ProductSearchResult): MatchableProduct {
+  return {
+    source_product_id: result.source_product_id,
+    store_domain: result.store_domain,
+    title: result.title,
+    product_url: result.product_url,
+    image_url: result.image_url,
+    vendor: result.vendor,
+    product_type: result.product_type,
+    variant_titles: [],
+    latest_price: result.latest_price,
+    latest_observed_at: result.latest_observed_at,
+    embedding_provider: null,
+    embedding_model: null,
+    embedding_dimensions: null,
+    embedded_at: null,
+  };
 }
 
 function buildComparisonRows(workspace: MatchingWorkspace): ComparisonRow[] {
@@ -509,7 +528,9 @@ export function MatchingClient({ initialWorkspace }: { initialWorkspace: Matchin
 
       const results = (await response.json()) as ProductSearchPage;
       setSearchState((current) =>
-        current && current.rowId === rowId ? { ...current, query, loading: false, results: results.items as MatchableProduct[] } : current
+        current && current.rowId === rowId
+          ? { ...current, query, loading: false, results: results.items.map(mapSearchResultToMatchableProduct) }
+          : current
       );
     } catch (error) {
       console.error(error);
@@ -730,6 +751,11 @@ export function MatchingClient({ initialWorkspace }: { initialWorkspace: Matchin
                         variant="outline"
                         size="sm"
                         onClick={() => {
+                          const competitorProduct = currentRow.competitor_product;
+                          if (!competitorProduct) {
+                            return;
+                          }
+
                           void (async () => {
                             setWorking(true);
                             try {
@@ -739,7 +765,7 @@ export function MatchingClient({ initialWorkspace }: { initialWorkspace: Matchin
                                 body: JSON.stringify({
                                   action: "unmatch",
                                   owned_source_product_id: currentRow.owned_product.source_product_id,
-                                  competitor_source_product_id: currentRow.competitor_product.source_product_id,
+                                  competitor_source_product_id: competitorProduct.source_product_id,
                                 }),
                               });
 
@@ -1062,7 +1088,7 @@ export function MatchingClient({ initialWorkspace }: { initialWorkspace: Matchin
                   value={recommendationPhase === "finalizing" ? undefined : recommendationProgress}
                   size="lg"
                   radius="xl"
-                  animated
+                  animate
                 />
                 <div className="text-xs text-muted-foreground">
                   {workspace.embedding_status
@@ -1139,7 +1165,7 @@ export function MatchingClient({ initialWorkspace }: { initialWorkspace: Matchin
               />
             </div>
           </div>
-          <ScrollArea.Autosize mah={560}>
+          <div className="max-h-[560px] overflow-y-auto">
             <div className="overflow-hidden rounded-md border border-white/10 bg-white/[0.02]">
               {visibleRecommendationGroups.length > 0 ? (
                 <table className="w-full table-fixed">
@@ -1289,7 +1315,7 @@ export function MatchingClient({ initialWorkspace }: { initialWorkspace: Matchin
                 </div>
               )}
             </div>
-          </ScrollArea.Autosize>
+          </div>
           <div className="flex justify-end border-t border-white/10 pt-3">
             <div className="mr-auto flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
               <div>

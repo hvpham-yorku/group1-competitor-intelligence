@@ -274,8 +274,8 @@ export const ProductGrid: FC<ProductGridProps> = ({
                 Cell: ({ row }) => {
                     const variants = row.original?.variants || [];
                     if (variants.length <= 1) {
-                        const price = variants[0]?.price || 0;
-                        return `$${parseFloat(price).toFixed(2)}`;
+                        const price = variants[0]?.price ?? "0";
+                        return `$${parseFloat(String(price)).toFixed(2)}`;
                     }
 
                     const prices = variants
@@ -756,7 +756,7 @@ export const ProductGrid: FC<ProductGridProps> = ({
                             >
                                 <div className="text-sm font-medium mb-2 truncate">{variant.title}</div>
                                 <div className="space-y-1 text-xs text-muted-foreground">
-                                    <div>Price: <span className="text-foreground">${parseFloat(variant.price).toFixed(2)}</span></div>
+                                    <div>Price: <span className="text-foreground">${parseFloat(String(variant.price)).toFixed(2)}</span></div>
                                     {variant.sku && <div>SKU: <span className="text-foreground font-mono">{variant.sku}</span></div>}
                                     <div>
                                         Stock: {' '}
