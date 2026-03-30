@@ -14,9 +14,12 @@ import { untrackProduct } from "@/services/tracking/untrack-product";
 import { untrackStore } from "@/services/tracking/untrack-store";
 import { initializeScheduledScraping } from "@/services/scheduled_scraping/scheduled_scraping";
 
-initializeScheduledScraping();
+function ensureScheduledScrapingInitialized() {
+  initializeScheduledScraping();
+}
 
 export async function GET(request: Request) {
+  ensureScheduledScrapingInitialized();
   const session = await getServerSession(authOptions);
   const userId = await getExistingUserIdFromSession(session);
 
@@ -58,6 +61,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  ensureScheduledScrapingInitialized();
   const session = await getServerSession(authOptions);
   const userId = await getExistingUserIdFromSession(session);
 
@@ -109,6 +113,7 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+  ensureScheduledScrapingInitialized();
   const session = await getServerSession(authOptions);
   const userId = await getExistingUserIdFromSession(session);
 

@@ -5,10 +5,7 @@ import { insertTrackingRun } from "@/persistence/tracking-runs-repository";
 import { saveScrapeRun } from "@/services/scrape-runs/save-scrape";
 import { ScraperEngine } from "@/services/scraper/engine";
 import { ScraperRequest } from "@/services/scraper/request";
-import {getSourceProductTableIdByPlatformId } from "@/persistence/product-source-repository";
 import { sendNotificationEmail } from "../email_alerts/email_alerts";
-import { getProductDetail } from "@/persistence/product-details-repository";
-import { findUserById } from "@/persistence/users-repository";
 
 declare global {
   var __trackingSchedulerInitialized: boolean | undefined;
@@ -29,15 +26,25 @@ async function scrapeTrackedItem(request: ScraperRequest, user_ids: number[] | u
 
   const ChangedProducts : changed_products[] = [];
   for (const Product of result?.products ?? []) {
-    
-    const SourceProductTableId = await getSourceProductTableIdByPlatformId(Product.id?.toString() as string);
+    const productId = Product?.id?.toString();
+    const currentPriceString = Product?.price ?? Product?.variants?.[0]?.price;
+
+    if (!productId || currentPriceString == null) {
+      continue;
+    }
+
+    const [{ getSourceProductTableIdByPlatformId }, { getProductDetail }] = await Promise.all([
+      import("@/persistence/product-source-repository"),
+      import("@/persistence/product-details-repository"),
+    ]);
+
+    const SourceProductTableId = await getSourceProductTableIdByPlatformId(productId);
     const OldProductDetails =
       SourceProductTableId != null && user_ids?.[0] != null
         ? await getProductDetail({ userId: user_ids[0], sourceProductId: SourceProductTableId as unknown as number })
         : null;
     const OldPrice = OldProductDetails?.summary.latest_price as number | null;
-    const CurrentPriceString = Product?.price ?? Product.variants[0].price;
-    const CurrentPrice = Number(CurrentPriceString);
+    const CurrentPrice = Number(currentPriceString);
     if(OldPrice != null && OldPrice != CurrentPrice){
       ChangedProducts.push({Title: Product.title, OldPrice: OldPrice, NewPrice: CurrentPrice});
     }
@@ -68,6 +75,7 @@ async function scrapeTrackedItem(request: ScraperRequest, user_ids: number[] | u
       
         {ProductComponents}
       </div>);
+    const { findUserById } = await import("@/persistence/users-repository");
     for(const UserId of user_ids as number[]){
       const UserInfo = await findUserById(UserId)
       //console.log("\n\n");
@@ -103,7 +111,7 @@ async function scrapeTrackedProduct(target: Awaited<ReturnType<typeof getTracked
     product_url: target.product_url,
     tracked_users: target.user_ids.length,
   });
-  scrapeTrackedItem(request, target.user_ids, target.product_url);
+  await scrapeTrackedItem(request, target.user_ids, target.product_url);
 }
 
 async function scrapeTrackedStore(
@@ -119,7 +127,7 @@ async function scrapeTrackedStore(
   });
   
   
- scrapeTrackedItem(request, target.user_ids, target.store_domain);
+ await scrapeTrackedItem(request, target.user_ids, target.store_domain);
 }
 
 export async function runScheduledTrackingSweep() {
@@ -183,7 +191,7 @@ export function initializeScheduledScraping() {
   if (globalThis.__trackingSchedulerInitialized) {
     return;
   }
-  console.log("hello");
+
   cron.schedule(
     "0 1 * * *",
     () => {

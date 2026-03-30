@@ -1,22 +1,47 @@
 "use client"
 
-import { redirect } from "next/navigation";
-import { FormEvent } from "react";
+import { useRouter } from "next/navigation";
+import { FormEvent, useState } from "react";
 import { LayoutDashboard } from "lucide-react"
 
 export default function Form() {
+    const router = useRouter();
+    const [error, setError] = useState<string | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
     const HandleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+        setError(null);
+        setIsSubmitting(true);
         const FormInfo = new FormData(e.currentTarget);
-        await fetch("/api/auth/register", {
+        const response = await fetch("/api/auth/register", {
             method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
             body: JSON.stringify({
                 email: FormInfo.get("email"),
                 password: FormInfo.get("password"),
                 username: FormInfo.get("username")
             }),
         });
-        redirect("/login");
+
+        if (!response.ok) {
+            let message = "Registration failed.";
+            try {
+                const payload = await response.json();
+                if (typeof payload?.message === "string" && payload.message.trim()) {
+                    message = payload.message;
+                }
+            } catch {
+                // Keep the fallback message when the response body is not JSON.
+            }
+            setError(message);
+            setIsSubmitting(false);
+            return;
+        }
+
+        router.push("/login");
     };
 
     return (
@@ -36,31 +61,38 @@ export default function Form() {
                         name="email"
                         type="email"
                         placeholder="Email"
+                        required
                         className="px-4 py-2 rounded-full border border-grey-600 bg-grey-900 text-white focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-0"
                     />
                     <input
                         name="username"
                         type="username"
                         placeholder="Username"
+                        required
                         className="px-4 py-2 rounded-full border border-grey-600 bg-grey-900 text-white focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-0"
                     />
                     <input
                         name="password"
                         type="password"
                         placeholder="Password"
+                        required
                         className="px-4 py-2 rounded-full border border-grey-600 bg-grey-700 text-white focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-0"
                     />
+                    {error ? (
+                        <p className="text-sm text-red-400">{error}</p>
+                    ) : null}
                     <button
                         type="submit"
+                        disabled={isSubmitting}
                         className="bg-white hover:bg-gray-200 transition-colors text-black py-2 rounded-full font-medium"
                     >
-                        Register
+                        {isSubmitting ? "Registering..." : "Register"}
                     </button>
                 </form>
                 <div className="mt-4 text-center text-muted-foreground">
                     Already have an account?{' '}
                     <button
-                        onClick={() => redirect("/login")}
+                        onClick={() => router.push("/login")}
                         className="text-blue-400 hover:underline"
                     >
                         Login

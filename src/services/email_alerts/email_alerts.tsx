@@ -1,6 +1,10 @@
 import { ReactNode } from "react";
 import { Resend } from "resend";
 
+export type SendNotificationEmailResult =
+  | { ok: true }
+  | { ok: false; error: string };
+
 function getResendClient() {
   const apiKey = process.env.RESEND_API_KEY?.trim();
   if (!apiKey) {
@@ -10,27 +14,38 @@ function getResendClient() {
   return new Resend(apiKey);
 }
 
-export async function sendNotificationEmail(Subject : string, Email : string, Content : ReactNode) {
-   try {
+function getSenderAddress() {
+  return process.env.RESEND_FROM_EMAIL?.trim() || "Acme <onboarding@resend.dev>";
+}
+
+export async function sendNotificationEmail(
+  subject: string,
+  email: string,
+  content: ReactNode
+): Promise<SendNotificationEmailResult> {
+  try {
     const resend = getResendClient();
     if (!resend) {
       console.warn("Skipping notification email because RESEND_API_KEY is not configured.");
-      return null;
+      return { ok: true };
     }
 
-    const { data, error } = await resend.emails.send({
-      from: 'Acme <onboarding@resend.dev>',
-      to: [Email],
-      subject: Subject,
-      react: Content,
+    const { error } = await resend.emails.send({
+      from: getSenderAddress(),
+      to: [email],
+      subject,
+      react: content,
     });
 
     if (error) {
-      return Response.json({ error }, { status: 500 });
+      return { ok: false, error: error.message };
     }
 
-    return Response.json(data);
+    return { ok: true };
   } catch (error) {
-    return Response.json({ error }, { status: 500 });
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : String(error),
+    };
   }
 }
