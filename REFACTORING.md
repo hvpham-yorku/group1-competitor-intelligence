@@ -5,7 +5,39 @@ This document summarizes the main refactoring work completed in the project, the
 
 ---
 
-## 1. Persistence Layer Compatibility Refactor
+## 1. Persistence Model Refactor: From JSON Snapshots to Observation-Based History
+
+### Problem
+Earlier scrape handling was closer to a snapshot-style model where each run could be treated like a single saved payload. That approach was sufficient for showing raw scrape results, but it was not a strong foundation for long-term historical analysis, deltas between scrapes, variant-level history, matched-product comparison, or future pricing logic.
+
+### Solution
+The persistence layer was refactored toward an observation-based relational design. Instead of treating a scrape as one opaque JSON-style result, the data is normalized into:
+- `stores`
+- `source_products`
+- `source_variants`
+- `scrape_runs`
+- `product_observations`
+
+This allows each scrape run to contribute structured observations that can later be regrouped into histories, recent events, comparison overlays, and tracking summaries.
+
+### Important Design Note
+The external behavior of the application stayed effectively the same for users: users still run scrapes, open products, inspect history, and compare prices. The refactor changed how data is stored and queried internally so the system is more receptive to richer history features in future iterations.
+
+### Examples
+- `src/persistence/scrapes-repository.ts`
+- `src/services/scrape-runs/save-scrape.ts`
+- `src/services/products/observation-utils.ts`
+- `src/persistence/product-details-repository.ts`
+
+### Outcome
+- Historical views are based on structured observations instead of opaque run payloads.
+- Variant-level and scrape-level history can be derived consistently.
+- Future features such as deltas, matched comparisons, alerting, and pricing analysis are easier to support.
+- Existing user-facing flows still work the same way from the GUI perspective.
+
+---
+
+## 2. Persistence Layer Compatibility Refactor
 
 ### Problem
 The project evolved across multiple schema versions while continuing to use local SQLite databases. Newer features such as `resource_type`, `store_id`, tracked-store ownership, and tracking runs created compatibility problems with older local databases.
@@ -26,7 +58,7 @@ The persistence layer was refactored to detect schema capabilities at runtime an
 
 ---
 
-## 2. Service and Route Responsibility Cleanup
+## 3. Service and Route Responsibility Cleanup
 
 ### Problem
 Some service-layer code was tightly coupled to HTTP concepts, which made reuse and testing harder.
@@ -45,7 +77,7 @@ Service logic was refactored to return plain typed results instead of route-spec
 
 ---
 
-## 3. Scheduled Scraping Initialization Cleanup
+## 4. Scheduled Scraping Initialization Cleanup
 
 ### Problem
 Scheduled scraping initialization previously happened as a module-load side effect in API routes. This made behavior less predictable and complicated testing.
@@ -64,7 +96,7 @@ Initialization was moved out of module-load behavior and into explicit request-t
 
 ---
 
-## 4. Scheduled Scraping Execution Hardening
+## 5. Scheduled Scraping Execution Hardening
 
 ### Problem
 The scheduled scraping flow had fragile assumptions around async behavior and product payload shape, which caused failures in tests and reduced resilience when scraped payloads were incomplete.
@@ -85,7 +117,7 @@ The flow was refactored to:
 
 ---
 
-## 5. Tracking and Delta Read Model Refactor
+## 6. Tracking and Delta Read Model Refactor
 
 ### Problem
 Recent delta reporting originally risked diverging from what users saw in history views because raw observations and summary calculations were not always aligned with scrape snapshots.
@@ -105,7 +137,7 @@ The tracking read model was refactored to derive recent delta events from scrape
 
 ---
 
-## 6. Product Detail Comparison Refactor
+## 7. Product Detail Comparison Refactor
 
 ### Problem
 Product details needed to support both the main product history and approved matched-product comparison history without splitting the logic across multiple endpoints.
@@ -130,7 +162,7 @@ The product detail repository was refactored to assemble one payload containing:
 
 ---
 
-## 7. Search and Analysis Query Refactor
+## 8. Search and Analysis Query Refactor
 
 ### Problem
 Manual product selection and competitor analysis required better query structure and stronger user scoping so that users only search within their own scraped dataset.
@@ -150,7 +182,7 @@ Search and analysis queries were refactored to be user-scoped and to support bet
 
 ---
 
-## 8. UI Flow Cleanup for Authentication and Account UX
+## 9. UI Flow Cleanup for Authentication and Account UX
 
 ### Problem
 Authentication-related UI flows had misleading behavior, especially around registration redirects and feedback visibility.
@@ -171,7 +203,7 @@ The auth UI was refactored to provide inline feedback, correct client-side navig
 
 ---
 
-## 9. Documentation-Level Refactoring
+## 10. Documentation-Level Refactoring
 
 ### Problem
 As features expanded across iterations, planning and project logs no longer reflected the real system structure and priorities.
@@ -197,6 +229,7 @@ Iteration planning and log documents were updated to reflect the actual shift to
 
 ## Summary
 The main refactoring theme in this project was not cosmetic cleanup. It was structural tightening:
+- moving from snapshot-like JSON handling toward an observation-based history model,
 - moving compatibility logic into repositories,
 - reducing route/service coupling,
 - stabilizing scheduled workflows,
